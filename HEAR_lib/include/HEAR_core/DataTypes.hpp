@@ -12,7 +12,9 @@ namespace HEAR{
         EXT_OP,
         PID,
         SUM,
-        GAIN
+        GAIN,
+        ROSFLOATSUB,
+        ROSFLOATPUB
     };
     enum IOTYPE{
         INPUT =0,

@@ -3,6 +3,9 @@
 
 namespace HEAR{
 
+Block::Block(int block_id){
+    _block_id = block_id;
+}
 Block::~Block(){
 //    _ports = {&_input_ports, &_output_ports};
 }

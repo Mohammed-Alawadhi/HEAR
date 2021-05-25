@@ -23,8 +23,9 @@ public:
 };
 
 template <class T> class OutputPort : public Port{
-public:
+private:
     T _data;
+public:
     int _host_block_uid;
     OutputPort(size_t uid, int dtype, int host_block_uid);
     void write(T const &data);

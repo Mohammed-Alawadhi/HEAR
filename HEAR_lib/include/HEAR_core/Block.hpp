@@ -19,6 +19,7 @@ public:
     enum IP{};
     enum OP{}; 
 //    std::vector<std::vector<Port*>*> _ports;
+    Block(int block_id);
     void createPorts(int num_ips, int num_ops);
     template <class T> InputPort<T>* createInputPort(int idx, int dtype, std::string name);
     template <class T> OutputPort<T>* createOutputPort(int idx, int dtype, std::string name);

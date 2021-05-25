@@ -10,6 +10,7 @@ namespace HEAR{
 class ExternalPort: public Block{
 
 public:
+    ExternalPort(int eport_id);
     enum IP{INPUT};
     enum OP{OUTPUT};
     virtual ~ExternalPort(){}
@@ -20,12 +21,14 @@ public:
 
 template <class T>
 class ExternalOutputPort: public ExternalPort{
-public:
-    
-    std::mutex mtx;
+private:
     T _data;
     InputPort<T>* _in;
+public:
     ExternalOutputPort(int dtype);
+    std::mutex mtx;
+    void read(T &data);
+    void update(const T &data);
     void process();
 };
 
@@ -33,11 +36,11 @@ template <class T>
 class ExternalInputPort: public ExternalPort{
 public:
     ExternalInputPort(int dtype);
-    OutputPort<T>* _out;
+    void read(T &data);
     void process();
     void connect(ExternalOutputPort<T>* port);
 private:
     ExternalOutputPort<T>* _connected_port = NULL;
-
+    OutputPort<T>* _out;
 };
 }
