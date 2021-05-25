@@ -12,11 +12,8 @@ private:
     ros::NodeHandle nh_;
     ros::Subscriber sub;
     static const int capacity = 10; 
-    static ExternalOutputPort<float>* ports[capacity];
-public:
-    ROSUnitFloatSub (const ros::NodeHandle& nh);
     static int internal_counter;
-    ExternalOutputPort<float>* registerSubscriber(const std::string& );
+    static ExternalOutputPort<float>* ports[capacity];
     static void(*callbackFunctionPointer[capacity])(const std_msgs::Float32::ConstPtr&);
     static void callback0(const std_msgs::Float32::ConstPtr&);
     static void callback1(const std_msgs::Float32::ConstPtr&);
@@ -28,6 +25,10 @@ public:
     static void callback7(const std_msgs::Float32::ConstPtr&);
     static void callback8(const std_msgs::Float32::ConstPtr&);
     static void callback9(const std_msgs::Float32::ConstPtr&);
+
+public:
+    ROSUnitFloatSub (const ros::NodeHandle& nh);
+    ExternalOutputPort<float>* registerSubscriber(const std::string& );
 
 };
 

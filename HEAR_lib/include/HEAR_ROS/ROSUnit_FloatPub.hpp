@@ -16,7 +16,7 @@ private:
     ExternalInputPort<float>* port;
 public:
     ROSUnitFloatPub(ros::NodeHandle&);
-    ExternalInputPort<float>* registerPublisher(std::string &);
+    ExternalInputPort<float>* registerPublisher(const std::string &);
     void process();
 };
 

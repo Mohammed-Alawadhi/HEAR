@@ -3,7 +3,7 @@
 
 namespace HEAR{
 
-System::System(int frequency){
+System::System(const int frequency){
     this->_dt = 1.f/frequency;
 }
 
@@ -26,6 +26,16 @@ int System::createExternalInputPort(int dtype, std::string port_name){
     return this->addBlock(ext_port, port_name);    
 }
 
+template <class T> 
+ExternalOutputPort<T>* System::getExternalOutputPort(int ext_op_idx){
+    return (ExternalOutputPort<T>*)_blocks[ext_op_idx];
+}
+
+template <class T> 
+ExternalInputPort<T>* System::getExternalInputPort(int ext_ip_idx){
+    return (ExternalInputPort<T>*)_blocks[ext_ip_idx];
+}
+
 int System::addBlock(Block* blk, std::string name){
     blk->_block_uid = num_blocks;
     this->_blocks.push_back(blk);
@@ -46,7 +56,7 @@ void System::connectToExternalInput(int ext_ip_idx, int dest_block_uid, int ip_i
 
 template <class T>
 void System::connectToExternalOutput(int ext_op_idx, int src_block_uid, int op_idx){
-    this->connect<T>(src_block_uid, op_idx, ext_op_idx, ExternalPort::INPUT);
+    this->connect<T>(src_block_uid, op_idx, ext_op_idx, ExternalPort::IP::INPUT);
 }
 
 // void System::readExternalInput(){
@@ -77,11 +87,10 @@ void System::findsequence(){
 
 void System::mainLoop(){
     // call external triggers   
-//    this->readExternalInput();
     for(auto &it : seq){
        it->process();
     }
-//    this->writeExternalOutput();
+    
     // add delay for the loop to run at specified frequency
 }
 

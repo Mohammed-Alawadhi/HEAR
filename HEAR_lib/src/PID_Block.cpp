@@ -13,11 +13,11 @@ PID_Block::~PID_Block(){}
 
 void PID_Block::process(){
     float error;
-    this->e->read(error);
+    e->read(error);
     e_sum += error;
     float output = _kp*error + _kd*(error-_prev)/_dt + _ki*e_sum;
     _prev = error;
-    this->u->write(output);
+    u->write(output);
 }
 
 }

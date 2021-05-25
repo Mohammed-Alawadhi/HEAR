@@ -17,7 +17,6 @@ public:
     enum OP{OUTPUT};
     PID_Block(float);
     ~PID_Block();
-    void init();
     void process();
 };
 

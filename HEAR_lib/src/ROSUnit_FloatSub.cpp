@@ -36,7 +36,7 @@ ROSUnitFloatSub::ROSUnitFloatSub(const ros::NodeHandle& nh): nh_(nh), Block(BLOC
 
 }
 ExternalOutputPort<float>* ROSUnitFloatSub::registerSubscriber(const std::string& topic_name){
-    sub = nh_.subscribe(topic_name, 1, callbackFunctionPointer[internal_counter]);
+    this->sub = nh_.subscribe(topic_name, 1, callbackFunctionPointer[internal_counter]);
     internal_counter++;
     return ports[internal_counter-1];
 }
