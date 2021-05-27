@@ -5,6 +5,7 @@
 #include "HEAR_core/DataTypes.hpp"
 
 #include "ros/ros.h"
+#include <iostream>
 
 using namespace HEAR;
 
@@ -16,15 +17,28 @@ int main(int argc, char** argv) {
     ros::Rate rate(FREQ);
 
     auto simpleSys = new System(FREQ);
+    std::cout<< "creating blocks\n";
+
 
     auto Error_port = simpleSys->createExternalInputPort<float>(TYPE::Float, "Error");
-    auto PID_generic = simpleSys->addBlock(new PID_Block(1.f/FREQ), "PID_GENERIC");
+    std::cout<< "creating ext input\n";
+
+    auto pid_Block = new PID_Block(1.f/FREQ);
+    std::cout<< "created pid block\n";
+
+    auto PID_generic = simpleSys->addBlock(pid_Block, "PID_GENERIC");
+    std::cout<< "added pid block\n";
+
     auto command_port = simpleSys->createExternalOutputPort<float>(TYPE::Float, "Command");
 
     simpleSys->connectToExternalInput<float>(Error_port, PID_generic, PID_Block::IP::ERROR);
-    simpleSys->connectToExternalOutput<float>(command_port, PID_generic, PID_Block::OP::OUTPUT);
-    
+    std::cout<< "connected ext input\n";
+
+    simpleSys->connectToExternalOutput<float>(PID_generic, PID_Block::OP::OUTPUT, command_port);
+    std::cout<< "connected ext output\n";
+
     ROSUnitFloatSub sub_float(nh);
+    std::cout<< "registering subscriber\n";
     auto o_port = sub_float.registerSubscriber("/ref");
     simpleSys->getExternalInputPort<float>(Error_port)->connect(o_port);
 
@@ -33,8 +47,15 @@ int main(int argc, char** argv) {
 
     i_port->connect(simpleSys->getExternalOutputPort<float>(command_port));
 
+    std::cout<< "system created\n";
     simpleSys->init();
+    std::cout<< "system initialized\n";
+    simpleSys->printSystem();
+    std::cout<< "starting system\n";
+    
     simpleSys->execute();
+    std::cout<< "system started\n";
+
 
     while(ros::ok()){
         ros::spinOnce();

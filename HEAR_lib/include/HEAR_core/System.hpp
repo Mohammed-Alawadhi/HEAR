@@ -59,7 +59,7 @@ private:
 int System::init(){
     // do some checks for errors in connectivity etc
     this->findsequence();
-    _graph = Graph(_edges, num_blocks);
+    _graph = Graph(_edges, _blocks.size());
     return true;
 }
 
@@ -94,7 +94,12 @@ int System::addBlock(Block* blk, std::string name){
 template <class T>
 void System::connect(int out_block_uid, int op, int in_block_uid, int ip){
    ((InputPort<T>*) _blocks[in_block_uid]->getInputPort<T>(ip))->connect(_blocks[out_block_uid]->getOutputPort<T>(op));
-   _edges.push_back(Edge({std::make_pair(out_block_uid, op), std::make_pair(in_block_uid, ip)}));
+   Edge ed;
+   ed.src_block_idx = out_block_uid;
+   ed.src_port = op;
+   ed.dest_block_idx = in_block_uid;
+   ed.dest_port = ip;
+   _edges.push_back(ed);
 }
 
 template <class T>
@@ -112,10 +117,10 @@ bool System::sortbyconnectivity(const Block* a, const Block* b)
 {
     for(auto const &iport : b->getInputPorts()){
         if( iport.second->getConnectedBlockUID() == a->_block_uid){
-            return false;
+            return true;
         }
     }
-    return true;
+    return false;
 }
 void System::findsequence(){
     seq = _blocks;
@@ -159,12 +164,14 @@ void System::execute(){
 }
 
 void System::printSystem(){
-    for (int i = 0; i < seq.size(); i++){
+    std::cout <<seq.size()<<std::endl;
+    for (int i = 0; i<seq.size(); i++){
         int src_blk_idx = seq[i]->_block_uid;
+        std::cout<< _block_names[src_blk_idx] <<std::endl;
         auto connections = _graph.adjList[src_blk_idx];
         for(auto const &connection : connections){
             std::cout << _block_names[src_blk_idx] << " | " << seq[i]->getOutputPortName(connection.src_port) << " -----> " 
-                        << seq[i]->getInputPortName(connection.dest_port) << _block_names[connection.dest_block_idx] << " | " << std::endl;
+                        << _blocks[connection.dest_block_idx]->getInputPortName(connection.dest_port)  << " | " << _block_names[connection.dest_block_idx] << std::endl;
         }
     }
 }
