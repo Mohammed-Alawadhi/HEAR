@@ -1,8 +1,8 @@
 #pragma once
 
-#include "Block.hpp"
-#include "Port.hpp"
-#include "ExternalPort.hpp"
+#include "HEAR_core/Block.hpp"
+#include "HEAR_core/Port.hpp"
+#include "HEAR_core/ExternalPort.hpp"
 #include "Graph.hpp"
 
 #include <string>
@@ -25,8 +25,8 @@ public:
     int init();
     void execute();
     void mainLoop();
-    template <class T> int createExternalOutputPort(int dtype, std::string port_name);
-    template <class T> int createExternalInputPort(int dtype, std::string port_name);
+    template <class T> int createExternalOutputPort(TYPE dtype, std::string port_name);
+    template <class T> int createExternalInputPort(TYPE dtype, std::string port_name);
     template <class T> ExternalOutputPort<T>* getExternalOutputPort(int ext_op_idx);
     template <class T> ExternalInputPort<T>* getExternalInputPort(int ext_ip_idx);
 

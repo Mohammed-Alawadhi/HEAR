@@ -1,6 +1,6 @@
 #pragma once
 
-namespace HEAR{
+// namespace HEAR{
 
     enum TYPE{
         NA,
@@ -21,4 +21,4 @@ namespace HEAR{
         OUTPUT =1
     };
 
- }
+//  }

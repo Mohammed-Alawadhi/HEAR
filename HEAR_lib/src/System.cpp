@@ -1,5 +1,5 @@
 
-#include "HEAR_core/System.hpp"
+#include "HEAR_system/System.hpp"
 
 namespace HEAR{
 
@@ -15,13 +15,13 @@ int System::init(){
 }
 
 template <class T>
-int System::createExternalOutputPort(int dtype, std::string port_name){
+int System::createExternalOutputPort(TYPE dtype, std::string port_name){
     ExternalOutputPort<T>* ext_port = new ExternalOutputPort<T>(dtype);
     return this->addBlock(ext_port, port_name);
 }
 
 template <class T>
-int System::createExternalInputPort(int dtype, std::string port_name){
+int System::createExternalInputPort(TYPE dtype, std::string port_name){
     ExternalInputPort<T>* ext_port = new ExternalInputPort<T>(dtype);
     return this->addBlock(ext_port, port_name);    
 }
@@ -74,7 +74,7 @@ void System::connectToExternalOutput(int ext_op_idx, int src_block_uid, int op_i
 bool System::sortbyconnectivity(const Block* a, const Block* b)
 {
     for(auto const &iport : b->getInputPorts()){
-        if( iport->getConnectedBlockUID() == a->_block_uid){
+        if( iport.second->getConnectedBlockUID() == a->_block_uid){
             return false;
         }
     }
@@ -105,8 +105,8 @@ void System::printSystem(){
         int src_blk_idx = seq[i]->_block_uid;
         auto connections = _graph.adjList[src_blk_idx];
         for(auto const &connection : connections){
-            std::cout << _block_names[src_blk_idx] << " | " << seq[i]->getOutputPortName(connection[0]) << " -----> " 
-                        << _block_names[connection[1]] << " | " << seq[i]->getInputPortName(connection[2]) << std::endl;
+            std::cout << _block_names[src_blk_idx] << " | " << seq[i]->getOutputPortName((Block::OP)connection[0]) << " -----> " 
+                        << _block_names[connection[1]] << " | " << seq[i]->getInputPortName((Block::IP)connection[2]) << std::endl;
         }
     }
 }
