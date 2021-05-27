@@ -11,7 +11,7 @@ using namespace HEAR;
 const int FREQ = 200;
 
 int main(int argc, char** argv) {
-    ros::init(argc, argv, "mrft_rpy_node");
+    ros::init(argc, argv, "tesing_node");
     ros::NodeHandle nh;
     ros::Rate rate(FREQ);
 
@@ -22,7 +22,7 @@ int main(int argc, char** argv) {
     auto command_port = simpleSys->createExternalOutputPort<float>(TYPE::Float, "Command");
 
     simpleSys->connectToExternalInput<float>(Error_port, PID_generic, PID_Block::IP::ERROR);
-    simpleSys->connectToExternalOutput<float>(PID_generic, command_port, ExternalPort::IP::INPUT);
+    simpleSys->connectToExternalOutput<float>(command_port, PID_generic, PID_Block::OP::OUTPUT);
     
     ROSUnitFloatSub sub_float(nh);
     auto o_port = sub_float.registerSubscriber("/ref");
@@ -36,6 +36,11 @@ int main(int argc, char** argv) {
     simpleSys->init();
     simpleSys->execute();
 
-
+    while(ros::ok()){
+        ros::spinOnce();
+        pub_float.process();
+        rate.sleep();
+    }
+    simpleSys->terminate();
 
 }

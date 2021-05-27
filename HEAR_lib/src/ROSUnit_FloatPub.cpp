@@ -8,7 +8,7 @@ ROSUnitFloatPub::ROSUnitFloatPub(ros::NodeHandle& nh) : nh_(nh), Block(BLOCK_ID:
 }
 
 ExternalInputPort<float>* ROSUnitFloatPub::registerPublisher(const std::string &topic_name){
-    port = new ExternalInputPort<float>(BLOCK_ID::EXT_IP);
+    port = new ExternalInputPort<float>(TYPE::Float);
     pub_ = nh_.advertise<std_msgs::Float32>(topic_name, 1, true);
     return port;
 }

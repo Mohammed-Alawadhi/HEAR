@@ -1,21 +1,12 @@
+#ifndef EXTERNALPORT_HPP
+#define EXTERNALPORT_HPP
 
-#include "Block.hpp"
-#include "DataTypes.hpp"
-#include "Port.hpp"
+#include "HEAR_core/Block.hpp"
+#include "HEAR_core/DataTypes.hpp"
+#include "HEAR_core/Port.hpp"
+#include <string>
 
-// namespace HEAR{
-
-// class ExternalPort: public Block{
-
-// public:
-//     ExternalPort(int eport_id);
-//     enum IP{INPUT};
-//     enum OP{OUTPUT};
-//     virtual ~ExternalPort(){}
-//     int _dtype = TYPE::NA;
-//     int getType();
-//     virtual void process(){}
-// };
+namespace HEAR{
 
 template <class T>
 class ExternalOutputPort: public Block{
@@ -25,8 +16,8 @@ private:
 public:
     TYPE _dtype;
     enum IP{INUPT}; 
-    ExternalOutputPort(TYPE dtype) : _dtype(dtype){
-        _in = createInputPort(IP::INPUT, dtype, "EXT_INPUT");
+    ExternalOutputPort(TYPE dtype) : _dtype(dtype), Block(BLOCK_ID::EXT_OP){
+        _in = this->createInputPort<T>(0, dtype, "EXT_INPUT");
     }
     std::mutex mtx;
     void read(T &data){
@@ -54,8 +45,8 @@ private:
 public:
     TYPE _dtype;
     enum OP{OUTPUT};
-    ExternalInputPort(TYPE dtype) : _dtype(dtype) {
-        _out = createOutputPort(OP::OUTPUT, dtype, "EXT_OUTPUT");
+    ExternalInputPort(TYPE dtype) : _dtype(dtype), Block(BLOCK_ID::EXT_IP) {
+        _out = createOutputPort<T>(0, dtype, "EXT_OUTPUT");
     }
     void read(T &data){
         assert(_connected_port != NULL);
@@ -71,4 +62,6 @@ public:
     }
 };
 
-// }
+}
+
+#endif

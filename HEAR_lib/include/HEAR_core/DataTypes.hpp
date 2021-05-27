@@ -1,6 +1,7 @@
-#pragma once
+#ifndef DATATYPES_HPP
+#define DATATYPES_HPP
 
-// namespace HEAR{
+namespace HEAR{
 
     enum TYPE{
         NA,
@@ -21,4 +22,6 @@
         OUTPUT =1
     };
 
-//  }
+}
+
+#endif

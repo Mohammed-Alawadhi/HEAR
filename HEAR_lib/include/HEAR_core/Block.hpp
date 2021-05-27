@@ -1,46 +1,43 @@
 
-#pragma once
+#ifndef BLOCK_HPP
+#define BLOCK_HPP
 
 #include <map>
 #include <string>
 
-#include "Port.hpp"
+#include "HEAR_core/Port.hpp"
 
-// namespace HEAR{
+namespace HEAR{
 
 class Block{
 public:
     int _block_uid;
-    enum IP{};
-    enum OP{}; 
-    Block(int block_id);
-    virtual ~Block();
-    template <class T> InputPort<T>* createInputPort(IP idx, TYPE dtype, std::string name);
-    template <class T> OutputPort<T>* createOutputPort(OP idx, TYPE dtype, std::string name);
-    template <class T> InputPort<T>* getInputPort(Block::IP idx);
-    template <class T> OutputPort<T>* getOutputPort(Block::OP idx);
-    virtual std::string getInputPortName(Block::IP idx);
-    virtual std::string getOutputPortName(Block::OP idx);    
-    virtual const std::map<Block::IP, Port*> getInputPorts() const;
-    virtual const std::map<Block::OP, Port*> getOutputPorts() const;
+    Block(BLOCK_ID block_id) : _block_id(block_id){}
+    virtual ~Block(){}
+    template <class T> InputPort<T>* createInputPort(int idx, TYPE dtype, std::string name);
+    template <class T> OutputPort<T>* createOutputPort(int idx, TYPE dtype, std::string name);
+    template <class T> InputPort<T>* getInputPort(int idx){ return (InputPort<T>*)_input_ports[idx]; }
+    template <class T> OutputPort<T>* getOutputPort(int idx) { return (OutputPort<T>*)_output_ports[idx];}
+    virtual std::string getInputPortName(int idx) { return _input_port_names[idx];}
+    virtual std::string getOutputPortName(int idx) {return _output_port_names[idx];}    
+    virtual const std::map<int, Port*> getInputPorts() const {return _input_ports;}
+    virtual const std::map<int, Port*> getOutputPorts() const{return _output_ports;}
     virtual void process() = 0;
-    virtual int getBlockID();
+    void set_dt(float dt) { _dt = dt;}
+    virtual int getBlockID(){ return _block_id;}
 
 private:
-    int _block_id;
-    std::map<Block::IP, Port*> _input_ports;
-    std::map<Block::OP, Port*> _output_ports;
-    std::map<Block::IP, std::string> _input_port_names;
-    std::map<Block::OP, std::string> _output_port_names;
+    float _dt;
+    BLOCK_ID _block_id;
+    std::map<int, Port*> _input_ports;
+    std::map<int, Port*> _output_ports;
+    std::map<int, std::string> _input_port_names;
+    std::map<int, std::string> _output_port_names;
     
 };
 
-Block::Block(int block_id) : _block_id(block_id){}
-
-int Block::getBlockID(){ return _block_id; }
-
 template <class T> 
-InputPort<T>* Block::createInputPort(Block::IP idx, TYPE dtype, std::string name){
+InputPort<T>* Block::createInputPort(int idx, TYPE dtype, std::string name){
     auto port = new InputPort<T>(dtype);
     _input_ports.emplace(idx, port);
     _input_port_names.emplace(idx, name);
@@ -48,28 +45,14 @@ InputPort<T>* Block::createInputPort(Block::IP idx, TYPE dtype, std::string name
 }
 
 template <class T> 
-OutputPort<T>* createOutputPort(Block::OP idx, TYPE dtype, std::string name){
-    auto port  = new OutputPort<T>(dtype);
+OutputPort<T>* Block::createOutputPort(int idx, TYPE dtype, std::string name){
+    auto port  = new OutputPort<T>(dtype, this->_block_uid);
     _output_ports.emplace(idx, port);
     _output_port_names.emplace(idx, name);
     return port;
 }
 
-template <class T> 
-InputPort<T>* getInputPort(Block::IP idx){
-    return (InputPort<T>*)_input_ports[idx];
-}
-template <class T> 
-OutputPort<T>* getOutputPort(Block::OP idx){
-    return (OutputPort<T>*)_output_ports[idx];
+
 }
 
-std::string Block::getInputPortName(Block::IP idx){
-    return _input_port_names[idx];
-}
-
-std::string Block::getOutputPortName(Block::OP idx){
-    return _output_port_names[idx];
-}
-
-// }
+#endif

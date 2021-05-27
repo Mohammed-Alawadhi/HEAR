@@ -1,20 +1,20 @@
 #include "HEAR_ROS/ROSUnit_FloatSub.hpp"
 
-//HEAR::ExternalOutputPort<float>* HEAR::ROSUnitFloatSub::op_0 = new HEAR::ExternalOutputPort<float>(HEAR::BLOCK_ID::EXT_OP);
+//HEAR::ExternalOutputPort<float>* HEAR::ROSUnitFloatSub::op_0 = new HEAR::ExternalOutputPort<float>(TYPE::Float);
 
 int HEAR::ROSUnitFloatSub::internal_counter = 0;
 
 HEAR::ExternalOutputPort<float>* HEAR::ROSUnitFloatSub::ports[HEAR::ROSUnitFloatSub::capacity] = {
-    new HEAR::ExternalOutputPort<float>(HEAR::BLOCK_ID::EXT_OP),
-    new HEAR::ExternalOutputPort<float>(HEAR::BLOCK_ID::EXT_OP),
-    new HEAR::ExternalOutputPort<float>(HEAR::BLOCK_ID::EXT_OP),
-    new HEAR::ExternalOutputPort<float>(HEAR::BLOCK_ID::EXT_OP),
-    new HEAR::ExternalOutputPort<float>(HEAR::BLOCK_ID::EXT_OP),
-    new HEAR::ExternalOutputPort<float>(HEAR::BLOCK_ID::EXT_OP),
-    new HEAR::ExternalOutputPort<float>(HEAR::BLOCK_ID::EXT_OP),
-    new HEAR::ExternalOutputPort<float>(HEAR::BLOCK_ID::EXT_OP),
-    new HEAR::ExternalOutputPort<float>(HEAR::BLOCK_ID::EXT_OP),
-    new HEAR::ExternalOutputPort<float>(HEAR::BLOCK_ID::EXT_OP)
+    new HEAR::ExternalOutputPort<float>(TYPE::Float),
+    new HEAR::ExternalOutputPort<float>(TYPE::Float),
+    new HEAR::ExternalOutputPort<float>(TYPE::Float),
+    new HEAR::ExternalOutputPort<float>(TYPE::Float),
+    new HEAR::ExternalOutputPort<float>(TYPE::Float),
+    new HEAR::ExternalOutputPort<float>(TYPE::Float),
+    new HEAR::ExternalOutputPort<float>(TYPE::Float),
+    new HEAR::ExternalOutputPort<float>(TYPE::Float),
+    new HEAR::ExternalOutputPort<float>(TYPE::Float),
+    new HEAR::ExternalOutputPort<float>(TYPE::Float)
     };
 
 void(*HEAR::ROSUnitFloatSub::callbackFunctionPointer[HEAR::ROSUnitFloatSub::capacity])(const std_msgs::Float32::ConstPtr&){
@@ -32,8 +32,6 @@ void(*HEAR::ROSUnitFloatSub::callbackFunctionPointer[HEAR::ROSUnitFloatSub::capa
 
 namespace HEAR{
 ROSUnitFloatSub::ROSUnitFloatSub(const ros::NodeHandle& nh): nh_(nh), Block(BLOCK_ID::ROSFLOATSUB){
-    
-
 }
 ExternalOutputPort<float>* ROSUnitFloatSub::registerSubscriber(const std::string& topic_name){
     this->sub = nh_.subscribe(topic_name, 1, callbackFunctionPointer[internal_counter]);

@@ -1,6 +1,7 @@
-#pragma once
+#ifndef ROSUNITFLOATSUB_HPP
+#define ROSUNITFLOATSUB_HPP
 
-#include <HEAR_core/Block.hpp>
+#include "HEAR_core/Block.hpp"
 #include "HEAR_core/ExternalPort.hpp"
 #include "ros/ros.h"
 #include "HEAR_core/DataTypes.hpp"
@@ -29,7 +30,8 @@ private:
 public:
     ROSUnitFloatSub (const ros::NodeHandle& nh);
     ExternalOutputPort<float>* registerSubscriber(const std::string& );
-
+    void process(){}
 };
 
 }
+#endif

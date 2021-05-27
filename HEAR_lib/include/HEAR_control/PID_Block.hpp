@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PID_BLOCK_HPP
+#define PID_BLOCK_HPP
 
 #include "HEAR_core/Block.hpp"
 #include "HEAR_core/Port.hpp"
@@ -21,3 +22,5 @@ public:
 };
 
 }
+
+#endif

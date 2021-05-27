@@ -1,13 +1,14 @@
-#pragma once
+#ifndef PORT_HPP
+#define PORT_HPP
 
 #include <mutex>
 #include <atomic>
 #include <vector>
+#include <cassert>
 
-//#include "HEAR_core/Block.hpp"
 #include "HEAR_core/DataTypes.hpp"
 
-// namespace HEAR{
+namespace HEAR{
 
 class Port{
 private:
@@ -47,4 +48,6 @@ public:
 };
 
 
-// }
+}
+
+#endif

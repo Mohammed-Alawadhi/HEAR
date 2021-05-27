@@ -4,7 +4,6 @@ namespace HEAR{
 
 
 PID_Block::PID_Block(float dt): _dt(dt), Block(BLOCK_ID::PID){
-    createPorts(1, 1);
     e = createInputPort<float>(IP::ERROR, TYPE::Float, "ERROR");
     u = createOutputPort<float>(OP::OUTPUT, TYPE::Float, "OUTPUT");
 }
