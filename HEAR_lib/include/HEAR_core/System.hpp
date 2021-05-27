@@ -26,7 +26,7 @@ namespace HEAR{
 class System{
 public:
     System(const int frequency) : _dt(1.f/frequency), _exit_flag(false) {}
-    ~System(){}
+    ~System();
     void printSystem();
     int init();
     void execute();
@@ -56,6 +56,11 @@ private:
 
 };
 
+System::~System(){
+    if(system_thread){
+        system_thread->join();
+    }
+}
 int System::init(){
     // do some checks for errors in connectivity etc
     this->findsequence();
@@ -133,7 +138,10 @@ void System::mainLoop(){
     auto step_time = std::chrono::microseconds((int)(_dt*1e6));
     std::chrono::duration<double> avglooptime;
     int i = 0;
+    std::cout <<"mainloop started\n";
     while(!_exit_flag){
+//        std::cout <<"mainloop running\n";
+
         start = std::chrono::steady_clock::now();
         // call external triggers   
         for(auto &it : seq){
@@ -153,8 +161,10 @@ void System::mainLoop(){
             avglooptime = std::chrono::duration<double>(0);
         }   
         avglooptime += (loop_time/100);
+        ++i;
 
     }
+    std::cout << "mainloop ended\n";
 }
 
 void System::execute(){
