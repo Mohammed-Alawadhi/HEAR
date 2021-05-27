@@ -7,10 +7,15 @@ System::System(const int frequency){
     this->_dt = 1.f/frequency;
 }
 
-int System::init(){
+System::~System(){
+    if(system_thread){
+        system_thread->join();
+    }
+}
+bool System::init(){
     // do some checks for errors in connectivity etc
     this->findsequence();
-    _graph = Graph(_edges, num_blocks);
+    _graph = new Graph(_edges, num_blocks);
     return true;
 }
 
@@ -86,28 +91,54 @@ void System::findsequence(){
 }
 
 void System::mainLoop(){
-    // call external triggers   
-    for(auto &it : seq){
-       it->process();
+    auto start = std::chrono::steady_clock::now();
+    auto end = std::chrono::steady_clock::now();
+    auto step_time = std::chrono::microseconds((int)(_dt*1e6));
+    std::chrono::duration<double> avglooptime;
+    int i = 0;
+    while(!exit){
+        start = std::chrono::steady_clock::now();
+        // call external triggers   
+        for(auto &it : seq){
+            it->process();
+        }
+        end = std::chrono::steady_clock::now();
+        auto loop_time = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
+        if(loop_time > step_time){
+            // print warning
+        }
+        else{
+            std::this_thread::sleep_for(step_time -loop_time);
+        }
+        if(i == 100){
+            i = 0;
+            std::cout << "Loop Frequency : " << 1.0/avglooptime.count() << std::endl;    
+            avglooptime = std::chrono::duration<double>(0);
+        }   
+        avglooptime += (loop_time/100);
+
     }
-    
-    // add delay for the loop to run at specified frequency
 }
 
 void System::execute(){
-    while(true){ // add condition to stop
-        this->mainLoop();
-    }
+    system_thread = std::unique_ptr<std::thread>(
+                    new std::thread(&System::mainLoop, this));
+    sleep(3);
 }
 
+void System::terminate(){
+    exit = true;
+}
 void System::printSystem(){
     for (int i = 0; i < seq.size(); i++){
         int src_blk_idx = seq[i]->_block_uid;
-        auto connections = _graph.adjList[src_blk_idx];
+        auto connections = _graph->adjList[src_blk_idx];
         for(auto const &connection : connections){
             std::cout << _block_names[src_blk_idx] << " | " << seq[i]->getOutputPortName(connection[0]) << " -----> " 
                         << _block_names[connection[1]] << " | " << seq[i]->getInputPortName(connection[2]) << std::endl;
         }
     }
 }
+
+
 }

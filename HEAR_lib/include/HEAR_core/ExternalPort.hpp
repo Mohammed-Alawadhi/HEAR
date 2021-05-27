@@ -4,43 +4,47 @@
 #include "Block.hpp"
 #include "DataTypes.hpp"
 #include "Port.hpp"
+#include "Msg.hpp"
 
 namespace HEAR{
 
 class ExternalPort: public Block{
-
+private:
+    TYPE _dtype = TYPE::NA;
 public:
-    ExternalPort(int eport_id);
+    ExternalPort(int eport_id, int num_ip, int num_op, TYPE dtype) : _dtype(dtype), Block(eport_id, num_ip, num_op){}
     enum IP{INPUT};
     enum OP{OUTPUT};
     virtual ~ExternalPort(){}
-    int _dtype = TYPE::NA;
-    int getType();
+    virtual TYPE getType() const {return _dtype;}
     virtual void process(){}
 };
 
-template <class T>
 class ExternalOutputPort: public ExternalPort{
 private:
-    T _data;
-    InputPort<T>* _in;
+    InputPort* _in;
 public:
-    ExternalOutputPort(int dtype);
+    Msg* buffer;
+    ExternalOutputPort(Msg* container) : buffer(container), ExternalPort(BLOCK_ID::EXT_OP, 1, 0, container->getType()){}
     std::mutex mtx;
-    void read(T &data);
-    void update(const T &data);
+    void read(Msg &data);
+    void update(const Msg &data);
     void process();
 };
 
-template <class T>
 class ExternalInputPort: public ExternalPort{
 public:
-    ExternalInputPort(int dtype);
-    void read(T &data);
+    ExternalInputPort(TYPE dtype) : ExternalPort(BLOCK_ID::EXT_IP, 1,0, dtype){
+        _out = createOutputPort(OP::OUTPUT, new FloatMsg, "IP");
+    }
+    Msg* read();
     void process();
-    void connect(ExternalOutputPort<T>* port);
+    void connect(ExternalOutputPort* port);
 private:
-    ExternalOutputPort<T>* _connected_port = NULL;
-    OutputPort<T>* _out;
+    ExternalOutputPort* _connected_port = NULL;
+    OutputPort* _out;
 };
+
+
+
 }

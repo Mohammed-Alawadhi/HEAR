@@ -3,21 +3,22 @@
 namespace HEAR{
 
 
-PID_Block::PID_Block(float dt): _dt(dt), Block(BLOCK_ID::PID){
-    createPorts(1, 1);
-    e = createInputPort<float>(IP::ERROR, TYPE::Float, "ERROR");
-    u = createOutputPort<float>(OP::OUTPUT, TYPE::Float, "OUTPUT");
+PID_Block::PID_Block(float dt): _dt(dt), Block(BLOCK_ID::PID, 1, 1){
+    e = createInputPort(IP::ERROR, TYPE::Float, "ERROR");
+    u = createOutputPort(OP::OUTPUT, new FloatMsg, "OUTPUT");
 }
 
 PID_Block::~PID_Block(){}
 
 void PID_Block::process(){
-    float error;
-    e->read(error);
+    FloatMsg* err = (FloatMsg*)e->read();
+    float error = err->data;
     e_sum += error;
     float output = _kp*error + _kd*(error-_prev)/_dt + _ki*e_sum;
     _prev = error;
-    u->write(output);
+    auto out = new FloatMsg();
+    out->data = output;
+    u->write(out);
 }
 
 }

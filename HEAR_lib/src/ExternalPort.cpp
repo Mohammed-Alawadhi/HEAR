@@ -3,28 +3,12 @@
 
 namespace HEAR{
 
-ExternalPort::ExternalPort(int eport_id) : Block(eport_id){
 
-}
-
-int ExternalPort::getType(){
-    return _dtype;
-}
-
-template <class T>
-ExternalInputPort<T>::ExternalInputPort(int dtype) : ExternalPort(BLOCK_ID::EXT_IP){
-    createPorts(0, 1);
-    _out = createOutputPort<T>(OP::OUTPUT, dtype, "IP");
-    
-    this->_dtype = dtype;
-}
-
-template <class T>
-void ExternalInputPort<T>::connect(ExternalOutputPort<T>* port){
+void ExternalInputPort::connect(ExternalOutputPort* port){
+    assert(port->getType() == this->getType());
     this->_connected_port = port;
 }
 
-template <class T>
 void ExternalInputPort<T>::read(T &data){
     if(_connected_port != NULL){
         T data;
@@ -59,8 +43,7 @@ void ExternalOutputPort<T>::read(T &data){
     mtx.unlock();
 }
 
-template <class T>
-void ExternalOutputPort<T>::update(const T &data){
+void ExternalOutputPort::update(const Msg &data){
     mtx.lock();
     this->_data = data;
     mtx.unlock();
@@ -72,5 +55,4 @@ void ExternalOutputPort<T>::process(){
     this->_in->read(data);
     update(data);
 }
-
 }
