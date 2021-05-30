@@ -34,9 +34,15 @@ namespace HEAR{
 ROSUnitFloatSub::ROSUnitFloatSub(const ros::NodeHandle& nh): nh_(nh), Block(BLOCK_ID::ROSFLOATSUB){
 }
 ExternalOutputPort<float>* ROSUnitFloatSub::registerSubscriber(const std::string& topic_name){
-    this->sub = nh_.subscribe(topic_name, 1, callbackFunctionPointer[internal_counter]);
-    internal_counter++;
-    return ports[internal_counter-1];
+    if(internal_counter < capacity){
+        this->sub = nh_.subscribe(topic_name, 1, callbackFunctionPointer[internal_counter]);
+        internal_counter++;
+        return ports[internal_counter-1];
+    }
+    else{
+        //print error
+        assert(internal_counter < capacity);
+    }
 }
 
 void ROSUnitFloatSub::callback0(const std_msgs::Float32::ConstPtr& msg){

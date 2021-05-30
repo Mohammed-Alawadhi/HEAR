@@ -3,7 +3,7 @@
 
 #include "HEAR_core/Block.hpp"
 #include "HEAR_core/Port.hpp"
-#include <map>
+#include <iostream>
 
 namespace HEAR{
 
@@ -11,14 +11,16 @@ class PID_Block : public Block{
 private:
     InputPort<float>* e;
     OutputPort<float>* u;
-    float _prev, _dt, _kp, _ki, _kd, e_sum;
+    float _prev=0, _kp, _ki, _kd, e_sum=0;
 
 public:
     enum IP{ERROR};
     enum OP{OUTPUT};
-    PID_Block(float);
-    ~PID_Block();
+    PID_Block(float kp, float ki, float kd);
+    ~PID_Block(){ delete e, u;}
     void process();
+
+    void reset();
 };
 
 }

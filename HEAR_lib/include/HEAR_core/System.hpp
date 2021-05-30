@@ -6,6 +6,7 @@
 #include "HEAR_core/ExternalPort.hpp"
 #include "HEAR_core/Graph.hpp"
 #include "HEAR_core/DataTypes.hpp"
+#include "HEAR_core/ExternalTrigger.hpp"
 
 #include <string>
 #include <vector>
@@ -33,6 +34,7 @@ public:
     void mainLoop();
     void terminate() { _exit_flag = true;}
     int addBlock(Block* blk, std::string name);
+    int addExternalTrigger(ExternalTrigger* ext_tirg, std::string name);
     template <class T> int createExternalOutputPort(TYPE dtype, std::string port_name);
     template <class T> int createExternalInputPort(TYPE dtype, std::string port_name);
     template <class T> ExternalOutputPort<T>* getExternalOutputPort(int ext_op_idx);
@@ -40,13 +42,16 @@ public:
     template <class T> void connectToExternalInput(int ext_ip_idx, int dest_block_uid, int ip_idx);
     template <class T> void connectToExternalOutput(int src_block_uid, int op_idx, int ext_op_idx);
     template <class T> void connect(int out_block_uid, int op, int in_block_uid, int ip);
+    void connectExtTrig(int block_uid, int ext_trig_idx);
 private:
     int num_blocks = 0;
+    int num_ext_trigs = 0;
     float _dt;
     std::atomic<bool> _exit_flag;
     std::vector<Edge> _edges;
     Graph _graph;
-    std::vector<Block*> _external_triggers;
+    std::vector<ExternalTrigger*> _external_triggers;
+    std::vector<std::string> _trig_names;
     std::vector<Block*> _blocks;
     std::vector<std::string> _block_names;
     std::vector<Block*> seq;
@@ -57,8 +62,12 @@ private:
 };
 
 System::~System(){
+    terminate();
     if(system_thread){
         system_thread->join();
+    }
+    for (auto &block : _blocks){
+        delete block;
     }
 }
 int System::init(){
@@ -96,6 +105,14 @@ int System::addBlock(Block* blk, std::string name){
     num_blocks++;
     return blk->_block_uid;
 }
+
+int System::addExternalTrigger(ExternalTrigger* ext_trig, std::string name){
+    _trig_names.push_back(name);
+    _external_triggers.push_back(ext_trig);
+    num_ext_trigs++;
+    return num_ext_trigs-1;
+}
+
 template <class T>
 void System::connect(int out_block_uid, int op, int in_block_uid, int ip){
    ((InputPort<T>*) _blocks[in_block_uid]->getInputPort<T>(ip))->connect(_blocks[out_block_uid]->getOutputPort<T>(op));
@@ -105,6 +122,10 @@ void System::connect(int out_block_uid, int op, int in_block_uid, int ip){
    ed.dest_block_idx = in_block_uid;
    ed.dest_port = ip;
    _edges.push_back(ed);
+}
+
+void System::connectExtTrig(int block_uid, int ext_trig_idx){
+    _external_triggers[ext_trig_idx]->connect(_blocks[block_uid]);
 }
 
 template <class T>
@@ -144,9 +165,14 @@ void System::mainLoop(){
 
         start = std::chrono::steady_clock::now();
         // call external triggers   
-        for(auto &it : seq){
+        for (const auto& ext_trig : _external_triggers){
+            ext_trig->process();
+        }
+
+        for(const auto &it : seq){
             it->process();
         }
+
         end = std::chrono::steady_clock::now();
         auto loop_time = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
         if(loop_time > step_time){
@@ -175,12 +201,12 @@ void System::execute(){
 
 void System::printSystem(){
     std::cout <<seq.size()<<std::endl;
-    for (int i = 0; i<seq.size(); i++){
-        int src_blk_idx = seq[i]->_block_uid;
+    for (const auto &blk_in_seq : seq){
+        int src_blk_idx = blk_in_seq->_block_uid;
         std::cout<< _block_names[src_blk_idx] <<std::endl;
         auto connections = _graph.adjList[src_blk_idx];
         for(auto const &connection : connections){
-            std::cout << _block_names[src_blk_idx] << " | " << seq[i]->getOutputPortName(connection.src_port) << " -----> " 
+            std::cout << _block_names[src_blk_idx] << " | " << blk_in_seq->getOutputPortName(connection.src_port) << " -----> " 
                         << _blocks[connection.dest_block_idx]->getInputPortName(connection.dest_port)  << " | " << _block_names[connection.dest_block_idx] << std::endl;
         }
     }

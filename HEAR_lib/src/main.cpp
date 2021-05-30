@@ -5,6 +5,8 @@
 #include "HEAR_ROS/ROSUnit_FloatSub.hpp"
 #include "HEAR_core/System.hpp"
 #include "HEAR_core/DataTypes.hpp"
+#include "HEAR_core/ExternalTrigger.hpp"
+#include "HEAR_ROS/ROSUnit_ResetSrv.hpp"
 
 #include "ros/ros.h"
 #include <iostream>
@@ -25,7 +27,7 @@ int main(int argc, char** argv) {
     auto Error_port = simpleSys->createExternalInputPort<float>(TYPE::Float, "Error");
     std::cout<< "creating ext input\n";
 
-    auto pid_Block = new PID_Block(1.f/FREQ);
+    auto pid_Block = new PID_Block(10, 0, 2);
     std::cout<< "created pid block\n";
 
     auto PID_generic = simpleSys->addBlock(pid_Block, "PID_GENERIC");
@@ -48,6 +50,13 @@ int main(int argc, char** argv) {
     auto i_port = pub_float.registerPublisher("/out");
 
     i_port->connect(simpleSys->getExternalOutputPort<float>(command_port));
+
+    /// adding external trigger    
+    auto ros_reset_trig = new ROSUnit_ResetServer(nh);
+    auto reset_trig = simpleSys->addExternalTrigger(ros_reset_trig->registerServer("reset_z"), "Reset Z");
+    simpleSys->connectExtTrig(PID_generic, reset_trig);
+//    resetTrig->resetCallback
+
 
     std::cout<< "system created\n";
     simpleSys->init();
