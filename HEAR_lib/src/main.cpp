@@ -7,7 +7,8 @@
 #include "HEAR_core/DataTypes.hpp"
 #include "HEAR_core/ExternalTrigger.hpp"
 #include "HEAR_ROS/ROSUnit_ResetSrv.hpp"
-
+#include "HEAR_control/BWFilter.hpp"
+#include "Vector3D.hpp"
 #include "ros/ros.h"
 #include <iostream>
 
@@ -27,7 +28,7 @@ int main(int argc, char** argv) {
     auto Error_port = simpleSys->createExternalInputPort<float>(TYPE::Float, "Error");
     std::cout<< "creating ext input\n";
 
-    auto pid_Block = new PID_Block(10, 0, 2);
+    auto pid_Block = new PID_Block();
     std::cout<< "created pid block\n";
 
     auto PID_generic = simpleSys->addBlock(pid_Block, "PID_GENERIC");
@@ -51,10 +52,12 @@ int main(int argc, char** argv) {
 
     i_port->connect(simpleSys->getExternalOutputPort<float>(command_port));
 
+    auto bwFilt = new BWFilter2<Vector3D<float>>(BWFilt2_coeff::coeff_N200C50, TYPE::Float3);
+
     /// adding external trigger    
-    auto ros_reset_trig = new ROSUnit_ResetServer(nh);
-    auto reset_trig = simpleSys->addExternalTrigger(ros_reset_trig->registerServer("reset_z"), "Reset Z");
-    simpleSys->connectExtTrig(PID_generic, reset_trig);
+    // auto ros_reset_trig = new ROSUnit_ResetServer(nh);
+    // auto reset_trig = simpleSys->addExternalTrigger(ros_reset_trig->registerServer("reset_z"), "Reset Z");
+    // simpleSys->connectExtTrig(PID_generic, reset_trig);
 //    resetTrig->resetCallback
 
 

@@ -37,8 +37,12 @@ public:
     InputPort(TYPE dtype) : Port(dtype){}
 
     void read(T &data){
-        assert(_connected_port != NULL);
-        data = _connected_port->_data;
+        if (_connected_port == NULL){
+            //print warning
+        }
+        else{
+            data = _connected_port->_data;
+        }
     }
 
     void connect(OutputPort<T>* port) {

@@ -1,3 +1,5 @@
+// TODO: make it a template 
+
 #ifndef GAIN_HPP
 #define GAIN_HPP
 

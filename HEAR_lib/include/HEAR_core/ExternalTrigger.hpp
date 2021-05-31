@@ -31,8 +31,11 @@ public:
     }
     void process(){
         if(_state){
+            mtx_.lock();
+            auto msg = msg_->copy();
+            mtx_.unlock();
             for(auto &_connected_block : _connected_blocks){
-            _connected_block->update(msg_);
+            _connected_block->update(msg);
             }
             _state = false;
         }
