@@ -21,6 +21,10 @@ namespace HEAR{
         BW_FILT2,
         SATURATION,
         EUL2ROT,
+        TOHORIZON,
+        FROMHORIZON,
+        FORCE2ROT,
+        ROTDIFF2ROD,
         ROSFLOATSUB,
         ROSFLOATPUB,
         ROSPOSPROV

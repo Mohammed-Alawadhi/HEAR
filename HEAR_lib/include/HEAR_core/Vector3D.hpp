@@ -1,77 +1,60 @@
-// Version: 3.0
-// Author: Mohamad Chehadeh
-// Last Modification By: Mohamad Wahbah
-// Date: 27 Jan 2020
-//Revision Note: Added assignment operator and constructor with init_lists, added  the "==" and "!=" logic operators
 
 #ifndef VECTOR3D_HPP
 #define VECTOR3D_HPP
 
-template  <class L> class Vector2D;
 #include <cstdint>
 #include <math.h>
 #include <initializer_list>
 
-template <class T>  
+namespace HEAR
+{
+
+template  <class L> class Vector2D;
+
+template <typename T>  
 class Vector3D {
         public:
                 T x = 0;
                 T y = 0;
                 T z = 0;
-                Vector3D<T>(){};
-                Vector3D<T>(std::initializer_list<T> tmp){this->x = *tmp.begin(); this->y = *(tmp.begin()+1); this->z = *(tmp.begin()+2);};
+                inline Vector3D<T>(){}; 
+                inline Vector3D<T>(const T &x_, const T &y_, const T &z_){
+                        this->x = x_;
+                        this->y = y_;
+                        this->z = z_;
+                }
+                inline friend Vector3D<T> operator + (const Vector3D<T> &v1, const Vector3D<T> &v2) {
+                        return Vector3D<T>(v1.x+v2.x, v1.y+v2.y, v1.z+v2.z);
+                }
+                inline friend Vector3D<T> operator - (const Vector3D<T> &v1, const Vector3D<T> &v2) {
+                        return Vector3D<T>(v1.x-v2.x, v1.y-v2.y, v1.z-v2.z);
+                }
+                inline friend Vector3D<T> operator * (const Vector3D<T> &v1, const Vector3D<T> &v2) {
+                        return Vector3D<T>(v1.x*v2.x, v1.y*v2.y, v1.z*v2.z);
+                }
+                inline friend Vector3D<T> operator * ( const T& tmp, const Vector3D<T> &v1) {
+                        return Vector3D<T>(v1.x*tmp, v1.y*tmp, v1.z*tmp);
+                }
+                inline friend Vector3D<T> operator / (const Vector3D<T>& v1, const T& tmp) {
+                        return Vector3D<T>(v1.x/tmp, v1.y/tmp, v1.z/tmp);
+                }
+                inline Vector3D<T>& operator = (const T& tmp) {
+                        x = tmp;
+                        y = tmp;
+                        z = tmp;
 
-                Vector3D<T> operator + (Vector3D<T> obj) {
-                        Vector3D<T> res;
-                        res.x = x + obj.x;
-                        res.y = y + obj.y;
-                        res.z = z + obj.z;
-                        return res;
+                        return *this;
                 }
-                Vector3D<T> operator - (Vector3D<T> obj) {
-                        Vector3D<T> res;
-                        res.x = x - obj.x;
-                        res.y = y - obj.y;
-                        res.z = z - obj.z;
-                        return res;
+                inline Vector3D<T>& operator = (const std::initializer_list<T>& tmp) {
+                        x = *tmp.begin(); y = *(tmp.begin()+1); z = *(tmp.begin()+2);
+                        return *this;
                 }
-                Vector3D<T> operator * (Vector3D<T> obj) {
-                        Vector3D<T> res;
-                        res.x = x * obj.x;
-                        res.y = y * obj.y;
-                        res.z = z * obj.z;
-                        return res;
-                }
-                Vector3D<T> operator * (T tmp) {
-                        Vector3D<T> res;
-                        res.x = this->x * tmp;
-                        res.y = this->y * tmp;
-                        res.z = this->z * tmp;
-                        return res;
-                }
-                Vector3D<T> operator / (T tmp) {
-                        Vector3D<T> res;
-                        res.x = this->x / tmp;
-                        res.y = this->y / tmp;
-                        res.z = this->z / tmp;
-                        return res;
-                }
-                void operator = (T tmp) {
-                        this->x = tmp;
-                        this->y = tmp;
-                        this->z = tmp;
-                }
-                void operator = (std::initializer_list<T> tmp) {
-                        this->x = *tmp.begin();
-                        this->y = *(tmp.begin()+1);
-                        this->z = *(tmp.begin()+2);
-                }
-                bool operator == (Vector3D<T> tmp) {
-                        if(this->x == tmp.x && this->y == tmp.y && this->z == tmp.z) {return true;}
+                inline friend bool operator == (const Vector3D<T> &v1, const Vector3D<T> &v2) {
+                        if(v1.x == v2.x && v1.y == v2.y && v1.z == v2.z) {return true;}
                         else {return false;}
                 }
-                bool operator != (Vector3D<T> tmp) {
-                        if(this->x != tmp.x || this->y != tmp.y || this->z != tmp.z) {return true;}
+                inline friend bool operator != (const Vector3D<T> &v1, const Vector3D<T> &v2) {
+                        if(v1.x != v2.x || v1.y != v2.y || v1.z != v2.z) {return true;}
                         else {return false;}
                 }
                 template <typename M>
@@ -83,9 +66,22 @@ class Vector3D {
 
                         return tmp;
                 }
-                double operator ^ (Vector3D<T> tmp) {
+                inline friend T operator ^ (const Vector3D<T> &v1, const Vector3D<T> &v2) {
+                        return v1.x*v2.x + v1.y*v2.y + v1.z*v2.z;
+                }
+                inline T dot(const Vector3D<T> &tmp){
                         return x*tmp.x + y*tmp.y + z*tmp.z;
                 }
+                inline Vector3D<T> cross(const Vector3D<T>& tmp){
+                        return Vector3D<T>(this->y*tmp.z - this->z*tmp.y, this->z*tmp.x - this->x*tmp.z, this->x*tmp.y - this->y*tmp.x);
+                }
+                inline double length(){
+                        return sqrt(dot(*this));
+                }
+                inline Vector3D<double> normalized(){
+                        return Vector3D<double>(*this)/length();
+                }
+
                 static double getL2Norm(Vector3D<T> vec1) {
                     return sqrt(vec1.x*vec1.x+vec1.y*vec1.y+vec1.z*vec1.z);
                 }
@@ -110,5 +106,8 @@ class Vector3D {
                         return res;
                 }
 };
+
+} 
+
 
 #endif

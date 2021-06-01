@@ -75,7 +75,7 @@ void PID_Block::update_params(PID_parameters* para){
     }
 }
 
-float PID_Block::pid_direct(float err, float pv_first, float pv_second = 0) { //Arbitrary large default value for pv_rate
+float PID_Block::pid_direct(float err, float pv_first, float pv_second) { //Arbitrary large default value for pv_rate
 	float u = 0;
 	// ************************** P-term ***************************
 	u = err *_parameters.kp;

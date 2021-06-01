@@ -6,11 +6,14 @@
 #ifndef VECTOR2D_HPP
 #define VECTOR2D_HPP
 
-template  <class L> class Vector3D;
 #include <cstdint>
 #include <initializer_list>
 #include <math.h>
 #include "HEAR_core/Vector3D.hpp"
+
+namespace HEAR{
+
+template  <class L> class Vector3D;
 
 template <class T>
 class Vector2D {
@@ -101,4 +104,5 @@ class Vector2D {
                 }
 };
 
+}
 #endif

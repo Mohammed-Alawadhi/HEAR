@@ -8,7 +8,7 @@
 #include "HEAR_core/ExternalTrigger.hpp"
 #include "HEAR_ROS/ROSUnit_ResetSrv.hpp"
 #include "HEAR_control/BWFilter.hpp"
-#include "Vector3D.hpp"
+#include "HEAR_core/Vector3D.hpp"
 #include "ros/ros.h"
 #include <iostream>
 
