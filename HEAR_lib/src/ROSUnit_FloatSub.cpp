@@ -1,40 +1,30 @@
 #include "HEAR_ROS/ROSUnit_FloatSub.hpp"
 
-//HEAR::ExternalOutputPort<float>* HEAR::ROSUnitFloatSub::op_0 = new HEAR::ExternalOutputPort<float>(TYPE::Float);
+namespace HEAR{
 
-int HEAR::ROSUnitFloatSub::internal_counter = 0;
+int ROSUnitFloatSub::internal_counter = 0;
 
-HEAR::ExternalOutputPort<float>* HEAR::ROSUnitFloatSub::ports[HEAR::ROSUnitFloatSub::capacity] = {
-    new HEAR::ExternalOutputPort<float>(TYPE::Float),
-    new HEAR::ExternalOutputPort<float>(TYPE::Float),
-    new HEAR::ExternalOutputPort<float>(TYPE::Float),
-    new HEAR::ExternalOutputPort<float>(TYPE::Float),
-    new HEAR::ExternalOutputPort<float>(TYPE::Float),
-    new HEAR::ExternalOutputPort<float>(TYPE::Float),
-    new HEAR::ExternalOutputPort<float>(TYPE::Float),
-    new HEAR::ExternalOutputPort<float>(TYPE::Float),
-    new HEAR::ExternalOutputPort<float>(TYPE::Float),
-    new HEAR::ExternalOutputPort<float>(TYPE::Float)
-    };
+ExternalOutputPort<float>* ROSUnitFloatSub::ports[ROSUnitFloatSub::capacity];
 
-void(*HEAR::ROSUnitFloatSub::callbackFunctionPointer[HEAR::ROSUnitFloatSub::capacity])(const std_msgs::Float32::ConstPtr&){
-    HEAR::ROSUnitFloatSub::callback0,
-    HEAR::ROSUnitFloatSub::callback1,
-    HEAR::ROSUnitFloatSub::callback2,
-    HEAR::ROSUnitFloatSub::callback3,
-    HEAR::ROSUnitFloatSub::callback4,
-    HEAR::ROSUnitFloatSub::callback5,
-    HEAR::ROSUnitFloatSub::callback6,
-    HEAR::ROSUnitFloatSub::callback7,
-    HEAR::ROSUnitFloatSub::callback8,
-    HEAR::ROSUnitFloatSub::callback9    
+void(*ROSUnitFloatSub::callbackFunctionPointer[ROSUnitFloatSub::capacity])(const std_msgs::Float32::ConstPtr&){
+    ROSUnitFloatSub::callback0,
+    ROSUnitFloatSub::callback1,
+    ROSUnitFloatSub::callback2,
+    ROSUnitFloatSub::callback3,
+    ROSUnitFloatSub::callback4,
+    ROSUnitFloatSub::callback5,
+    ROSUnitFloatSub::callback6,
+    ROSUnitFloatSub::callback7,
+    ROSUnitFloatSub::callback8,
+    ROSUnitFloatSub::callback9    
 };
 
-namespace HEAR{
+
 ROSUnitFloatSub::ROSUnitFloatSub(const ros::NodeHandle& nh): nh_(nh), Block(BLOCK_ID::ROSFLOATSUB){
 }
 ExternalOutputPort<float>* ROSUnitFloatSub::registerSubscriber(const std::string& topic_name){
     if(internal_counter < capacity){
+        ports[internal_counter] = new ExternalOutputPort<float>(TYPE::Float);
         this->sub = nh_.subscribe(topic_name, 1, callbackFunctionPointer[internal_counter]);
         internal_counter++;
         return ports[internal_counter-1];

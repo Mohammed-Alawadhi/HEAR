@@ -10,6 +10,7 @@ namespace HEAR{
 
 class PID_Block : public Block{
 private:
+    int _id;
     InputPort<float>* err_port;
     InputPort<float>* pv_dot_port;
     OutputPort<float>* u_port;
@@ -20,14 +21,14 @@ private:
     PID_parameters _parameters;
 
 public:
-    enum IP{ERROR};
-    enum OP{OUTPUT};
-    PID_Block();
+    enum IP{ERROR, PV_DOT};
+    enum OP{COMMAND};
+    PID_Block(const int &id);
     ~PID_Block(){ delete err_port, pv_dot_port, u_port;}
     void process();
-    void update(UpdateMsg* u_msg);
+    void update(UpdateMsg* u_msg) override;
     void update_params(PID_parameters* para);
-    void reset();
+    void reset() override;
     float pid_direct(float err, float pv_first, float pv_second = 0);
 };
 

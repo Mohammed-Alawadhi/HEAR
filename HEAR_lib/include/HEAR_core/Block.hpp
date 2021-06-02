@@ -26,7 +26,7 @@ public:
     void set_dt(float dt) { _dt = dt;}
     virtual int getBlockID(){ return _block_id;}
     virtual void reset(){}
-    virtual void update(UpdateMsg *u_msg){}
+    virtual void update(UpdateMsg* u_msg){}
 
 protected:
     float _dt;

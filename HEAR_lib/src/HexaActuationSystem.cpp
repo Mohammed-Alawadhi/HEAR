@@ -1,0 +1,133 @@
+#include "HEAR_control/HexaActuationSystem.hpp"
+
+namespace HEAR{
+
+ESCMotor::ESCMotor(int t_pin, int t_freq){
+    _pwmPin = t_pin;
+    _freq = t_freq;
+    this->initialize();
+}
+
+
+bool ESCMotor::initialize(){
+
+    _pwm = new RCOutput_Navio2();
+
+    if(!(_pwm->initialize(_pwmPin)) ) {
+        return 1;
+    }
+
+    _pwm->set_frequency(_pwmPin, _freq);
+
+	if ( !(_pwm->enable(_pwmPin)) ) {
+	    return 1;
+	}
+
+}
+
+void ESCMotor::applyCommand(int t_command){
+
+    //std::cout << "Received Command on PIN: " << _pwmPin << " Value :" << t_command << "\r"; //std::endl;
+    _pwm->set_duty_cycle(_pwmPin, t_command);
+
+}
+
+
+HexaActuationSystem::HexaActuationSystem(const std::vector<Actuator*>& t_actuators) : Block(BLOCK_ID::HEXAACTUATIONSYSTEM){
+    _actuators = t_actuators;
+    roll_port = createInputPort<float>(IP::ROLL_CMD, TYPE::Float, "ROLL_CMD");
+    pitch_port = createInputPort<float>(IP::PITCH_CMD, TYPE::Float, "PITCH_CMD");
+    yaw_port = createInputPort<float>(IP::YAW_CMD, TYPE::Float, "YAW_CMD");
+    thrust_port = createInputPort<float>(IP::THRUST_CMD, TYPE::Float, "THRUST_CMD");
+    cmd_out_port = createOutputPort<std::vector<float>>(OP::MOTOR_CMD, TYPE::FloatVec, "MOTOR_CMD");
+}
+
+void HexaActuationSystem::process() {
+    roll_port->read(_u[0]);
+    pitch_port->read(_u[1]);
+    yaw_port->read(_u[2]);
+    thrust_port->read(_u[3]);
+    this->command();
+}
+
+void HexaActuationSystem::update(UpdateMsg* u_msg){
+    if(u_msg->getType() == UPDATE_MSG_TYPE::ARM){
+        _armed = ((ArmMsg*)u_msg)->arm;
+        // print armed
+    }
+}
+
+void HexaActuationSystem::setESCValues(int t_armed, int t_min, int t_max) {
+    _escMin_armed = t_armed;
+    _escMin = t_min;
+    _escMax = t_max;
+}
+
+void HexaActuationSystem::command(){
+
+    //TODO split into more methods
+    for(int i = 0; i < 6; i++){
+        _commands[i] = 0.0;
+    }
+
+    //Update pulse values
+    for(int i = 0; i < 6; i++){
+        for(int j = 0; j < 4; j++){
+            _commands[i] += _geometry[i][j] * _u[j];
+        }
+    }
+
+    //_u (PID outputs) should be between 0 and 1. Thus, we have to adjust for the range _escMin_armed to _escMax on _commands.
+    //Normalize and Constrain
+
+    for(int i = 0; i < 6; i++){
+        _commands[i] = (_commands[i] * (_escMax-_escMin_armed)) + _escMin_armed;
+    }
+
+    //Get minimum command
+    float min_command = _commands[0];
+
+    for(int i = 1; i < 6; i++){
+        if(_commands[i] < min_command){
+            min_command = _commands[i];
+        }
+    }
+
+    float bias = 0;
+
+    //Anti saturation
+    if(min_command < _escMin_armed){
+        bias = _escMin_armed - min_command;
+        
+        for(int i = 0; i < 6; i++){
+            _commands[i] = _commands[i] + bias;
+        }
+    }
+
+    for(int i = 0; i < 6; i++){
+        if(_armed){
+            _commands[i] = this->constrain(_commands[i], _escMin_armed, _escMax);
+        }else{
+            _commands[i] = _escMin;
+        }  
+    }
+
+    //Actuate
+    for(int i = 0; i < 6; i++){
+        _actuators[i]->applyCommand(_commands[i]);
+    }
+
+    cmd_out_port->write(_commands);
+}
+
+int HexaActuationSystem::constrain(float value, int min_value, int max_value) {
+    
+    if (value > max_value) {
+        value = max_value;
+    } else if (value < min_value) {
+        value = min_value;
+    }
+    return int(value);
+}
+
+}

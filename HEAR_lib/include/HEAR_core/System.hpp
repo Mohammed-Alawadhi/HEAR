@@ -31,15 +31,20 @@ public:
     void printSystem();
     int init();
     void execute();
+    void runPubLoop();
     void mainLoop();
+    void pubLoop();
     void terminate() { _exit_flag = true;}
     int addBlock(Block* blk, std::string name);
+    void addPub(Block* ros_pub);
     int addExternalTrigger(ExternalTrigger* ext_tirg, std::string name);
     template <class T> int createExternalOutputPort(TYPE dtype, std::string port_name);
     template <class T> int createExternalInputPort(TYPE dtype, std::string port_name);
     template <class T> ExternalOutputPort<T>* getExternalOutputPort(int ext_op_idx);
     template <class T> ExternalInputPort<T>* getExternalInputPort(int ext_ip_idx);
     template <class T> void connectToExternalInput(int ext_ip_idx, int dest_block_uid, int ip_idx);
+    template <class T> void connectToExternalInput(int ext_ip_idx, ExternalOutputPort<T>* ext_port);
+    template <class T> void connectToExternalOutput(ExternalInputPort<T>* ext_port, int ext_op_idx);
     template <class T> void connectToExternalOutput(int src_block_uid, int op_idx, int ext_op_idx);
     template <class T> void connect(int out_block_uid, int op, int in_block_uid, int ip);
     void connectExtTrig(int block_uid, int ext_trig_idx);
@@ -53,9 +58,10 @@ private:
     std::vector<ExternalTrigger*> _external_triggers;
     std::vector<std::string> _trig_names;
     std::vector<Block*> _blocks;
+    std::vector<Block*> _ros_pubs;
     std::vector<std::string> _block_names;
     std::vector<Block*> seq;
-    std::unique_ptr<std::thread> system_thread;
+    std::unique_ptr<std::thread> system_thread, pub_thread;
     static bool sortbyconnectivity(const Block* a, const Block* b);
     void findsequence();
 
@@ -65,6 +71,9 @@ System::~System(){
     terminate();
     if(system_thread){
         system_thread->join();
+    }
+    if(pub_thread){
+        pub_thread->join();
     }
     for (auto &block : _blocks){
         delete block;
@@ -106,6 +115,10 @@ int System::addBlock(Block* blk, std::string name){
     return blk->_block_uid;
 }
 
+void System::addPub(Block* ros_pub){
+    _ros_pubs.push_back(ros_pub);
+}
+
 int System::addExternalTrigger(ExternalTrigger* ext_trig, std::string name){
     _trig_names.push_back(name);
     _external_triggers.push_back(ext_trig);
@@ -131,6 +144,16 @@ void System::connectExtTrig(int block_uid, int ext_trig_idx){
 template <class T>
 void System::connectToExternalInput(int ext_ip_idx, int dest_block_uid, int ip_idx){
     this->connect<T>(ext_ip_idx, 0, dest_block_uid, ip_idx);
+}
+
+template <class T>
+void System::connectToExternalInput(int ext_ip_idx, ExternalOutputPort<T>* ext_port){
+    ((ExternalInputPort<T>*)_blocks[ext_ip_idx])->connect(ext_port);  //TODO: connect only if the type of port matches using Block ID and port ID
+}
+
+template <class T>
+void System::connectToExternalOutput(ExternalInputPort<T>* ext_port, int ext_op_idx){
+    ext_port->connect(((ExternalOutputPort<T>*)_blocks[ext_op_idx]));  //TODO: connect only if the type of port matches using Block ID and port ID
 }
 
 template <class T>
@@ -193,10 +216,37 @@ void System::mainLoop(){
     std::cout << "mainloop ended\n";
 }
 
+void System::pubLoop(){
+    auto start = std::chrono::steady_clock::now();
+    auto end = std::chrono::steady_clock::now();
+    auto step_time = std::chrono::microseconds((int)(_dt*1e6));
+
+    while(!_exit_flag){
+        start = std::chrono::steady_clock::now();
+        for(const auto& ros_pub : _ros_pubs){
+            ros_pub->process();
+        }
+        end = std::chrono::steady_clock::now();
+        auto loop_time = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
+        if(loop_time > step_time){
+            // print warning
+        }
+        else{
+            std::this_thread::sleep_for(step_time -loop_time);
+        }
+    }
+}
+
 void System::execute(){
     system_thread = std::unique_ptr<std::thread>(
-                    new std::thread(&System::mainLoop, this));
-    sleep(3);
+                    new std::thread(&mainLoop, this));
+    sleep(2);
+}
+
+void System::runPubLoop(){
+    pub_thread = std::unique_ptr<std::thread>(
+                    new std::thread(&pubLoop, this));
+    sleep(2);
 }
 
 void System::printSystem(){

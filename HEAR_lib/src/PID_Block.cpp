@@ -3,10 +3,10 @@
 namespace HEAR{
 
 
-PID_Block::PID_Block(): Block(BLOCK_ID::PID){
+PID_Block::PID_Block(const int& id): _id(id), Block(BLOCK_ID::PID){
     err_port = createInputPort<float>(IP::ERROR, TYPE::Float, "ERROR");
-    pv_dot_port = createInputPort<float>(IP::ERROR, TYPE::Float, "PV_DOT");
-    u_port = createOutputPort<float>(OP::OUTPUT, TYPE::Float, "COMMAND");
+    pv_dot_port = createInputPort<float>(IP::PV_DOT, TYPE::Float, "PV_DOT");
+    u_port = createOutputPort<float>(OP::COMMAND, TYPE::Float, "COMMAND");
 }
 
 void PID_Block::process(){
@@ -40,7 +40,10 @@ void PID_Block::update(UpdateMsg* u_msg){
 }
 
 void PID_Block::update_params(PID_parameters* para){
-    
+    if(para->id != _id){
+		return;
+	}
+	std::cout << "updating parameters of controller " << para->id << " ...\n";
 	if(para->kp >= 0.0){
 		_parameters.kp = para->kp;
 	}

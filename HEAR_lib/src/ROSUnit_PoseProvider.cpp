@@ -2,6 +2,7 @@
 
 namespace HEAR{
 
+
 ExternalOutputPort<Vector3D<float>>* ROSUnit_PoseProvider::opti_pos_port;
 ExternalOutputPort<Vector3D<float>>* ROSUnit_PoseProvider::opti_ori_port;
 ExternalOutputPort<Vector3D<float>>* ROSUnit_PoseProvider::imu_ori_port;
@@ -12,33 +13,34 @@ tf2::Matrix3x3 ROSUnit_PoseProvider::rot_offset;
 tf2::Vector3 ROSUnit_PoseProvider::trans_offset;
 
 ROSUnit_PoseProvider::ROSUnit_PoseProvider(ros::NodeHandle& nh): nh_(nh), Block(BLOCK_ID::ROSPOSPROV){
-    m_server = nh_.advertiseService("set_height_offset", &srv_callback);
+    m_server = nh_.advertiseService("set_height_offset", ROSUnit_PoseProvider::srv_callback);
     rot_offset.setRPY(0.0, 0.0, M_PI/2.0);
 
 }
 
+
 std::vector<ExternalOutputPort<Vector3D<float>>*> ROSUnit_PoseProvider::registerOptiPose(std::string t_name){
     opti_pos_port = new ExternalOutputPort<Vector3D<float>>(TYPE::Float3);
     opti_ori_port = new ExternalOutputPort<Vector3D<float>>(TYPE::Float3);
-    opti_sub = nh_.subscribe(t_name, 10, &callback_opti_pose, ros::TransportHints().tcpNoDelay());
+    opti_sub = nh_.subscribe(t_name, 10, ROSUnit_PoseProvider::callback_opti_pose, ros::TransportHints().tcpNoDelay());
     return std::vector<ExternalOutputPort<Vector3D<float>>*>{opti_pos_port, opti_ori_port};
 }
 
 ExternalOutputPort<Vector3D<float>>* ROSUnit_PoseProvider::registerImuOri(std::string t_name){
     imu_ori_port = new ExternalOutputPort<Vector3D<float>>(TYPE::Float3);
-    xsens_ori_sub = nh_.subscribe(t_name, 10, &callback_ori, ros::TransportHints().tcpNoDelay());
+    xsens_ori_sub = nh_.subscribe(t_name, 10, ROSUnit_PoseProvider::callback_ori, ros::TransportHints().tcpNoDelay());
     return imu_ori_port;
 }
 
 ExternalOutputPort<Vector3D<float>>* ROSUnit_PoseProvider::registerImuAngularRate(std::string t_name){
     imu_angular_rt_port = new ExternalOutputPort<Vector3D<float>>(TYPE::Float3);
-    xsens_ang_vel_sub = nh_.subscribe(t_name, 10, &callback_angular_vel, ros::TransportHints().tcpNoDelay());
+    xsens_ang_vel_sub = nh_.subscribe(t_name, 10, ROSUnit_PoseProvider::callback_angular_vel, ros::TransportHints().tcpNoDelay());
     return imu_angular_rt_port;
 }
 
 ExternalOutputPort<Vector3D<float>>* ROSUnit_PoseProvider::registerImuAcceleration(std::string t_name){
     imu_acc_port = new ExternalOutputPort<Vector3D<float>>(TYPE::Float3);
-    xsens_free_acc_sub = nh_.subscribe(t_name, 10, &callback_free_acc, ros::TransportHints().tcpNoDelay());
+    xsens_free_acc_sub = nh_.subscribe(t_name, 10, ROSUnit_PoseProvider::callback_free_acc, ros::TransportHints().tcpNoDelay());
     return imu_acc_port;
 }
 

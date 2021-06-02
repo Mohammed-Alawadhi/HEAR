@@ -7,6 +7,7 @@ namespace HEAR{
         NA,
         Float,
         Float3,
+        FloatVec,
         RotMat
     };
     enum BLOCK_ID{
@@ -25,8 +26,11 @@ namespace HEAR{
         FROMHORIZON,
         FORCE2ROT,
         ROTDIFF2ROD,
+        HEXAACTUATIONSYSTEM,
         ROSFLOATSUB,
+        ROSPOINTSUB,
         ROSFLOATPUB,
+        ROSFLOATARRPUB,
         ROSPOSPROV
     };
     enum IOTYPE{
@@ -42,16 +46,27 @@ namespace HEAR{
         PID_FREEZE,
         MRFT_UPDATE,
         BB_UPDATE,
-        SWITCH_TRIG
+        SWITCH_TRIG,
+        ARM
     };
     enum SWITCH_STATE{
         OFF,
         ON,
         TOGGLE
     };
+    enum PID_ID{
+        PID_X,
+        PID_Y,
+        PID_Z,
+        PID_ROLL,
+        PID_PITCH,
+        PID_YAW,
+        PID_YAW_RATE
+    };
 
     class PID_parameters {
     public:
+        PID_ID id;
         float kp=1, ki=0, kd=0, kdd=0, anti_windup=0;
         bool en_pv_derivation = false;
     };
@@ -83,6 +98,16 @@ namespace HEAR{
                 return Copy;
             }
     };
+    class ArmMsg : UpdateMsg{
+        public:
+            bool arm = false;
+            UPDATE_MSG_TYPE getType(){return UPDATE_MSG_TYPE::ARM;}
+            UpdateMsg* copy(){
+                auto Copy = new ArmMsg;
+                *Copy = *this;
+                return Copy;
+            }
+    };
 
     class PIDFreezeMsg : UpdateMsg{
         public:
@@ -108,7 +133,6 @@ namespace HEAR{
         constexpr static float coeff_N200C60[5] = {0.3695, 0.1958, 0.3913,    0.7827,    0.3913};
         constexpr static float coeff_N200C50[5] = {-1.8e-16,    0.1716,    0.2929,    0.5858,    0.2929};
     };
-
     
 
 }

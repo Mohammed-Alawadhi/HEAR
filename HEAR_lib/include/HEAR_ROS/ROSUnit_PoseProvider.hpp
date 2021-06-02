@@ -38,8 +38,8 @@ private:
     static tf2::Matrix3x3 rot_offset;
     static tf2::Vector3 trans_offset;
 public:
-    void process();
-    ROSUnit_PoseProvider(ros::NodeHandle&);
+    void process(){}
+    ROSUnit_PoseProvider(ros::NodeHandle& nh);
     ~ROSUnit_PoseProvider(){}
     std::vector<ExternalOutputPort<Vector3D<float>>*> registerOptiPose(std::string t_name);
     ExternalOutputPort<Vector3D<float>>* registerImuOri(std::string t_name);
