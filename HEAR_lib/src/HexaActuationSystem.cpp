@@ -8,7 +8,6 @@ ESCMotor::ESCMotor(int t_pin, int t_freq){
     this->initialize();
 }
 
-
 bool ESCMotor::initialize(){
 
     _pwm = new RCOutput_Navio2();
@@ -32,27 +31,26 @@ void ESCMotor::applyCommand(int t_command){
 
 }
 
-
 HexaActuationSystem::HexaActuationSystem(const std::vector<Actuator*>& t_actuators) : Block(BLOCK_ID::HEXAACTUATIONSYSTEM){
     _actuators = t_actuators;
-    roll_port = createInputPort<float>(IP::ROLL_CMD, TYPE::Float, "ROLL_CMD");
-    pitch_port = createInputPort<float>(IP::PITCH_CMD, TYPE::Float, "PITCH_CMD");
-    yaw_port = createInputPort<float>(IP::YAW_CMD, TYPE::Float, "YAW_CMD");
+    body_rate_port = createInputPort<Vector3D<float>>(IP::BODY_RATE_CMD, TYPE::Float3, "BODY_RATE_CMD");
     thrust_port = createInputPort<float>(IP::THRUST_CMD, TYPE::Float, "THRUST_CMD");
     cmd_out_port = createOutputPort<std::vector<float>>(OP::MOTOR_CMD, TYPE::FloatVec, "MOTOR_CMD");
 }
 
 void HexaActuationSystem::process() {
-    roll_port->read(_u[0]);
-    pitch_port->read(_u[1]);
-    yaw_port->read(_u[2]);
+    Vector3D<float> body_rate_cmd;
+    body_rate_port->read(body_rate_cmd);
+    _u[0] = body_rate_cmd.x; 
+    _u[1] = body_rate_cmd.y;
+    _u[2] = body_rate_cmd.z;
     thrust_port->read(_u[3]);
     this->command();
 }
 
 void HexaActuationSystem::update(UpdateMsg* u_msg){
-    if(u_msg->getType() == UPDATE_MSG_TYPE::ARM){
-        _armed = ((ArmMsg*)u_msg)->arm;
+    if(u_msg->getType() == UPDATE_MSG_TYPE::BOOL_MSG){
+        _armed = ((BoolMsg*)u_msg)->data;
         // print armed
     }
 }

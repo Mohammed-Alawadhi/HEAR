@@ -20,7 +20,7 @@ void PID_Block::process(){
 }
 
 void PID_Block::reset(){
-    std::cout <<"reset function called from PID block\n";
+    std::cout <<"reset function called from PID block " << (int)_id << std::endl;
     accum_I = 0;
     accum_u = 0;
     prev_err = 0;
@@ -28,11 +28,11 @@ void PID_Block::reset(){
 
 void PID_Block::update(UpdateMsg* u_msg){
     if (u_msg->getType() == UPDATE_MSG_TYPE::PID_UPDATE){
-	    std::cout <<"updating parameters of PID Block\n";
+	// std::cout << "updating parameters of controller " << ((PID_UpdateMsg*)u_msg)->param.id << " ...\n";
     	update_params(&((PID_UpdateMsg*)u_msg)->param);
     }
-	else if (u_msg->getType() == UPDATE_MSG_TYPE::PID_FREEZE ){
-		freeze_ = ((PIDFreezeMsg*)u_msg)->freeze;
+	else if (u_msg->getType() == UPDATE_MSG_TYPE::BOOL_MSG ){
+		freeze_ = ((BoolMsg*)u_msg)->data;
 	}
 	else{
 		std::cout <<"update message type mismatch for PID block\n";
@@ -43,8 +43,9 @@ void PID_Block::update_params(PID_parameters* para){
     if(para->id != _id){
 		return;
 	}
-	std::cout << "updating parameters of controller " << para->id << " ...\n";
+	// std::cout << "updating parameters of controller " << para->id << " ...\n";
 	if(para->kp >= 0.0){
+		std::cout << "Kp = " << para->kp << std::endl;
 		_parameters.kp = para->kp;
 	}
 	if(para->ki > 0.0){

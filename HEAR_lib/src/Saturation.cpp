@@ -2,7 +2,7 @@
 
 namespace HEAR{
 
-Saturation::Saturation(float clip_val) : clip_value(clip_val), Block(BLOCK_ID::SATURATION){
+Saturation::Saturation(const float &clip_val) : clip_value(clip_val), Block(BLOCK_ID::SATURATION){
     _inp_port = createInputPort<float>(IP::INPUT, TYPE::Float, "INPUT");
     _out_port = createOutputPort<float>(OP::OUTPUT, TYPE::Float, "OUTPUT");
 }

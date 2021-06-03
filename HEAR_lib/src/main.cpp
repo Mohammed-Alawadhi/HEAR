@@ -1,4 +1,5 @@
-
+// TODO: check problem with pid update of yaw rate
+// check block sequence problem
 
 #include "HEAR_control/PID_Block.hpp"
 #include "HEAR_control/Differentiator.hpp"
@@ -19,6 +20,8 @@
 #include "HEAR_ROS/ROSUnit_ResetSrv.hpp"
 #include "HEAR_ROS/ROSUnit_FloatArrPub.hpp"
 #include "HEAR_ROS/ROSUnit_PointPub.hpp"
+#include "HEAR_ROS/ROSUnit_BoolSrv.hpp"
+#include "HEAR_ROS/ROSUnit_UpdateContSrv.hpp"
 
 #include "HEAR_core/System.hpp"
 #include "HEAR_core/DataTypes.hpp"
@@ -28,10 +31,16 @@
 #include "ros/ros.h"
 #include <iostream>
 
+#define BIG_HEXA
+
 using namespace HEAR;
 
 const int FREQ_OUTER = 120;
 const int FREQ_INNER = 200;
+const int PWM_FREQUENCY = 200;
+const float SATURATION_VALUE_XY = 0.2617;
+const float SATURATION_VALUE_YAW = 0.2617;
+
 
 int main(int argc, char** argv) {
     ros::init(argc, argv, "tesing_node");
@@ -55,9 +64,8 @@ int main(int argc, char** argv) {
     auto imu_rate_port = providers.registerImuAngularRate("imu/angular_velocity");
 
     // Setting up the outer loop
+    auto outer_sys = new System(FREQ_OUTER, "Outer Loop");
 
-    auto outer_sys = new System(FREQ_OUTER);
-    //creating external input ports
     auto pos_port_idx = outer_sys->createExternalInputPort<Vector3D<float>>(TYPE::Float3, "opti_pos_port");
     outer_sys->connectToExternalInput(pos_port_idx, opti_port[0]);
     auto opti_ori_port_idx = outer_sys->createExternalInputPort<Vector3D<float>>(TYPE::Float3, "opti_ori_port");
@@ -107,18 +115,24 @@ int main(int argc, char** argv) {
     auto pid_x_idx = outer_sys->addBlock(PID_x, "PID_x");
     outer_sys->connect<float>(sum_ref_x_idx, Sum::OP::OUTPUT, pid_x_idx, PID_Block::IP::ERROR);
     outer_sys->connect<float>(demux_vel_idx, Demux3::OP::X, pid_x_idx, PID_Block::IP::PV_DOT);
+    auto x_sat = new Saturation(SATURATION_VALUE_XY);
+    auto x_sat_idx = outer_sys->addBlock(x_sat, "x_sat");
+    outer_sys->connect<float>(pid_x_idx, PID_Block::OP::COMMAND, x_sat_idx, Saturation::IP::INPUT);
     auto PID_y = new PID_Block(PID_ID::PID_Y);
     auto pid_y_idx = outer_sys->addBlock(PID_y, "PID_y");
     outer_sys->connect<float>(sum_ref_y_idx, Sum::OP::OUTPUT, pid_y_idx, PID_Block::IP::ERROR);
     outer_sys->connect<float>(demux_vel_idx, Demux3::OP::Y, pid_y_idx, PID_Block::IP::PV_DOT);
+    auto y_sat = new Saturation(SATURATION_VALUE_XY);
+    auto y_sat_idx = outer_sys->addBlock(y_sat, "y_sat");
+    outer_sys->connect<float>(pid_y_idx, PID_Block::OP::COMMAND, y_sat_idx, Saturation::IP::INPUT);
     auto PID_z = new PID_Block(PID_ID::PID_Z);
     auto pid_z_idx = outer_sys->addBlock(PID_z, "PID_z");
     outer_sys->connect<float>(sum_ref_z_idx, Sum::OP::OUTPUT, pid_z_idx, PID_Block::IP::ERROR);
     outer_sys->connect<float>(demux_vel_idx, Demux3::OP::Z, pid_z_idx, PID_Block::IP::PV_DOT);    
     auto mux_fh_des = new Mux3();
     auto mux_fh_des_idx = outer_sys->addBlock(mux_fh_des, "mux_fh_des");
-    outer_sys->connect<float>(pid_x_idx, PID_Block::OP::COMMAND, mux_fh_des_idx, Mux3::IP::X);
-    outer_sys->connect<float>(pid_y_idx, PID_Block::OP::COMMAND, mux_fh_des_idx, Mux3::IP::Y);
+    outer_sys->connect<float>(x_sat_idx, Saturation::OP::OUTPUT, mux_fh_des_idx, Mux3::IP::X);
+    outer_sys->connect<float>(y_sat_idx, Saturation::OP::OUTPUT, mux_fh_des_idx, Mux3::IP::Y);
     outer_sys->connect<float>(pid_z_idx, PID_Block::OP::COMMAND, mux_fh_des_idx, Mux3::IP::Z);
     auto fh2fi = new FromHorizon();
     auto fh2fi_idx = outer_sys->addBlock(fh2fi, "fh2fi");
@@ -145,15 +159,14 @@ int main(int argc, char** argv) {
     auto pub_fi_des = new ROSUnitPointPub(nh);
     outer_sys->connectToExternalOutput<Vector3D<float>>(pub_fi_des->registerPublisher("/fi_des"), fi_des_port_idx);
     outer_sys->addPub(pub_fi_des);
-
     //end of outer loop system
 
     // Setting up inner loop
-    auto inner_sys = new System(FREQ_INNER);
+    auto inner_sys = new System(FREQ_INNER, "Inner Loop");
     auto rb_des_idx = inner_sys->createExternalInputPort<tf2::Matrix3x3>(TYPE::RotMat, "RB_des_port");
     inner_sys->connectToExternalInput(rb_des_idx, outer_sys->getExternalOutputPort<tf2::Matrix3x3>(des_rot_port_idx));
     auto fi_des_idx = inner_sys->createExternalInputPort<Vector3D<float>>(TYPE::Float3, "fi_des_port");
-    inner_sys->connectToExternalInput(fi_des_idx, outer_sys->getExternalOutputPort<Vector3D<float>>(fi_des_idx));
+    inner_sys->connectToExternalInput(fi_des_idx, outer_sys->getExternalOutputPort<Vector3D<float>>(fi_des_port_idx));
     auto opti_ori_idx = inner_sys->createExternalInputPort<Vector3D<float>>(TYPE::Float3, "opti_ori");
     inner_sys->connectToExternalInput(opti_ori_idx, opti_port[1]); 
     auto ori_port_idx = inner_sys->createExternalInputPort<Vector3D<float>>(TYPE::Float3, "ori_port");
@@ -200,9 +213,12 @@ int main(int argc, char** argv) {
     auto PID_yaw = new PID_Block(PID_ID::PID_YAW);
     auto pid_yaw_idx = inner_sys->addBlock(PID_yaw, "PID_yaw");
     inner_sys->connect<float>(demux_angle_err_idx, Demux3::OP::Z, pid_yaw_idx, PID_Block::IP::ERROR);
+    auto yaw_sat = new Saturation(SATURATION_VALUE_YAW);
+    auto yaw_sat_idx = inner_sys->addBlock(yaw_sat, "yaw_sat");
+    inner_sys->connect<float>(pid_yaw_idx, PID_Block::OP::COMMAND, yaw_sat_idx, Saturation::IP::INPUT);
     auto sum_ref_yaw = new Sum(Sum::OPERATION::SUB);
     auto sum_ref_yaw_idx = inner_sys->addBlock(sum_ref_yaw, "sum_ref_yaw");
-    inner_sys->connect<float>(pid_yaw_idx, PID_Block::OP::COMMAND, sum_ref_yaw_idx, Sum::IP::OPERAND1);
+    inner_sys->connect<float>(yaw_sat_idx, Saturation::OP::OUTPUT, sum_ref_yaw_idx, Sum::IP::OPERAND1);
     inner_sys->connect<float>(demux_angle_rate_idx, Demux3::OP::Z,  sum_ref_yaw_idx, Sum::IP::OPERAND2);
     auto PID_yaw_rate = new PID_Block(PID_ID::PID_YAW_RATE);
     auto pid_yaw_rate_idx = inner_sys->addBlock(PID_yaw, "PID_yaw_rate");
@@ -218,17 +234,88 @@ int main(int argc, char** argv) {
     auto uz_port_idx = inner_sys->createExternalOutputPort<float>(TYPE::Float, "uz_port");
     inner_sys->connectToExternalOutput<float>(rot2angle_idx, FbLinearizer::RotDiff2Rod::OP::THRUST, uz_port_idx);
 
-    // TODO: add publishers
-
+    auto angle_err_port_idx = inner_sys->createExternalOutputPort<Vector3D<float>>(TYPE::Float3, "angle_err_port");
+    inner_sys->connectToExternalOutput<Vector3D<float>>(rot2angle_idx, FbLinearizer::RotDiff2Rod::OP::ROD_ANGLES, angle_err_port_idx);
+    auto angle_err_pub = new ROSUnitPointPub(nh);
+    inner_sys->connectToExternalOutput(angle_err_pub->registerPublisher("/axis_angle_err"), angle_err_port_idx);
+    inner_sys->addPub(angle_err_pub);
+    auto angle_command_pub = new ROSUnitPointPub(nh);
+    inner_sys->connectToExternalOutput(angle_command_pub->registerPublisher("/angle_u"), angle_u_port_idx);
+    inner_sys->addPub(angle_command_pub);
+    auto thrust_cmd_pub = new ROSUnitFloatPub(nh);
+    inner_sys->connectToExternalOutput(thrust_cmd_pub->registerPublisher("/thrust_cmd"), uz_port_idx);
+    inner_sys->addPub(thrust_cmd_pub);
     // end of inner loop system
 
     //setting up actuation
+    auto actuation_sys = new System(FREQ_INNER, "Actuation System");
+    auto u_ori_port_idx = actuation_sys->createExternalInputPort<Vector3D<float>>(TYPE::Float3, "u_ori_port");
+    actuation_sys->connectToExternalInput(u_ori_port_idx, inner_sys->getExternalOutputPort<Vector3D<float>>(angle_u_port_idx));
+    auto thrust_port_idx = actuation_sys->createExternalInputPort<float>(TYPE::Float, "thrust_port");
+    actuation_sys->connectToExternalInput(thrust_port_idx, inner_sys->getExternalOutputPort<float>(uz_port_idx));
 
+    auto M1 = new ESCMotor(0, PWM_FREQUENCY);
+    auto M2 = new ESCMotor(1, PWM_FREQUENCY);
+    auto M3 = new ESCMotor(2, PWM_FREQUENCY);
+    auto M4 = new ESCMotor(3, PWM_FREQUENCY);
+    auto M5 = new ESCMotor(4, PWM_FREQUENCY);
+    auto M6 = new ESCMotor(5, PWM_FREQUENCY);
+    std::vector<Actuator*> actuators{M1, M2, M3, M4, M5, M6};
+    auto actuation = new HexaActuationSystem(actuators);
+    #ifdef BIG_HEXA
+    actuation->setESCValues(1165 ,1000, 2000);
+    #else
+    actuation->setESCValues(1140 ,1000, 2000);
+    #endif
+    auto actuation_idx = actuation_sys->addBlock(actuation, "actuation");
+    actuation_sys->connectToExternalInput<Vector3D<float>>(u_ori_port_idx, actuation_idx, HexaActuationSystem::IP::BODY_RATE_CMD);
+    actuation_sys->connectToExternalInput<float>(thrust_port_idx, actuation_idx, HexaActuationSystem::IP::THRUST_CMD);
 
+    auto actuation_out_port_idx = actuation_sys->createExternalOutputPort<std::vector<float>>(TYPE::FloatVec, "actuation_out_port");
+    auto actuation_cmd_pub = new ROSUnitFloatArrPub(nh);
+    actuation_sys->connectToExternalOutput(actuation_cmd_pub->registerPublisher("/actuation_cmd"), actuation_out_port_idx);
+    actuation_sys->addPub(actuation_cmd_pub); 
+    // end of actuation system
 
+    // setting up triggers
+    auto reset_z_trig = new ROSUnit_ResetServer(nh);
+    auto reset_z = outer_sys->addExternalTrigger(reset_z_trig->registerServer("reset_controller"), "reset_z_trig");
+    outer_sys->connectExtTrig(pid_z_idx, reset_z);
+    
+    auto update_cont_srv = new ROSUnit_UpdateContSrv(nh);
+    auto update_cont_trig = update_cont_srv->registerServer("update_controller/pid");
+    auto update_cont_outer = outer_sys->addExternalTrigger(update_cont_trig, "update_cont_trig");
+    outer_sys->connectExtTrig(pid_x_idx, update_cont_outer);
+    outer_sys->connectExtTrig(pid_y_idx, update_cont_outer);
+    outer_sys->connectExtTrig(pid_z_idx, update_cont_outer);    
+    auto update_cont_inner = inner_sys->addExternalTrigger(update_cont_trig, "update_cont_trig");
+    inner_sys->connectExtTrig(pid_roll_idx, update_cont_inner);
+    inner_sys->connectExtTrig(pid_pitch_idx, update_cont_inner);
+    inner_sys->connectExtTrig(pid_yaw_idx, update_cont_inner);
+    inner_sys->connectExtTrig(pid_yaw_rate_idx, update_cont_inner);
 
-    while(ros::ok()){
+    auto arm_srv = new ROSUnit_BoolServer(nh);
+    auto arm_trig_idx = actuation_sys->addExternalTrigger(arm_srv->registerServer("arm"), "arm_trig");
+    actuation_sys->connectExtTrig(actuation_idx, arm_trig_idx);
+
+    outer_sys->init(true);
+    inner_sys->init(true);
+    actuation_sys->init(true);
+
+    outer_sys->execute();
+    inner_sys->execute();
+    actuation_sys->execute();
+    outer_sys->runPubLoop();
+    inner_sys->runPubLoop();
+    actuation_sys->runPubLoop();
+
+    std::cout << "\nFinished Setting up\n";
+
+    while(ros::ok()){    //TODO : fix issue with external trigger, once triggered the flag has issue
         ros::spin();
     }
+    actuation_sys->terminate();
+    inner_sys->terminate();
+    outer_sys->terminate();
 
 }

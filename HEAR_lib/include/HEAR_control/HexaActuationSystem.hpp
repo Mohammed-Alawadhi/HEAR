@@ -9,6 +9,7 @@
 
 #include "HEAR_core/Block.hpp"
 #include "HEAR_core/Port.hpp"
+#include "HEAR_core/Vector3D.hpp"
 
 // Using ENU Reference Frame
 // GEOMETRY
@@ -62,13 +63,11 @@ private:
                              {-0.5,  0.866025,  -1,     1},
                              {-0.5, -0.866025,  -1,     1},
                              { 0.5,  0.866025,   1,     1}};
-    InputPort<float>* roll_port;
-    InputPort<float>* pitch_port;
-    InputPort<float>* yaw_port;
+    InputPort<Vector3D<float>>* body_rate_port;
     InputPort<float>* thrust_port;
     OutputPort<std::vector<float>>* cmd_out_port;
 public:
-    enum IP{ROLL_CMD, PITCH_CMD, YAW_CMD, THRUST_CMD};
+    enum IP{BODY_RATE_CMD, THRUST_CMD};
     enum OP{MOTOR_CMD};
     void process();
     void update(UpdateMsg* u_msg) override;

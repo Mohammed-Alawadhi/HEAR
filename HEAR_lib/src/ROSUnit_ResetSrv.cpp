@@ -2,15 +2,7 @@
 
 namespace HEAR{
 
-ResetTrigger* ROSUnit_ResetServer::ext_trigs[ROSUnit_ResetServer::capacity] = {
-    new ResetTrigger,
-    new ResetTrigger,
-    new ResetTrigger,
-    new ResetTrigger,
-    new ResetTrigger,
-    new ResetTrigger,
-    new ResetTrigger
-};
+ResetTrigger* ROSUnit_ResetServer::ext_trigs[ROSUnit_ResetServer::capacity];
 
 int ROSUnit_ResetServer::internal_counter = 0;
 
@@ -30,6 +22,7 @@ ROSUnit_ResetServer::ROSUnit_ResetServer(ros::NodeHandle &nh) : nh_(nh){
 
 ResetTrigger* ROSUnit_ResetServer::registerServer(const std::string &service_topic){
     if(internal_counter < capacity){
+        ext_trigs[internal_counter] = new ResetTrigger;
         this->m_server = nh_.advertiseService(service_topic, ROSUnit_ResetServer::callback_pointers[internal_counter]);  
         internal_counter++;
     }

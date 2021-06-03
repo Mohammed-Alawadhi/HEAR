@@ -40,7 +40,7 @@ public:
             _state = false;
         }
     }
-    void UpdateCallback(UpdateMsg *msg){
+    void UpdateCallback(const UpdateMsg *msg){
         mtx_.lock();
         msg_ = msg->copy();
         mtx_.unlock();

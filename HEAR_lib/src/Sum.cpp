@@ -4,7 +4,7 @@ namespace HEAR{
 
 Sum::Sum (OPERATION op) : _op(op), Block(BLOCK_ID::SUM){
     operand1_port = createInputPort<float>(IP::OPERAND1, TYPE::Float, "OPERAND1");
-    operand2_port = createInputPort<float>(IP::OPERAND1, TYPE::Float, "OPERAND2");
+    operand2_port = createInputPort<float>(IP::OPERAND2, TYPE::Float, "OPERAND2");
     out = createOutputPort<float>(OP::OUTPUT, TYPE::Float, "OUTPUT");
 }
 

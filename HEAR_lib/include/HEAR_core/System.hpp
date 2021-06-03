@@ -26,14 +26,11 @@ namespace HEAR{
 
 class System{
 public:
-    System(const int frequency) : _dt(1.f/frequency), _exit_flag(false) {}
+    System(const int frequency, const std::string& sys_name) : _dt(1.f/frequency), _sys_name(sys_name), _exit_flag(false) {}
     ~System();
-    void printSystem();
-    int init();
+    int init(bool print_diagram);
     void execute();
     void runPubLoop();
-    void mainLoop();
-    void pubLoop();
     void terminate() { _exit_flag = true;}
     int addBlock(Block* blk, std::string name);
     void addPub(Block* ros_pub);
@@ -52,6 +49,7 @@ private:
     int num_blocks = 0;
     int num_ext_trigs = 0;
     float _dt;
+    std::string _sys_name;
     std::atomic<bool> _exit_flag;
     std::vector<Edge> _edges;
     Graph _graph;
@@ -64,7 +62,9 @@ private:
     std::unique_ptr<std::thread> system_thread, pub_thread;
     static bool sortbyconnectivity(const Block* a, const Block* b);
     void findsequence();
-
+    void mainLoop(std::string sys_name);
+    void pubLoop(std::string sys_name);
+    void printSystem();
 };
 
 System::~System(){
@@ -79,10 +79,13 @@ System::~System(){
         delete block;
     }
 }
-int System::init(){
+int System::init(bool print_diagram){
     // do some checks for errors in connectivity etc
     this->findsequence();
     _graph = Graph(_edges, _blocks.size());
+    if(print_diagram){
+        printSystem();
+    }
     return true;
 }
 
@@ -176,13 +179,13 @@ void System::findsequence(){
     std::sort(seq.begin(), seq.end(), System::sortbyconnectivity);
 }
 
-void System::mainLoop(){
+void System::mainLoop(std::string sys_name){
     auto start = std::chrono::steady_clock::now();
     auto end = std::chrono::steady_clock::now();
     auto step_time = std::chrono::microseconds((int)(_dt*1e6));
     std::chrono::duration<double> avglooptime;
     int i = 0;
-    std::cout <<"mainloop started\n";
+    std::cout <<"[" + sys_name + "] mainloop started\n";
     while(!_exit_flag){
 //        std::cout <<"mainloop running\n";
 
@@ -200,27 +203,28 @@ void System::mainLoop(){
         auto loop_time = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
         if(loop_time > step_time){
             // print warning
+            std::cout << "[WARN] Loop time exceeding for " << sys_name << std::endl;
         }
         else{
             std::this_thread::sleep_for(step_time -loop_time);
         }
-        if(i == 100){
+        if(i == 1000){
             i = 0;
-            std::cout << "Loop Frequency : " << 1.0/avglooptime.count() << std::endl;    
+            std::cout << "[" + _sys_name + "] Loop Frequency : " << 1.0/avglooptime.count() << std::endl;    
             avglooptime = std::chrono::duration<double>(0);
         }   
-        avglooptime += (loop_time/100);
+        avglooptime += (loop_time/10000);
         ++i;
 
     }
     std::cout << "mainloop ended\n";
 }
 
-void System::pubLoop(){
+void System::pubLoop(std::string sys_name){
     auto start = std::chrono::steady_clock::now();
     auto end = std::chrono::steady_clock::now();
     auto step_time = std::chrono::microseconds((int)(_dt*1e6));
-
+    std::cout <<"["+ sys_name +"] Pub loop started\n";
     while(!_exit_flag){
         start = std::chrono::steady_clock::now();
         for(const auto& ros_pub : _ros_pubs){
@@ -230,6 +234,7 @@ void System::pubLoop(){
         auto loop_time = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
         if(loop_time > step_time){
             // print warning
+            std::cout << "[WARN] Publish time exceeding for " << sys_name << std::endl;
         }
         else{
             std::this_thread::sleep_for(step_time -loop_time);
@@ -239,27 +244,28 @@ void System::pubLoop(){
 
 void System::execute(){
     system_thread = std::unique_ptr<std::thread>(
-                    new std::thread(&mainLoop, this));
-    sleep(2);
+                    new std::thread(&System::mainLoop, this, _sys_name));
+    sleep(3);
 }
 
 void System::runPubLoop(){
     pub_thread = std::unique_ptr<std::thread>(
-                    new std::thread(&pubLoop, this));
-    sleep(2);
+                    new std::thread(&System::pubLoop, this, _sys_name));
+    sleep(3);
 }
 
 void System::printSystem(){
-    std::cout <<seq.size()<<std::endl;
+    std::cout << std::endl << "*****" <<_sys_name<< "*****" << std::endl;
     for (const auto &blk_in_seq : seq){
         int src_blk_idx = blk_in_seq->_block_uid;
-        std::cout<< _block_names[src_blk_idx] <<std::endl;
+        std::cout<< std::endl << _block_names[src_blk_idx] <<std::endl;
         auto connections = _graph.adjList[src_blk_idx];
         for(auto const &connection : connections){
             std::cout << _block_names[src_blk_idx] << " | " << blk_in_seq->getOutputPortName(connection.src_port) << " -----> " 
                         << _blocks[connection.dest_block_idx]->getInputPortName(connection.dest_port)  << " | " << _block_names[connection.dest_block_idx] << std::endl;
         }
     }
+    std::cout << std::endl << "***********************************" << std::endl; 
 }
 
 }

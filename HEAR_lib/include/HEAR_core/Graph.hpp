@@ -35,7 +35,7 @@ public:
     Graph(std::vector<Edge> const &edges, int N){
         // resize the vector to hold `N` elements of type `vector<int>`
         adjList.resize(N);
-        std::cout <<"num_edges" <<edges.size() <<std::endl;
+//        std::cout <<"num_edges" <<edges.size() <<std::endl;
         // add edges to the directed graph
         for (auto &edge: edges)
         {
