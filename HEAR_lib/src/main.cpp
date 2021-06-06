@@ -43,7 +43,7 @@ const float SATURATION_VALUE_YAW = 0.2617;
 
 
 int main(int argc, char** argv) {
-    ros::init(argc, argv, "tesing_node");
+    ros::init(argc, argv, "flight_controller_node");
     ros::NodeHandle nh;
 //    ros::Rate rate(FREQ);
 
@@ -280,7 +280,7 @@ int main(int argc, char** argv) {
 
     // setting up triggers
     auto reset_z_trig = new ROSUnit_ResetServer(nh);
-    auto reset_z = outer_sys->addExternalTrigger(reset_z_trig->registerServer("reset_controller"), "reset_z_trig");
+    auto reset_z = outer_sys->addExternalTrigger(reset_z_trig->registerServer("reset_z"), "reset_z_trig");
     outer_sys->connectExtTrig(pid_z_idx, reset_z);
     
     auto update_cont_srv = new ROSUnit_UpdateContSrv(nh);

@@ -1,0 +1,8 @@
+<launch> 
+  <include file="$(find mocap_optitrack)/launch/mocap.launch"/>
+  <!-- launch xsens driver-->
+  <node pkg="hear_navio_fc_example" type="waypoint_reference_node" 
+  name="waypoint_reference_node" output="screen" required="true"/> 
+  <node pkg="hear_flight_controller" type="hear_fc_node" 
+  name="flight_controller" output="screen" required="true"/> 
+</launch> 
