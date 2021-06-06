@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package format="2">
   <name>hear_flight_controller</name>
-  <version>0.0.0</version>
+  <version>0.0.1</version>
   <description>HEAR Flight Controller Package</description>
   <maintainer email="muhammad.humais@ku.ac.ae">Muhammad Ahmed Humais</maintainer>
   <license>TODO</license>

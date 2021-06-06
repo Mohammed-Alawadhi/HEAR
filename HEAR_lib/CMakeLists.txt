@@ -30,7 +30,6 @@ include_directories(
 )
 
 file(GLOB HEAR_SRCs src/*)
-
 add_executable(hear_fc_node ${HEAR_SRCs})
 add_dependencies(hear_fc_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(hear_fc_node ${catkin_LIBRARIES})
