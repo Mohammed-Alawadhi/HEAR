@@ -221,7 +221,7 @@ int main(int argc, char** argv) {
     inner_sys->connect<float>(yaw_sat_idx, Saturation::OP::OUTPUT, sum_ref_yaw_idx, Sum::IP::OPERAND1);
     inner_sys->connect<float>(demux_angle_rate_idx, Demux3::OP::Z,  sum_ref_yaw_idx, Sum::IP::OPERAND2);
     auto PID_yaw_rate = new PID_Block(PID_ID::PID_YAW_RATE);
-    auto pid_yaw_rate_idx = inner_sys->addBlock(PID_yaw, "PID_yaw_rate");
+    auto pid_yaw_rate_idx = inner_sys->addBlock(PID_yaw_rate, "PID_yaw_rate");
     inner_sys->connect<float>(sum_ref_yaw_idx, Sum::OP::OUTPUT, pid_yaw_rate_idx, PID_Block::IP::ERROR);
     auto mux_angle_u = new Mux3();
     auto mux_angle_u_idx = inner_sys->addBlock(mux_angle_u, "mux_angle_u");
@@ -272,6 +272,7 @@ int main(int argc, char** argv) {
     actuation_sys->connectToExternalInput<float>(thrust_port_idx, actuation_idx, HexaActuationSystem::IP::THRUST_CMD);
 
     auto actuation_out_port_idx = actuation_sys->createExternalOutputPort<std::vector<float>>(TYPE::FloatVec, "actuation_out_port");
+    actuation_sys->connectToExternalOutput<std::vector<float>>(actuation_idx, HexaActuationSystem::OP::MOTOR_CMD, actuation_out_port_idx);
     auto actuation_cmd_pub = new ROSUnitFloatArrPub(nh);
     actuation_sys->connectToExternalOutput(actuation_cmd_pub->registerPublisher("/actuation_cmd"), actuation_out_port_idx);
     actuation_sys->addPub(actuation_cmd_pub); 

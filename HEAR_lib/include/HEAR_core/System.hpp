@@ -61,9 +61,10 @@ private:
     std::vector<Block*> seq;
     std::unique_ptr<std::thread> system_thread, pub_thread;
     static bool sortbyconnectivity(const Block* a, const Block* b);
+    bool checkConnectivity(const int &idx , const std::vector<Block*> &vec);
     void findsequence();
-    void mainLoop(std::string sys_name);
-    void pubLoop(std::string sys_name);
+    void mainLoop(std::string sys_name, double dt);
+    void pubLoop(std::string sys_name, double dt);
     void printSystem();
 };
 
@@ -112,6 +113,9 @@ ExternalInputPort<T>* System::getExternalInputPort(int ext_ip_idx){
 
 int System::addBlock(Block* blk, std::string name){
     blk->_block_uid = num_blocks;
+    for(auto &oport : blk->getOutputPorts()){
+        oport.second->_host_block_uid = blk->_block_uid;
+    }
     this->_blocks.push_back(blk);
     this->_block_names.push_back(name);
     num_blocks++;
@@ -168,27 +172,58 @@ void System::connectToExternalOutput(int src_block_uid, int op_idx, int ext_op_i
 bool System::sortbyconnectivity(const Block* a, const Block* b)
 {
     for(auto const &iport : b->getInputPorts()){
-        if( iport.second->getConnectedBlockUID() == a->_block_uid){
+        if( iport.second->getConnectedBlockUID() != a->_block_uid){
             return true;
         }
     }
     return false;
 }
+bool System::checkConnectivity(const int &idx , const std::vector<Block*> &vec){
+    std::vector<int> connected_blocks_idx;
+    for(const auto &iport : vec[idx]->getInputPorts()){
+        connected_blocks_idx.push_back(iport.second->getConnectedBlockUID());
+    }
+    if(!connected_blocks_idx.empty()){
+        for(int i=0; i < vec.size(); i++){
+            if(idx != i){
+                auto con_blk = vec[i]->_block_uid;
+                for(const auto& connected_block_idx : connected_blocks_idx){
+                    if(connected_block_idx == con_blk){
+                        return false;
+                    }
+                }
+            }
+        }
+    }
+    return true;
+}
 void System::findsequence(){
-    seq = _blocks;
-    std::sort(seq.begin(), seq.end(), System::sortbyconnectivity);
+    seq = std::vector<Block*>();
+    auto tmp = _blocks;
+    // std::sort(seq.begin(), seq.end(), System::sortbyconnectivity);
+    while(tmp.size()){
+        for(int i=0; i<tmp.size(); i++){
+            if(checkConnectivity(i, tmp)){
+                seq.push_back(tmp[i]);
+                tmp[i] = tmp.back();
+                tmp.pop_back();
+            }
+            
+        }
+    }
+
 }
 
-void System::mainLoop(std::string sys_name){
-    auto start = std::chrono::steady_clock::now();
+void System::mainLoop(std::string sys_name, double dt){
     auto end = std::chrono::steady_clock::now();
-    auto step_time = std::chrono::microseconds((int)(_dt*1e6));
-    std::chrono::duration<double> avglooptime;
-    int i = 0;
+    auto step_time = std::chrono::duration<double>();
+    auto start = std::chrono::steady_clock::now();
+    auto last_print_time = std::chrono::steady_clock::now();
+    double _del = 0;
+    double accum = 0; int i=0;
+    double accum_t = 0;
     std::cout <<"[" + sys_name + "] mainloop started\n";
     while(!_exit_flag){
-//        std::cout <<"mainloop running\n";
-
         start = std::chrono::steady_clock::now();
         // call external triggers   
         for (const auto& ext_trig : _external_triggers){
@@ -198,32 +233,39 @@ void System::mainLoop(std::string sys_name){
         for(const auto &it : seq){
             it->process();
         }
-
         end = std::chrono::steady_clock::now();
-        auto loop_time = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
-        if(loop_time > step_time){
+        step_time = end - start;
+        _del =  step_time.count();
+        accum += _del; ++i;
+        int x = (dt - _del)*1000;
+        auto final_time = std::chrono::steady_clock::now() + std::chrono::duration<double>(dt-_del);
+        if(x <= 0){
             // print warning
             std::cout << "[WARN] Loop time exceeding for " << sys_name << std::endl;
         }
         else{
-            std::this_thread::sleep_for(step_time -loop_time);
+             std::this_thread::sleep_until(std::chrono::steady_clock::now() + std::chrono::duration<double, std::milli>(x));
+             while((std::chrono::steady_clock::now() - final_time).count() < 0);
         }
-        if(i == 1000){
+        std::chrono::duration <double> elapsed{std::chrono::steady_clock::now() - last_print_time};
+        accum_t = elapsed.count();
+        if( accum_t >= 2){
+            // std::cout <<accum_t << std::endl;
+            std::string print_expr =  "[" + _sys_name + "] Loop Frequency : " + std::to_string(i/accum_t) +  ", Max : " + std::to_string(i/accum) + "\n";
+            std::cout << print_expr;    
             i = 0;
-            std::cout << "[" + _sys_name + "] Loop Frequency : " << 1.0/avglooptime.count() << std::endl;    
-            avglooptime = std::chrono::duration<double>(0);
+            accum =0;
+            last_print_time = std::chrono::steady_clock::now();
         }   
-        avglooptime += (loop_time/10000);
-        ++i;
-
     }
     std::cout << "mainloop ended\n";
 }
 
-void System::pubLoop(std::string sys_name){
-    auto start = std::chrono::steady_clock::now();
+void System::pubLoop(std::string sys_name, double dt){
     auto end = std::chrono::steady_clock::now();
-    auto step_time = std::chrono::microseconds((int)(_dt*1e6));
+    auto step_time = std::chrono::duration<double>();
+    auto start = std::chrono::steady_clock::now();
+    double _del = 0;
     std::cout <<"["+ sys_name +"] Pub loop started\n";
     while(!_exit_flag){
         start = std::chrono::steady_clock::now();
@@ -231,27 +273,31 @@ void System::pubLoop(std::string sys_name){
             ros_pub->process();
         }
         end = std::chrono::steady_clock::now();
-        auto loop_time = std::chrono::duration_cast<std::chrono::duration<double>>(end - start);
-        if(loop_time > step_time){
+        step_time = end - start;
+        _del =  step_time.count();
+        int x = (dt - _del)*1000;
+        auto final_time = std::chrono::steady_clock::now() + std::chrono::duration<double>(dt-_del);
+        if(x <= 0){
             // print warning
             std::cout << "[WARN] Publish time exceeding for " << sys_name << std::endl;
         }
         else{
-            std::this_thread::sleep_for(step_time -loop_time);
+             std::this_thread::sleep_until(std::chrono::steady_clock::now() + std::chrono::duration<double, std::milli>(x));
+             while((std::chrono::steady_clock::now() - final_time).count() < 0);
         }
     }
 }
 
 void System::execute(){
     system_thread = std::unique_ptr<std::thread>(
-                    new std::thread(&System::mainLoop, this, _sys_name));
-    sleep(3);
+                    new std::thread(&System::mainLoop, this, _sys_name, _dt));
+    sleep(2);
 }
 
 void System::runPubLoop(){
     pub_thread = std::unique_ptr<std::thread>(
-                    new std::thread(&System::pubLoop, this, _sys_name));
-    sleep(3);
+                    new std::thread(&System::pubLoop, this, _sys_name, _dt));
+    sleep(2);
 }
 
 void System::printSystem(){

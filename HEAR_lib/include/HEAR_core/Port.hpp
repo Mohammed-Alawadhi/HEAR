@@ -14,8 +14,9 @@ class Port{
 private:
     TYPE _dtype = TYPE::NA;
 protected:
-    int _connected_block_uid= -1; 
+    int _connected_block_uid= -1;
 public:
+    int _host_block_uid = -1;
     Port (TYPE dtype) : _dtype(dtype){}
     virtual ~Port(){}
     virtual TYPE getType() { return _dtype; }
@@ -25,8 +26,9 @@ public:
 template <class T> class OutputPort : public Port{
 public:
     T _data;
-    int _host_block_uid;
-    OutputPort(TYPE dtype, int host_block_uid) : _host_block_uid(host_block_uid) , Port(dtype) {}
+    OutputPort(TYPE dtype, int host_block_uid) : Port(dtype) {
+        _host_block_uid = host_block_uid;
+    }
     void write(T const &data) { this->_data = data; }
 };
 

@@ -120,9 +120,11 @@ void HexaActuationSystem::command(){
 
 int HexaActuationSystem::constrain(float value, int min_value, int max_value) {
     
-    if (value > max_value) {
+    if ((int)value > max_value) {
         value = max_value;
-    } else if (value < min_value) {
+    }
+    // bug cathed in the original code
+    else if ((int)value < min_value) {
         value = min_value;
     }
     return int(value);
