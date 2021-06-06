@@ -26,6 +26,9 @@ private:
     UpdateMsg* msg_;
     std::mutex mtx_;
 public:
+    UpdateTrigger(){
+        _state = false;
+    }
     TRIG_TYPE getType(){
         return TRIG_TYPE::UPDATE;
     }
@@ -50,6 +53,9 @@ public:
 
 class ResetTrigger : public ExternalTrigger{
 public:
+    ResetTrigger(){
+        _state = false;
+    }
     TRIG_TYPE getType(){
         return TRIG_TYPE::RESET;
     }
