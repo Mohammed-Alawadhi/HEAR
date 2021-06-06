@@ -6,6 +6,15 @@
 
 namespace HEAR{
 
+struct BWFilt2_coeff{
+    constexpr static float coeff_120Hz_2nd_butter_5hz[5] =  { -1.279632424997809,0.477592250072517,0.049489956268677,0.098979912537354,0.049489956268677 };
+    constexpr static float coeff_200Hz_2nd_butter[5] = { -1.97779f, 0.97803f, 6.1006e-05f, 1.2201e-04f, 6.1006e-05f };
+    constexpr static float coeff_200Hz_2nd_butter_50hz[5] = {-1.561018075800718, 0.641351538057563, 0.020083365564211, 0.040166731128423, 0.020083365564211};
+    constexpr static float coeff_N200C90[5] = {1.5610, 0.6414, 0.8006, 1.6012, 0.8006};
+    constexpr static float coeff_N200C60[5] = {0.3695, 0.1958, 0.3913,    0.7827,    0.3913};
+    constexpr static float coeff_N200C50[5] = {-1.8e-16,    0.1716,    0.2929,    0.5858,    0.2929};
+};
+
 template <class T>
 class BWFilter2 : public Block{
 private:
