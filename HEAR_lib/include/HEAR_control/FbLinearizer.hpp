@@ -6,7 +6,7 @@
 #include "HEAR_core/Vector3D.hpp"
 #include <tf2/LinearMath/Matrix3x3.h>
 
-
+#include <iostream>
 namespace HEAR{
 namespace FbLinearizer{
 class Force2Rot : public Block{

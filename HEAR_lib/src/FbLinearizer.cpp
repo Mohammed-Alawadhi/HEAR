@@ -47,7 +47,7 @@ void RotDiff2Rod::process(){
     auto angle = quat.getAngle();
     auto err_angles = (angle <= M_PI? angle: angle - 2*M_PI)*quat.getAxis();
     auto u_z = (R_I_B.transpose()*tf2::Vector3(F_I_des.x, F_I_des.y, F_I_des.z)).z();
-
+    std::cout << u_z <<std::endl;
     angles_port->write(Vector3D<float>((float)err_angles.x(), (float)err_angles.y(), (float)err_angles.z()));
     thrust_port->write(u_z);
 }

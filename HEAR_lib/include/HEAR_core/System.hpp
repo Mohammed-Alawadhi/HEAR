@@ -253,7 +253,7 @@ void System::mainLoop(std::string sys_name, double dt){
         if( accum_t >= 2){
             // std::cout <<accum_t << std::endl;
             std::string print_expr =  "[" + _sys_name + "] Loop Frequency : " + std::to_string(i/accum_t) +  ", Max : " + std::to_string(i/accum) + "\n";
-            std::cout << print_expr;    
+            // std::cout << print_expr;    
             i = 0;
             accum =0;
             last_print_time = std::chrono::steady_clock::now();
