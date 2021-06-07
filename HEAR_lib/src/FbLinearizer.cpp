@@ -46,8 +46,8 @@ void RotDiff2Rod::process(){
     f_ides_port->read(F_I_des);
     double r, p, y;
     R_I_B.getRPY(r, p, y);
-    // std::cout << "R_I_B : "
-    //             << r << " " << p << " " << y << std::endl;
+    std::cout << "R_I_B : "
+                << r << " " << p << " " << y << std::endl;
     R_B_des_I.getRPY(r, p, y);
     std::cout << "R_B_des_I : "
                 << r << " " << p << " " << y << std::endl;
