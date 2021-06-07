@@ -16,6 +16,8 @@ void Force2Rot::process(){
     float yaw_ref;
     yaw_ref_port->read(yaw_ref);
     force_i_des_port->read(F_I_des);
+
+    std::cout << "yaw_ref : " << yaw_ref << std::endl;
     auto z_B_des = F_I_des.normalized();
     auto y_aux = F_I_des.cross(Vector3D<float>(cos(yaw_ref), sin(yaw_ref), 0.0));
     auto y_B_des = y_aux.normalized();
@@ -46,7 +48,7 @@ void RotDiff2Rod::process(){
     std::cout << "R_I_B : "
                 << r << " " << p << " " << y << std::endl;
     R_B_des_I.getRPY(r, p, y);
-    std::cout << "R_B_des_I :\n"
+    std::cout << "R_B_des_I : "
                 << r << " " << p << " " << y << std::endl;
     
     auto R_B_B_des = R_I_B.transposeTimes(R_B_des_I.transpose());
@@ -55,8 +57,13 @@ void RotDiff2Rod::process(){
     auto angle = quat.getAngle();
     auto err_angles = (angle <= M_PI? angle: angle - 2*M_PI)*quat.getAxis();
 
+    R_B_B_des.getRPY(r, p, y);
+    std::cout << "R_B_B_des : "
+                << r << " " << p << " " << y << std::endl;
+
+
     auto u_z = (R_I_B.transpose()*tf2::Vector3(F_I_des.x, F_I_des.y, F_I_des.z)).z();
-    std::cout << u_z <<std::endl;
+    std::cout << "u_z : " << u_z <<std::endl;
     angles_port->write(Vector3D<float>((float)err_angles.x(), (float)err_angles.y(), (float)err_angles.z()));
     thrust_port->write(u_z);
 }
