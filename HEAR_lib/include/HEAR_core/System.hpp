@@ -113,6 +113,7 @@ ExternalInputPort<T>* System::getExternalInputPort(int ext_ip_idx){
 
 int System::addBlock(Block* blk, std::string name){
     blk->_block_uid = num_blocks;
+    blk->set_dt(_dt);
     for(auto &oport : blk->getOutputPorts()){
         oport.second->_host_block_uid = blk->_block_uid;
     }

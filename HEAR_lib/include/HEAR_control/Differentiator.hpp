@@ -25,6 +25,7 @@ template <class T>
 Differentiator<T>::Differentiator (TYPE dtype) : Block(BLOCK_ID::DIFFERENTIATOR){
     _inp = createInputPort<T>(0, dtype, "INPUT");
     _out = createOutputPort<T>(0, dtype, "OUTPUT");
+    prev_inp = 0;
     
 }
 
@@ -33,6 +34,7 @@ void Differentiator<T>::process(){
     T inp;
     _inp->read(inp);
     T out  = (inp - prev_inp)/_dt;
+    prev_inp = inp;
     _out->write(out);
 }
 
