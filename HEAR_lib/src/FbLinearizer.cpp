@@ -40,12 +40,22 @@ void RotDiff2Rod::process(){
     Vector3D<float> F_I_des;
     r_i_b_port->read(R_I_B);
     r_bdes_i_port->read(R_B_des_I);
+    f_ides_port->read(F_I_des);
+    std::cout << "R_I_B :\n"
+                << R_I_B.getRow(0) << std::endl
+                << R_I_B.getRow(1) << std::endl
+                << R_I_B.getRow(2) << std::endl;
+    std::cout << "R_B_des_I :\n"
+                << R_B_des_I.getRow(0) << std::endl
+                << R_B_des_I.getRow(1) << std::endl
+                << R_B_des_I.getRow(2) << std::endl;
     
     auto R_B_B_des = R_I_B.transposeTimes(R_B_des_I.transpose());
     tf2::Quaternion quat;
     R_B_B_des.getRotation(quat);
     auto angle = quat.getAngle();
     auto err_angles = (angle <= M_PI? angle: angle - 2*M_PI)*quat.getAxis();
+
     auto u_z = (R_I_B.transpose()*tf2::Vector3(F_I_des.x, F_I_des.y, F_I_des.z)).z();
     std::cout << u_z <<std::endl;
     angles_port->write(Vector3D<float>((float)err_angles.x(), (float)err_angles.y(), (float)err_angles.z()));
