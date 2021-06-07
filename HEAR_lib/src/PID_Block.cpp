@@ -70,7 +70,7 @@ void PID_Block::update_params(PID_parameters* para){
         dd_term =false;
     }
 	_parameters.en_pv_derivation = para->en_pv_derivation;
-	
+	en_pv_derivation = para->en_pv_derivation;
     if(para->anti_windup > 0.0){
 		_parameters.anti_windup = para->anti_windup;
         en_anti_windup = true;
