@@ -22,6 +22,9 @@ void Force2Rot::process(){
     auto y_aux = F_I_des.cross(Vector3D<float>(cos(yaw_ref), sin(yaw_ref), 0.0));
     auto y_B_des = y_aux.normalized();
     auto x_B_des = y_B_des.cross(z_B_des); //TODO: check if it is z_B or z_B_des
+    std::cout << "R_B_des_I : " << x_B_des.x<< x_B_des.y<< x_B_des.z<< std::endl <<
+                y_B_des.x<< y_B_des.y<< y_B_des.z << std::endl <<
+                z_B_des.x<< z_B_des.y<< z_B_des.z << std::endl;
     auto R_B_des_I = tf2::Matrix3x3(x_B_des.x, x_B_des.y, x_B_des.z,
                                     y_B_des.x, y_B_des.y, y_B_des.z,
                                     z_B_des.x, z_B_des.y, z_B_des.z);
@@ -45,11 +48,11 @@ void RotDiff2Rod::process(){
     f_ides_port->read(F_I_des);
     double r, p, y;
     R_I_B.getRPY(r, p, y);
-    std::cout << "R_I_B : "
-                << r << " " << p << " " << y << std::endl;
+    // std::cout << "R_I_B : "
+    //             << r << " " << p << " " << y << std::endl;
     R_B_des_I.getRPY(r, p, y);
-    std::cout << "R_B_des_I : "
-                << r << " " << p << " " << y << std::endl;
+    // std::cout << "R_B_des_I : "
+    //             << r << " " << p << " " << y << std::endl;
     
     auto R_B_B_des = R_I_B.transposeTimes(R_B_des_I.transpose());
     tf2::Quaternion quat;
