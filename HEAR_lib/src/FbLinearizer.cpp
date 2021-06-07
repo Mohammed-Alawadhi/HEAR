@@ -12,22 +12,20 @@ Force2Rot::Force2Rot() : Block(BLOCK_ID::FORCE2ROT){
 }
 
 void Force2Rot::process(){
-    Vector3D<float> F_I_des;
+    Vector3D<float> F_Ides;
     float yaw_ref;
     yaw_ref_port->read(yaw_ref);
-    force_i_des_port->read(F_I_des);
-
-    std::cout << "yaw_ref : " << yaw_ref << std::endl;
+    force_i_des_port->read(F_Ides);
+    // std::cout << "F_I_des : " <<F_I_des.x << " " << F_I_des.y << " " << F_I_des.z << std::endl;
+    // std::cout << "yaw_ref : " << yaw_ref << std::endl;
+    tf2::Vector3 F_I_des(F_Ides.x, F_Ides.y, F_Ides.z);
     auto z_B_des = F_I_des.normalized();
-    auto y_aux = F_I_des.cross(Vector3D<float>(cos(yaw_ref), sin(yaw_ref), 0.0));
+    auto y_aux = F_I_des.cross(tf2::Vector3(cos(yaw_ref), sin(yaw_ref), 0.0));
     auto y_B_des = y_aux.normalized();
     auto x_B_des = y_B_des.cross(z_B_des); //TODO: check if it is z_B or z_B_des
-    std::cout << "R_B_des_I : " << x_B_des.x<< x_B_des.y<< x_B_des.z<< std::endl <<
-                y_B_des.x<< y_B_des.y<< y_B_des.z << std::endl <<
-                z_B_des.x<< z_B_des.y<< z_B_des.z << std::endl;
-    auto R_B_des_I = tf2::Matrix3x3(x_B_des.x, x_B_des.y, x_B_des.z,
-                                    y_B_des.x, y_B_des.y, y_B_des.z,
-                                    z_B_des.x, z_B_des.y, z_B_des.z);
+    auto R_B_des_I = tf2::Matrix3x3(x_B_des.x(), x_B_des.y(), x_B_des.z(),
+                                    y_B_des.x(), y_B_des.y(), y_B_des.z(),
+                                    z_B_des.x(), z_B_des.y(), z_B_des.z());
     rot_des_port->write(R_B_des_I);                                
 }
 
@@ -51,8 +49,8 @@ void RotDiff2Rod::process(){
     // std::cout << "R_I_B : "
     //             << r << " " << p << " " << y << std::endl;
     R_B_des_I.getRPY(r, p, y);
-    // std::cout << "R_B_des_I : "
-    //             << r << " " << p << " " << y << std::endl;
+    std::cout << "R_B_des_I : "
+                << r << " " << p << " " << y << std::endl;
     
     auto R_B_B_des = R_I_B.transposeTimes(R_B_des_I.transpose());
     tf2::Quaternion quat;
