@@ -41,14 +41,13 @@ void RotDiff2Rod::process(){
     r_i_b_port->read(R_I_B);
     r_bdes_i_port->read(R_B_des_I);
     f_ides_port->read(F_I_des);
-    std::cout << "R_I_B :\n"
-                << R_I_B.getRow(0) << std::endl
-                << R_I_B.getRow(1) << std::endl
-                << R_I_B.getRow(2) << std::endl;
+    double r, p, y;
+    R_I_B.getRPY(r, p, y);
+    std::cout << "R_I_B : "
+                << r << " " << p << " " << y << std::endl;
+    R_B_des_I.getRPY(r, p, y);
     std::cout << "R_B_des_I :\n"
-                << R_B_des_I.getRow(0) << std::endl
-                << R_B_des_I.getRow(1) << std::endl
-                << R_B_des_I.getRow(2) << std::endl;
+                << r << " " << p << " " << y << std::endl;
     
     auto R_B_B_des = R_I_B.transposeTimes(R_B_des_I.transpose());
     tf2::Quaternion quat;
