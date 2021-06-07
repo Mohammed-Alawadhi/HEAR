@@ -234,6 +234,11 @@ int main(int argc, char** argv) {
     auto uz_port_idx = inner_sys->createExternalOutputPort<float>(TYPE::Float, "uz_port");
     inner_sys->connectToExternalOutput<float>(rot2angle_idx, FbLinearizer::RotDiff2Rod::OP::THRUST, uz_port_idx);
 
+    auto body_ori_port_idx = inner_sys->createExternalOutputPort<Vector3D<float>>(TYPE::Float3, "body_ori_port");
+    inner_sys->connectToExternalOutput<Vector3D<float>>(mux_eul_idx, Mux3::OP::OUTPUT, body_ori_port_idx);
+    auto body_ori_pub = new ROSUnitPointPub(nh);
+    inner_sys->connectToExternalOutput(body_ori_pub->registerPublisher("body_ori"), body_ori_port_idx);
+    inner_sys->addPub(body_ori_pub);
     auto angle_err_port_idx = inner_sys->createExternalOutputPort<Vector3D<float>>(TYPE::Float3, "angle_err_port");
     inner_sys->connectToExternalOutput<Vector3D<float>>(rot2angle_idx, FbLinearizer::RotDiff2Rod::OP::ROD_ANGLES, angle_err_port_idx);
     auto angle_err_pub = new ROSUnitPointPub(nh);
