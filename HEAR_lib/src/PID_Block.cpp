@@ -15,6 +15,7 @@ void PID_Block::process(){
 		err_port->read(err);
 		pv_dot_port->read(pv_dot);
 		float u = pid_direct(err, pv_dot);
+		std::cout << "cont_id : " <<_id << " err " << err << " pv_dot " << pv_dot <<" u "<< u  <<" \n";
 		u_port->write(u);
 	}
 }
