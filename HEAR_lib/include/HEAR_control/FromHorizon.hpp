@@ -18,7 +18,7 @@ private:
 public:
     enum IP{YAW, INP_VEC};
     enum OP{OUT_VEC};
-    FromHorizon();
+    FromHorizon(int b_uid);
     ~FromHorizon(){}
     void process();
 

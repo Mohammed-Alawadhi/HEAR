@@ -16,7 +16,7 @@ private:
 public:
     enum IP{INPUT};
     enum OP{X, Y, Z};
-    Demux3();
+    Demux3(int b_uid);
     ~Demux3(){}
     void process();
 

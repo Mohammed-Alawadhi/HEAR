@@ -17,7 +17,8 @@ private:
 public:
     enum IP{INPUT};
     enum OP{OUTPUT};
-    Gain(const float&);
+    Gain(int);
+    void setGain(const float& gain) { K = gain;}
     ~Gain(){}
     void process();
 };

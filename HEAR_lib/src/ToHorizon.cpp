@@ -2,10 +2,10 @@
 
 namespace HEAR{
 
-ToHorizon::ToHorizon() : Block(BLOCK_ID::TOHORIZON){
-    yaw_port = createInputPort<float>(IP::YAW, TYPE::Float, "YAW");
-    inp_vec_port = createInputPort<Vector3D<float>>(IP::INP_VEC, TYPE::Float3, "INP_VEC");
-    out_vec_port = createOutputPort<Vector3D<float>>(OP::OUT_VEC, TYPE::Float3, "OUT_VEC");
+ToHorizon::ToHorizon(int b_uid) : Block(BLOCK_ID::TOHORIZON, b_uid){
+    yaw_port = createInputPort<float>(IP::YAW, "YAW");
+    inp_vec_port = createInputPort<Vector3D<float>>(IP::INP_VEC, "INP_VEC");
+    out_vec_port = createOutputPort<Vector3D<float>>(OP::OUT_VEC, "OUT_VEC");
 }
 
 void ToHorizon::process(){

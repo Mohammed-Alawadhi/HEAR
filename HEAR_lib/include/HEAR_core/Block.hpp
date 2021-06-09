@@ -11,11 +11,10 @@ namespace HEAR{
 
 class Block{
 public:
-    int _block_uid;
-    Block(BLOCK_ID block_id) : _block_id(block_id){}
+    Block(BLOCK_ID block_id, int b_uid);  
     virtual ~Block(){}
-    template <class T> InputPort<T>* createInputPort(int idx, TYPE dtype, std::string name);
-    template <class T> OutputPort<T>* createOutputPort(int idx, TYPE dtype, std::string name);
+    template <class T> InputPort<T>* createInputPort(int idx, std::string name);
+    template <class T> OutputPort<T>* createOutputPort(int idx, std::string name);
     template <class T> InputPort<T>* getInputPort(int idx){ return (InputPort<T>*)_input_ports[idx]; }
     template <class T> OutputPort<T>* getOutputPort(int idx) { return (OutputPort<T>*)_output_ports[idx];}
     virtual std::string getInputPortName(int idx) { return _input_port_names[idx];}
@@ -23,14 +22,13 @@ public:
     virtual const std::map<int, Port*> getInputPorts() const {return _input_ports;}
     virtual const std::map<int, Port*> getOutputPorts() const{return _output_ports;}
     virtual void process() = 0;
-    void set_dt(float dt) { _dt = dt;}
-    virtual int getBlockID(){ return _block_id;}
+    int getBlockUID() const {return _block_uid;}
+    int getBlockID() const { return _block_id;}
     virtual void reset(){}
     virtual void update(UpdateMsg* u_msg){}
 
-protected:
-    float _dt;
 private:
+    int _block_uid;
     BLOCK_ID _block_id;
     std::map<int, Port*> _input_ports;
     std::map<int, Port*> _output_ports;
@@ -39,17 +37,19 @@ private:
     
 };
 
+Block::Block(BLOCK_ID block_id, int b_uid) : _block_id(block_id), _block_uid(b_uid)  {}
+
 template <class T> 
-InputPort<T>* Block::createInputPort(int idx, TYPE dtype, std::string name){
-    auto port = new InputPort<T>(dtype);
+InputPort<T>* Block::createInputPort(int idx, std::string name){
+    auto port = new InputPort<T>(this->_block_uid, idx);
     _input_ports.emplace(idx, port);
     _input_port_names.emplace(idx, name);
     return port;
 }
 
 template <class T> 
-OutputPort<T>* Block::createOutputPort(int idx, TYPE dtype, std::string name){
-    auto port  = new OutputPort<T>(dtype, this->_block_uid);
+OutputPort<T>* Block::createOutputPort(int idx, std::string name){
+    auto port  = new OutputPort<T>(this->_block_uid, idx);
     _output_ports.emplace(idx, port);
     _output_port_names.emplace(idx, name);
     return port;

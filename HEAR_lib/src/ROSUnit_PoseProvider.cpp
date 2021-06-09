@@ -12,34 +12,38 @@ ExternalOutputPort<Vector3D<float>>* ROSUnit_PoseProvider::imu_angular_rt_port;
 tf2::Matrix3x3 ROSUnit_PoseProvider::rot_offset;
 tf2::Vector3 ROSUnit_PoseProvider::trans_offset;
 
-ROSUnit_PoseProvider::ROSUnit_PoseProvider(ros::NodeHandle& nh): nh_(nh), Block(BLOCK_ID::ROSPOSPROV){
+ROSUnit_PoseProvider::ROSUnit_PoseProvider(ros::NodeHandle& nh): nh_(nh){
     m_server = nh_.advertiseService("set_height_offset", ROSUnit_PoseProvider::srv_callback);
     rot_offset.setRPY(0.0, 0.0, M_PI/2.0);
-
 }
 
 
 std::vector<ExternalOutputPort<Vector3D<float>>*> ROSUnit_PoseProvider::registerOptiPose(std::string t_name){
-    opti_pos_port = new ExternalOutputPort<Vector3D<float>>(TYPE::Float3);
-    opti_ori_port = new ExternalOutputPort<Vector3D<float>>(TYPE::Float3);
+    opti_pos_port = new ExternalOutputPort<Vector3D<float>>(0);
+    opti_pos_port->write(Vector3D<float>(0,0,0));
+    opti_ori_port = new ExternalOutputPort<Vector3D<float>>(0);
+    opti_pos_port->write(Vector3D<float>(0,0,0));
     opti_sub = nh_.subscribe(t_name, 10, ROSUnit_PoseProvider::callback_opti_pose, ros::TransportHints().tcpNoDelay());
     return std::vector<ExternalOutputPort<Vector3D<float>>*>{opti_pos_port, opti_ori_port};
 }
 
 ExternalOutputPort<Vector3D<float>>* ROSUnit_PoseProvider::registerImuOri(std::string t_name){
-    imu_ori_port = new ExternalOutputPort<Vector3D<float>>(TYPE::Float3);
+    imu_ori_port = new ExternalOutputPort<Vector3D<float>>(0);
+    imu_ori_port->write(Vector3D<float>(0,0,0));
     xsens_ori_sub = nh_.subscribe(t_name, 10, ROSUnit_PoseProvider::callback_ori, ros::TransportHints().tcpNoDelay());
     return imu_ori_port;
 }
 
 ExternalOutputPort<Vector3D<float>>* ROSUnit_PoseProvider::registerImuAngularRate(std::string t_name){
-    imu_angular_rt_port = new ExternalOutputPort<Vector3D<float>>(TYPE::Float3);
+    imu_angular_rt_port = new ExternalOutputPort<Vector3D<float>>(0);
+    imu_angular_rt_port->write(Vector3D<float>(0,0,0));
     xsens_ang_vel_sub = nh_.subscribe(t_name, 10, ROSUnit_PoseProvider::callback_angular_vel, ros::TransportHints().tcpNoDelay());
     return imu_angular_rt_port;
 }
 
 ExternalOutputPort<Vector3D<float>>* ROSUnit_PoseProvider::registerImuAcceleration(std::string t_name){
-    imu_acc_port = new ExternalOutputPort<Vector3D<float>>(TYPE::Float3);
+    imu_acc_port = new ExternalOutputPort<Vector3D<float>>(0);
+    imu_acc_port->write(Vector3D<float>(0,0,0));
     xsens_free_acc_sub = nh_.subscribe(t_name, 10, ROSUnit_PoseProvider::callback_free_acc, ros::TransportHints().tcpNoDelay());
     return imu_acc_port;
 }
@@ -62,8 +66,8 @@ void ROSUnit_PoseProvider::callback_opti_pose(const geometry_msgs::PoseStamped::
 
     Vector3D<float> vec_ori = {(float)roll, (float)pitch, (float)yaw};
 
-    opti_pos_port->update(vec);
-    opti_ori_port->update(vec_ori);
+    opti_pos_port->write(vec);
+    opti_ori_port->write(vec_ori);
 }
 
 void ROSUnit_PoseProvider::callback_ori(const geometry_msgs::QuaternionStamped::ConstPtr& msg){
@@ -74,19 +78,19 @@ void ROSUnit_PoseProvider::callback_ori(const geometry_msgs::QuaternionStamped::
     R_mat.getEulerYPR(yaw, pitch, roll);
 
     Vector3D<float> vec = {(float)roll, (float)pitch, (float)yaw};
-    imu_ori_port->update(vec);
+    imu_ori_port->write(vec);
 }
 
 void ROSUnit_PoseProvider::callback_angular_vel(const geometry_msgs::Vector3Stamped::ConstPtr& msg){
     Vector3D<float> vec = {(float)msg->vector.x, (float)msg->vector.x, (float)msg->vector.z};
 
-    imu_angular_rt_port->update(vec);
+    imu_angular_rt_port->write(vec);
 }
 
 void ROSUnit_PoseProvider::callback_free_acc(const geometry_msgs::Vector3Stamped::ConstPtr& msg){
     Vector3D<float> vec = {(float)msg->vector.x, (float)msg->vector.x, (float)msg->vector.z};
 
-    imu_acc_port->update(vec);
+    imu_acc_port->write(vec);
 }
 
 }

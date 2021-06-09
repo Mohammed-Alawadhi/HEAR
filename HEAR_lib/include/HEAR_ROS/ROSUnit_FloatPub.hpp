@@ -3,23 +3,26 @@
 #define ROSUNITFLOATPUB_HPP
 
 
-#include "HEAR_core/DataTypes.hpp"
-#include "HEAR_core/Block.hpp"
-#include "HEAR_core/ExternalPort.hpp"
-#include "ros/ros.h"
+#include "HEAR_ROS/ROSUnit_Pub.hpp"
 #include "std_msgs/Float32.h"
 
 namespace HEAR{
 
-class ROSUnitFloatPub : public Block{
-private:
-    ros::NodeHandle nh_;
-    ros::Publisher pub_;
-    ExternalInputPort<float>* port;
+class ROSUnitFloatPub : public ROSUnit_Pub{
 public:
-    ROSUnitFloatPub(ros::NodeHandle&);
-    ExternalInputPort<float>* registerPublisher(const std::string &);
-    void process();
+    ROSUnitFloatPub(ros::NodeHandle& nh, const std::string& topic_name, int idx) {
+        pub_ = nh.advertise<std_msgs::Float32>(topic_name, 10);
+        _input_port = new InputPort<float>(idx, 0);
+        id_ = idx; 
+    }
+    TYPE getType(){return TYPE::Float;}
+    void process(){
+        if (_input_port != NULL){
+            std_msgs::Float32 msg;
+            ((InputPort<float>*)_input_port)->read(msg.data);
+            pub_.publish(msg);
+        }
+    }
 };
 
 }

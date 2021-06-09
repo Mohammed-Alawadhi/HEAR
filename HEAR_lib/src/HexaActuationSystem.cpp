@@ -31,11 +31,10 @@ void ESCMotor::applyCommand(int t_command){
 
 }
 
-HexaActuationSystem::HexaActuationSystem(const std::vector<Actuator*>& t_actuators) : Block(BLOCK_ID::HEXAACTUATIONSYSTEM){
-    _actuators = t_actuators;
-    body_rate_port = createInputPort<Vector3D<float>>(IP::BODY_RATE_CMD, TYPE::Float3, "BODY_RATE_CMD");
-    thrust_port = createInputPort<float>(IP::THRUST_CMD, TYPE::Float, "THRUST_CMD");
-    cmd_out_port = createOutputPort<std::vector<float>>(OP::MOTOR_CMD, TYPE::FloatVec, "MOTOR_CMD");
+HexaActuationSystem::HexaActuationSystem(int b_uid) : Block(BLOCK_ID::HEXAACTUATIONSYSTEM, b_uid){
+    body_rate_port = createInputPort<Vector3D<float>>(IP::BODY_RATE_CMD, "BODY_RATE_CMD");
+    thrust_port = createInputPort<float>(IP::THRUST_CMD, "THRUST_CMD");
+    cmd_out_port = createOutputPort<std::vector<float>>(OP::MOTOR_CMD, "MOTOR_CMD");
 }
 
 void HexaActuationSystem::process() {

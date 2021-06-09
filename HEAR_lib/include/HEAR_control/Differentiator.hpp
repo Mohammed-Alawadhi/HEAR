@@ -13,18 +13,19 @@ private:
     InputPort<T>* _inp;
     OutputPort<T>* _out;
     T prev_inp;
+    double _dt;
 public:
     enum IP{INPUT};
     enum OP{OUTPUT};
-    Differentiator(TYPE dtype);
+    Differentiator(double dt, int b_id);
     ~Differentiator(){}
     void process();    
 };
 
 template <class T>
-Differentiator<T>::Differentiator (TYPE dtype) : Block(BLOCK_ID::DIFFERENTIATOR){
-    _inp = createInputPort<T>(0, dtype, "INPUT");
-    _out = createOutputPort<T>(0, dtype, "OUTPUT");
+Differentiator<T>::Differentiator (double dt, int b_uid) : Block(BLOCK_ID::DIFFERENTIATOR, b_uid){
+    _inp = createInputPort<T>(0, "INPUT");
+    _out = createOutputPort<T>(0, "OUTPUT");
     prev_inp = 0;
     
 }
@@ -32,6 +33,7 @@ Differentiator<T>::Differentiator (TYPE dtype) : Block(BLOCK_ID::DIFFERENTIATOR)
 template <class T>
 void Differentiator<T>::process(){
     T inp;
+    inp = 0;
     _inp->read(inp);
     T out  = (inp - prev_inp)/_dt;
     prev_inp = inp;

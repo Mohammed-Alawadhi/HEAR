@@ -25,17 +25,21 @@ private:
 public:
     enum IP{INPUT};
     enum OP{OUTPUT};
-    BWFilter2(const float* coeff, TYPE dtype) : Block(BLOCK_ID::BW_FILT2){
-        _inp_port = createInputPort<T>(0, dtype, "INPUT");
-        _out_port = createOutputPort<T>(0, dtype, "OUTPUT");
+    BWFilter2(int b_uid) : Block(BLOCK_ID::BW_FILT2, b_uid){
+        _inp_port = createInputPort<T>(0, "INPUT");
+        _out_port = createOutputPort<T>(0, "OUTPUT");
+        setCoeff(BWFilt2_coeff::coeff_N200C50);
+        prev_y = 0; prev_x =0; prev2_y = 0; prev2_x = 0;
+    }
+    void setCoeff(const float* coeff){
         for(int i=0; i<5; i++){
             coeff_[i] = coeff[i];
         }
-        prev_y = 0; prev_x =0; prev2_y = 0; prev2_x = 0;
     }
     ~BWFilter2(){}
     void process(){
         T x;
+        x=0;
         _inp_port->read(x);
         T y = -coeff_[0] * prev_y - coeff_[1] * prev2_y + coeff_[2] * x + coeff_[3] * prev_x + coeff_[4] * prev2_x;
         prev2_y = prev_y;

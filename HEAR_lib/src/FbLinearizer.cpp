@@ -4,16 +4,16 @@ namespace HEAR{
 
 namespace FbLinearizer{
 
-Force2Rot::Force2Rot() : Block(BLOCK_ID::FORCE2ROT){
-    yaw_ref_port = createInputPort<float>(IP::YAW_REF, TYPE::Float, "YAW_REF");
-    force_i_des_port = createInputPort<Vector3D<float>>(IP::FORCE_I_DES, TYPE::Float3, "FORCE_I_DES");
-    rot_des_port = createOutputPort<tf2::Matrix3x3>(OP::ROT_DES, TYPE::RotMat, "ROT_DES");
+Force2Rot::Force2Rot(int b_uid) : Block(BLOCK_ID::FORCE2ROT, b_uid){
+    yaw_ref_port = createInputPort<float>(IP::YAW_REF, "YAW_REF");
+    force_i_des_port = createInputPort<Vector3D<float>>(IP::FORCE_I_DES, "FORCE_I_DES");
+    rot_des_port = createOutputPort<tf2::Matrix3x3>(OP::ROT_DES, "ROT_DES");
 
 }
 
 void Force2Rot::process(){
-    Vector3D<float> F_Ides;
-    float yaw_ref;
+    Vector3D<float> F_Ides(0, 0, 0);
+    float yaw_ref = 0;
     yaw_ref_port->read(yaw_ref);
     force_i_des_port->read(F_Ides);
     // std::cout << "F_I_des : " <<F_I_des.x << " " << F_I_des.y << " " << F_I_des.z << std::endl;
@@ -32,28 +32,22 @@ void Force2Rot::process(){
     rot_des_port->write(R_B_des_I);                                
 }
 
-RotDiff2Rod::RotDiff2Rod() : Block(BLOCK_ID::ROTDIFF2ROD){
-    r_i_b_port = createInputPort<tf2::Matrix3x3>(IP::R_I_B, TYPE::RotMat, "R_I_B");
-    f_ides_port = createInputPort<Vector3D<float>>(IP::F_IDES, TYPE::Float3, "F_IDES");
-    r_bdes_i_port = createInputPort<tf2::Matrix3x3>(IP::R_BDES_I, TYPE::RotMat, "R_BDES_I");
-    angles_port = createOutputPort<Vector3D<float>>(OP::ROD_ANGLES, TYPE::Float3, "ROD_ANGLES");
-    thrust_port = createOutputPort<float>(OP::THRUST, TYPE::Float, "THRUST");
+RotDiff2Rod::RotDiff2Rod(int b_uid) : Block(BLOCK_ID::ROTDIFF2ROD, b_uid){
+    r_i_b_port = createInputPort<tf2::Matrix3x3>(IP::R_I_B, "R_I_B");
+    f_ides_port = createInputPort<Vector3D<float>>(IP::F_IDES, "F_IDES");
+    r_bdes_i_port = createInputPort<tf2::Matrix3x3>(IP::R_BDES_I, "R_BDES_I");
+    angles_port = createOutputPort<Vector3D<float>>(OP::ROD_ANGLES, "ROD_ANGLES");
+    thrust_port = createOutputPort<float>(OP::THRUST, "THRUST");
 
 }
 
 void RotDiff2Rod::process(){
     tf2::Matrix3x3 R_I_B, R_B_des_I;
-    Vector3D<float> F_I_des;
+    R_I_B.setIdentity(); R_B_des_I.setIdentity();
+    Vector3D<float> F_I_des(0, 0, 0);
     r_i_b_port->read(R_I_B);
     r_bdes_i_port->read(R_B_des_I);
     f_ides_port->read(F_I_des);
-    double r, p, y;
-    R_I_B.getRPY(r, p, y);
-    // std::cout << "R_I_B : "
-    //             << r << " " << p << " " << y << std::endl;
-    // R_B_des_I.getRPY(r, p, y);
-    // std::cout << "R_B_des_I : "
-    //             << r << " " << p << " " << y << std::endl;
     
     auto R_B_B_des = R_I_B.transposeTimes(R_B_des_I.transpose());
     tf2::Quaternion quat;
@@ -61,13 +55,8 @@ void RotDiff2Rod::process(){
     auto angle = quat.getAngle();
     auto err_angles = (angle <= M_PI? angle: angle - 2*M_PI)*quat.getAxis();
 
-    R_B_B_des.getRPY(r, p, y);
-    // std::cout << "R_B_B_des : "
-    //             << r << " " << p << " " << y << std::endl;
-
-
     auto u_z = (R_I_B.transpose()*tf2::Vector3(F_I_des.x, F_I_des.y, F_I_des.z)).z();
-    // std::cout << "u_z : " << u_z <<std::endl;
+
     angles_port->write(Vector3D<float>((float)err_angles.x(), (float)err_angles.y(), (float)err_angles.z()));
     thrust_port->write(u_z);
 }

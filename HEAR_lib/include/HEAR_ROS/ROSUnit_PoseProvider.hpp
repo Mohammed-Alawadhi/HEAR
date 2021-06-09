@@ -19,7 +19,7 @@
 
 namespace HEAR{
 
-class ROSUnit_PoseProvider : public Block{
+class ROSUnit_PoseProvider{
 private:
     ros::NodeHandle nh_;
     ros::Subscriber opti_sub, xsens_ori_sub, xsens_ang_vel_sub, xsens_free_acc_sub;

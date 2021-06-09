@@ -3,9 +3,10 @@
 
 namespace HEAR{
 
-Gain::Gain (const float& gain) : K(gain), Block(BLOCK_ID::GAIN) {
-    inp = createInputPort<float>(IP::INPUT, TYPE::Float, "INPUT");
-    out = createOutputPort<float>(OP::OUTPUT, TYPE::Float, "OUTPUT");
+Gain::Gain (int b_uid) : Block(BLOCK_ID::GAIN, b_uid) {
+    inp = createInputPort<float>(IP::INPUT, "INPUT");
+    out = createOutputPort<float>(OP::OUTPUT, "OUTPUT");
+    K = 1;
 }
 
 void Gain::process(){

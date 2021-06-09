@@ -14,10 +14,9 @@ private:
     T _data;
     InputPort<T>* _in;
 public:
-    TYPE _dtype;
     enum IP{INUPT}; 
-    ExternalOutputPort(TYPE dtype) : _dtype(dtype), Block(BLOCK_ID::EXT_OP){
-        _in = this->createInputPort<T>(0, dtype, "EXT_INPUT");
+    ExternalOutputPort(int b_uid) : Block(BLOCK_ID::EXT_OP, b_uid){
+        _in = this->createInputPort<T>(0, "EXT_INPUT");
     }
     std::mutex mtx;
     void read(T &data){
@@ -25,7 +24,7 @@ public:
         data = _data;
         mtx.unlock();
     }
-    void update(const T &data){
+    void write(const T &data){
         mtx.lock();
         this->_data = data;
         mtx.unlock();
@@ -33,7 +32,7 @@ public:
     void process(){
         T data;
         this->_in->read(data);
-        update(data);
+        write(data);
     }
 };
 
@@ -43,10 +42,9 @@ private:
     ExternalOutputPort<T>* _connected_port = NULL;
     OutputPort<T>* _out;
 public:
-    TYPE _dtype;
     enum OP{OUTPUT};
-    ExternalInputPort(TYPE dtype) : _dtype(dtype), Block(BLOCK_ID::EXT_IP) {
-        _out = createOutputPort<T>(0, dtype, "EXT_OUTPUT");
+    ExternalInputPort(int b_uid) : Block(BLOCK_ID::EXT_IP, b_uid) {
+        _out = createOutputPort<T>(0, "EXT_OUTPUT");
     }
     void read(T &data){
         assert(_connected_port != NULL);

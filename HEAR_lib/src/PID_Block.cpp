@@ -3,10 +3,10 @@
 namespace HEAR{
 
 
-PID_Block::PID_Block(const int& id): _id(id), Block(BLOCK_ID::PID){
-    err_port = createInputPort<float>(IP::ERROR, TYPE::Float, "ERROR");
-    pv_dot_port = createInputPort<float>(IP::PV_DOT, TYPE::Float, "PV_DOT");
-    u_port = createOutputPort<float>(OP::COMMAND, TYPE::Float, "COMMAND");
+PID_Block::PID_Block(double dt, int b_uid): _dt(dt), Block(BLOCK_ID::PID, b_uid){
+    err_port = createInputPort<float>(IP::ERROR, "ERROR");
+    pv_dot_port = createInputPort<float>(IP::PV_DOT, "PV_DOT");
+    u_port = createOutputPort<float>(OP::COMMAND, "COMMAND");
 }
 
 void PID_Block::process(){

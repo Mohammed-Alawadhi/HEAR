@@ -18,7 +18,7 @@ private:
 public:
     enum IP{YAW_REF, FORCE_I_DES};
     enum OP{ROT_DES};
-    Force2Rot();
+    Force2Rot(int b_uid);
     ~Force2Rot(){}
     void process();
 };
@@ -33,7 +33,7 @@ private:
 public:
     enum IP{R_I_B, R_BDES_I, F_IDES};
     enum OP{ROD_ANGLES, THRUST};
-    RotDiff2Rod();
+    RotDiff2Rod(int b_uid);
     ~RotDiff2Rod(){}
     void process();
 };

@@ -11,46 +11,55 @@
 namespace HEAR{
 
 class Port{
-private:
-    TYPE _dtype = TYPE::NA;
 protected:
     int _connected_block_uid= -1;
+    int _port_uid = 0;
 public:
-    int _host_block_uid = -1;
-    Port (TYPE dtype) : _dtype(dtype){}
     virtual ~Port(){}
-    virtual TYPE getType() { return _dtype; }
+    virtual IOTYPE getType() = 0;
     virtual int getConnectedBlockUID(){ return _connected_block_uid; }
+    virtual int getHostBlockUID(){return _port_uid/256;}
+    virtual int getPortID(){ return _port_uid%256;}
+    virtual int getPortUID(){return _port_uid;}
 };
 
 template <class T> class OutputPort : public Port{
-public:
+private:
     T _data;
-    OutputPort(TYPE dtype, int host_block_uid) : Port(dtype) {
-        _host_block_uid = host_block_uid;
+public:
+    OutputPort(int host_block_uid, uint8_t port_idx) {
+        _port_uid = host_block_uid*256 + port_idx;
     }
+
     void write(T const &data) { this->_data = data; }
+
+    void get_data(T& data){data = _data;}
+    
+    IOTYPE getType(){return IOTYPE::OUTPUT;}
 };
 
 template <class T> class InputPort : public Port{
 private:
     OutputPort<T>* _connected_port = NULL;
 public:
-    InputPort(TYPE dtype) : Port(dtype){}
-
+    InputPort(int host_block_uid, uint8_t port_idx) {
+        _port_uid = host_block_uid*256 + port_idx;
+    }
     void read(T &data){
         if (_connected_port == NULL){
             //print warning
         }
         else{
-            data = _connected_port->_data;
+            _connected_port->get_data(data);
         }
     }
 
     void connect(OutputPort<T>* port) {
         this->_connected_port = port;
-        this->_connected_block_uid = port->_host_block_uid;
+        this->_connected_block_uid = port->getHostBlockUID();
     }
+
+    IOTYPE getType(){return IOTYPE::INPUT;}
 };
 
 

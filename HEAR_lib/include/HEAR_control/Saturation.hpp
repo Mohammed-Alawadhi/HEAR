@@ -15,7 +15,8 @@ private:
 public:
     enum IP{INPUT};
     enum OP{OUTPUT};
-    Saturation(const float &clip_val);
+    Saturation(int b_uid);
+    void setClipValue(const float& clip_val){ clip_value = clip_val;}
     ~Saturation(){}
     void process();
 };

@@ -18,12 +18,14 @@ void(*ROSUnitPointSub::callbackFunctionPointer[ROSUnitPointSub::capacity])(const
     ROSUnitPointSub::callback9    
 };
 
-ROSUnitPointSub::ROSUnitPointSub(const ros::NodeHandle& nh): nh_(nh), Block(BLOCK_ID::ROSPOINTSUB){
+ROSUnitPointSub::ROSUnitPointSub(const ros::NodeHandle& nh, int b_uid): nh_(nh), Block(BLOCK_ID::ROSPOINTSUB, b_uid){
 }
+
 ExternalOutputPort<Vector3D<float>>* ROSUnitPointSub::registerSubscriber(const std::string& topic_name){
     if(internal_counter < capacity){
-        ports[internal_counter] = new ExternalOutputPort<Vector3D<float>>(TYPE::Float3);
-        this->sub = nh_.subscribe(topic_name, 1, callbackFunctionPointer[internal_counter]);
+        ports[internal_counter] = new ExternalOutputPort<Vector3D<float>>(this->getBlockUID());
+        ports[internal_counter]->write(Vector3D<float>(0,0,0));
+        this->sub = nh_.subscribe(topic_name, 10, callbackFunctionPointer[internal_counter]);
         internal_counter++;
         return ports[internal_counter-1];
     }
@@ -35,52 +37,52 @@ ExternalOutputPort<Vector3D<float>>* ROSUnitPointSub::registerSubscriber(const s
 
 void ROSUnitPointSub::callback0(const geometry_msgs::Point::ConstPtr& msg){
     Vector3D<float> data(msg->x, msg->y, msg->z);
-    ports[0]->update(data);
+    ports[0]->write(data);
 }
 
 void ROSUnitPointSub::callback1(const geometry_msgs::Point::ConstPtr& msg){
     Vector3D<float> data(msg->x, msg->y, msg->z);
-    ports[1]->update(data);
+    ports[1]->write(data);
 }
 
 void ROSUnitPointSub::callback2(const geometry_msgs::Point::ConstPtr& msg){
     Vector3D<float> data(msg->x, msg->y, msg->z);
-    ports[2]->update(data);
+    ports[2]->write(data);
 }
 
 void ROSUnitPointSub::callback3(const geometry_msgs::Point::ConstPtr& msg){
     Vector3D<float> data(msg->x, msg->y, msg->z);
-    ports[3]->update(data);
+    ports[3]->write(data);
 }
 
 void ROSUnitPointSub::callback4(const geometry_msgs::Point::ConstPtr& msg){
     Vector3D<float> data(msg->x, msg->y, msg->z);
-    ports[4]->update(data);
+    ports[4]->write(data);
 }
 
 void ROSUnitPointSub::callback5(const geometry_msgs::Point::ConstPtr& msg){
     Vector3D<float> data(msg->x, msg->y, msg->z);
-    ports[5]->update(data);
+    ports[5]->write(data);
 }
 
 void ROSUnitPointSub::callback6(const geometry_msgs::Point::ConstPtr& msg){
     Vector3D<float> data(msg->x, msg->y, msg->z);
-    ports[6]->update(data);
+    ports[6]->write(data);
 }
 
 void ROSUnitPointSub::callback7(const geometry_msgs::Point::ConstPtr& msg){
     Vector3D<float> data(msg->x, msg->y, msg->z);
-    ports[7]->update(data);
+    ports[7]->write(data);
 }
 
 void ROSUnitPointSub::callback8(const geometry_msgs::Point::ConstPtr& msg){
     Vector3D<float> data(msg->x, msg->y, msg->z);
-    ports[8]->update(data);
+    ports[8]->write(data);
 }
 
 void ROSUnitPointSub::callback9(const geometry_msgs::Point::ConstPtr& msg){
     Vector3D<float> data(msg->x, msg->y, msg->z);
-    ports[9]->update(data);
+    ports[9]->write(data);
 }
 
 }

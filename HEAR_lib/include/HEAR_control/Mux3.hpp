@@ -15,7 +15,7 @@ private:
 public:
     enum IP{X, Y, Z};
     enum OP{OUTPUT};
-    Mux3();
+    Mux3(int b_uid);
     ~Mux3(){}
     void process();
 

@@ -2,15 +2,15 @@
 
 namespace HEAR{
 
-FromHorizon::FromHorizon() : Block(BLOCK_ID::FROMHORIZON){
-    yaw_port = createInputPort<float>(IP::YAW, TYPE::Float, "YAW");
-    inp_vec_port = createInputPort<Vector3D<float>>(IP::INP_VEC, TYPE::Float3, "INP_VEC");
-    out_vec_port = createOutputPort<Vector3D<float>>(OP::OUT_VEC, TYPE::Float3, "OUT_VEC");
+FromHorizon::FromHorizon(int b_uid) : Block(BLOCK_ID::FROMHORIZON, b_uid){
+    yaw_port = createInputPort<float>(IP::YAW, "YAW");
+    inp_vec_port = createInputPort<Vector3D<float>>(IP::INP_VEC, "INP_VEC");
+    out_vec_port = createOutputPort<Vector3D<float>>(OP::OUT_VEC, "OUT_VEC");
 }
 
 void FromHorizon::process(){
-    Vector3D<float> data;
-    float yaw;
+    Vector3D<float> data(0, 0, 0);
+    float yaw =0;
     yaw_port->read(yaw);
     Rot.setEulerYPR(yaw, 0.0, 0.0);
     inp_vec_port->read(data);

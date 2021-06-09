@@ -7,17 +7,19 @@
 namespace HEAR{
 
 class Sum : public Block {
-private:
-    int _op;
-    InputPort<float> *operand1_port, *operand2_port;
-    OutputPort<float>* out;
 public:
     enum OPERATION {ADD, SUB};
     enum IP{OPERAND1, OPERAND2};
     enum OP{OUTPUT};
-    Sum(OPERATION op);
+    Sum(int b_uid);
+    void setOperation(OPERATION op) { _op = op;}
     ~Sum(){delete operand1_port, operand2_port, out;}
     void process();
+private:
+    OPERATION _op;
+    InputPort<float> *operand1_port, *operand2_port;
+    OutputPort<float>* out;
+
 };
 
 }

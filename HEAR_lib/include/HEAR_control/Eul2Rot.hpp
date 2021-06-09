@@ -17,7 +17,7 @@ private:
 public:
     enum IP{EUL_ANGLES};
     enum OP{ROT_MAT};
-    Eul2Rot();
+    Eul2Rot(int b_uid);
     ~Eul2Rot(){}
     void process();
 };

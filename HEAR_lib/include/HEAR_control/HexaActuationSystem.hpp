@@ -72,9 +72,12 @@ public:
     void process();
     void update(UpdateMsg* u_msg) override;
     void setESCValues(int, int, int);
+    void setActuators(const std::vector<Actuator*>& actuators) {
+        _actuators = actuators;
+    }
     void command();
     int constrain(float value, int min_value, int max_value);
-    HexaActuationSystem(const std::vector<Actuator*>&);
+    HexaActuationSystem(int);
     ~HexaActuationSystem(){}
 }; 
 

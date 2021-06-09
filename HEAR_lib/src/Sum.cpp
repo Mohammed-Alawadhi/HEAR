@@ -2,10 +2,11 @@
 
 namespace HEAR{
 
-Sum::Sum (OPERATION op) : _op(op), Block(BLOCK_ID::SUM){
-    operand1_port = createInputPort<float>(IP::OPERAND1, TYPE::Float, "OPERAND1");
-    operand2_port = createInputPort<float>(IP::OPERAND2, TYPE::Float, "OPERAND2");
-    out = createOutputPort<float>(OP::OUTPUT, TYPE::Float, "OUTPUT");
+Sum::Sum (int b_uid) : Block(BLOCK_ID::SUM, b_uid){
+    operand1_port = createInputPort<float>(IP::OPERAND1, "OPERAND1");
+    operand2_port = createInputPort<float>(IP::OPERAND2, "OPERAND2");
+    out = createOutputPort<float>(OP::OUTPUT, "OUTPUT");
+    _op = OPERATION::SUB;
 }
 
 void Sum::process(){
