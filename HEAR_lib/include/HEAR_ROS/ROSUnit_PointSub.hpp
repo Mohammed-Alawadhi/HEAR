@@ -7,9 +7,10 @@
 
 namespace HEAR{
 class ROSUnitPointSub : public ROSUnit_Sub{
+private:
+    void callback(const geometry_msgs::Point::ConstPtr& msg);
 public:
     ROSUnitPointSub (ros::NodeHandle& nh, const std::string& topic, int idx);
-    void callback(const geometry_msgs::Point::ConstPtr& msg);
     TYPE getType(){return TYPE::Float3;}
 };
 

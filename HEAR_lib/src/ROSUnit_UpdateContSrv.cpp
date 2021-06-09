@@ -2,11 +2,9 @@
 
 namespace HEAR{
 
-UpdateTrigger *ROSUnit_UpdateContSrv::ext_trig;
-
 UpdateTrigger* ROSUnit_UpdateContSrv::registerServer(const std::string &service_topic){
     ext_trig = new UpdateTrigger;
-    this->m_server = this->nh_.advertiseService(service_topic, srv_callback);  
+    this->m_server = this->nh_.advertiseService(service_topic, &ROSUnit_UpdateContSrv::srv_callback, this);  
     return ext_trig;
 }
 

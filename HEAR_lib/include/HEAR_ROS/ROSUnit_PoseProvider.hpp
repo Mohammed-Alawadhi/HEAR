@@ -25,18 +25,18 @@ private:
     ros::Subscriber opti_sub, xsens_ori_sub, xsens_ang_vel_sub, xsens_free_acc_sub;
     ros::ServiceServer m_server;
     
-    static ExternalOutputPort<Vector3D<float>>* opti_pos_port;
-    static ExternalOutputPort<Vector3D<float>>* opti_ori_port;
-    static ExternalOutputPort<Vector3D<float>>* imu_ori_port;
-    static ExternalOutputPort<Vector3D<float>>* imu_acc_port;
-    static ExternalOutputPort<Vector3D<float>>* imu_angular_rt_port;
-    static void callback_opti_pose(const geometry_msgs::PoseStamped::ConstPtr& );
-    static void callback_ori(const geometry_msgs::QuaternionStamped::ConstPtr& );
-    static void callback_free_acc(const geometry_msgs::Vector3Stamped::ConstPtr& );
-    static void callback_angular_vel(const geometry_msgs::Vector3Stamped::ConstPtr&);
-    static bool srv_callback(hear_msgs::set_float::Request&, hear_msgs::set_float::Response&);
-    static tf2::Matrix3x3 rot_offset;
-    static tf2::Vector3 trans_offset;
+    ExternalOutputPort<Vector3D<float>>* opti_pos_port;
+    ExternalOutputPort<Vector3D<float>>* opti_ori_port;
+    ExternalOutputPort<Vector3D<float>>* imu_ori_port;
+    ExternalOutputPort<Vector3D<float>>* imu_acc_port;
+    ExternalOutputPort<Vector3D<float>>* imu_angular_rt_port;
+    void callback_opti_pose(const geometry_msgs::PoseStamped::ConstPtr& );
+    void callback_ori(const geometry_msgs::QuaternionStamped::ConstPtr& );
+    void callback_free_acc(const geometry_msgs::Vector3Stamped::ConstPtr& );
+    void callback_angular_vel(const geometry_msgs::Vector3Stamped::ConstPtr&);
+    bool srv_callback(hear_msgs::set_float::Request&, hear_msgs::set_float::Response&);
+    tf2::Matrix3x3 rot_offset;
+    tf2::Vector3 trans_offset;
 public:
     void process(){}
     ROSUnit_PoseProvider(ros::NodeHandle& nh);

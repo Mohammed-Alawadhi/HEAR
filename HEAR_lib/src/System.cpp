@@ -1,3 +1,6 @@
+
+// TODO: make class HEAR_Lib and create all blocks from there
+
 #include "HEAR_core/System.hpp"
 #include "Vector3D.hpp"
 

@@ -12,18 +12,9 @@ namespace HEAR{
 class ROSUnit_ResetServer {
 private:
     ros::NodeHandle nh_;
+    ResetTrigger* ext_trig;
     ros::ServiceServer m_server;
-    static const int capacity = 7; 
-    static int internal_counter;
-    static ResetTrigger* ext_trigs[capacity];
-    static bool (*callback_pointers[capacity])(std_srvs::EmptyRequest&, std_srvs::EmptyResponse&);
-    static bool srv_callback0(std_srvs::EmptyRequest&, std_srvs::EmptyResponse&);
-    static bool srv_callback1(std_srvs::EmptyRequest&, std_srvs::EmptyResponse&);
-    static bool srv_callback2(std_srvs::EmptyRequest&, std_srvs::EmptyResponse&);
-    static bool srv_callback3(std_srvs::EmptyRequest&, std_srvs::EmptyResponse&);
-    static bool srv_callback4(std_srvs::EmptyRequest&, std_srvs::EmptyResponse&);
-    static bool srv_callback5(std_srvs::EmptyRequest&, std_srvs::EmptyResponse&);
-    static bool srv_callback6(std_srvs::EmptyRequest&, std_srvs::EmptyResponse&);
+    bool srv_callback(std_srvs::EmptyRequest&, std_srvs::EmptyResponse&);
 public:
     ROSUnit_ResetServer(ros::NodeHandle&);
     ResetTrigger* registerServer(const std::string&);
