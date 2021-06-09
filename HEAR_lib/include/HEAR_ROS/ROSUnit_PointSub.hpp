@@ -8,12 +8,12 @@
 namespace HEAR{
 class ROSUnitPointSub : public ROSUnit_Sub{
 public:
-    ROSUnitPointSub (const ros::NodeHandle& nh, const std::string& topic, int idx);
+    ROSUnitPointSub (ros::NodeHandle& nh, const std::string& topic, int idx);
     void callback(const geometry_msgs::Point::ConstPtr& msg);
     TYPE getType(){return TYPE::Float3;}
 };
 
-ROSUnitPointSub::ROSUnitPointSub (const ros::NodeHandle& nh, const std::string& topic, int idx){
+ROSUnitPointSub::ROSUnitPointSub (ros::NodeHandle& nh, const std::string& topic, int idx){
     sub_ = nh.subscribe<geometry_msgs::Point>(topic, 10, &ROSUnitPointSub::callback, this);
     _output_port = new OutputPort<Vector3D<float>>(idx, 0);
     id_ = idx;
