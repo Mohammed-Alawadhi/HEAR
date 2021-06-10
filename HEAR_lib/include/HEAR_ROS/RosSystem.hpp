@@ -142,14 +142,15 @@ ExternalTrigger* RosSystem::createUpdateTrigger(UPDATE_MSG_TYPE type, std::strin
     //TODO make class for ROSUnit_Srv
     ExternalTrigger* trig;
     switch(type){
-        case UPDATE_MSG_TYPE::PID_UPDATE :
+        case UPDATE_MSG_TYPE::PID_UPDATE :{
             auto srv = new ROSUnit_UpdateContSrv(pnh_);
             trig = srv->registerServer(topic);
-            break;
-        case UPDATE_MSG_TYPE::BOOL_MSG :
+            break;}
+        case UPDATE_MSG_TYPE::BOOL_MSG :{
             auto srv = new ROSUnit_BoolServer(pnh_);
             trig = srv->registerServer(topic);
             break;
+        }
         default:
             return NULL;
     }

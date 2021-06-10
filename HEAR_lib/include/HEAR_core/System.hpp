@@ -84,7 +84,7 @@ int System::init(bool print_diagram){
     return true;
 }
 
-Block* System::createBlock(BLOCK_ID b_type, const std::string& name, TYPE d_type=TYPE::NA){
+Block* System::createBlock(BLOCK_ID b_type, const std::string& name, TYPE d_type){
     Block* blk = Library::createBlock(b_type, num_blocks++, _dt, d_type);
     _blocks.push_back(blk);
     _block_names.push_back(name);
@@ -126,7 +126,7 @@ void System::connect(OutputPort<T>* op, InputPort<T>* ip){
    Edge ed;
    ed.src_block_idx = op->getHostBlockUID();
    ed.src_port = op->getPortID();
-   ed.dest_block_idx = dest_block->getBlockUID();
+   ed.dest_block_idx = ip->getHostBlockUID();
    ed.dest_port = ip->getPortID();
    _edges.push_back(ed);
 }
