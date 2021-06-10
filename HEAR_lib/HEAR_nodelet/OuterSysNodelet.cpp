@@ -14,6 +14,8 @@ namespace HEAR
         ros::NodeHandle pnh(getPrivateNodeHandle());
         auto outer_sys = new RosSystem(nh, pnh, FREQUENCY, "OuterLoop");
 
+        std::cout << "Creating blocks \n";
+
         // creating Blocks
         auto diff_pos = outer_sys->createBlock(BLOCK_ID::DIFFERENTIATOR, "Pos_Derivative", TYPE::Float3);
         auto pos_filt = outer_sys->createBlock(BLOCK_ID::BW_FILT2, "Vel_Filt", TYPE::Float3);
@@ -36,6 +38,8 @@ namespace HEAR
         auto fh2fi = outer_sys->createBlock(BLOCK_ID::FROMHORIZON, "Fh_to_Fi");
         auto f2rot = outer_sys->createBlock(BLOCK_ID::FORCE2ROT, "Fi_to_RotMat");
         auto rot2quat = outer_sys->createBlock(BLOCK_ID::ROT2QUAT, "RotMat_to_Quat");
+
+        std::cout << "Created all blocks\n";
 
         ROSUnit_PoseProvider providers(nh);
         auto pos_port = outer_sys->createExternalInputPort<Vector3D<float>>("Pos_Port");

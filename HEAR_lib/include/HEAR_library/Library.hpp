@@ -72,6 +72,7 @@ Block* Library::createBlock(BLOCK_ID b_type, int b_uid, float _dt, TYPE d_type){
         break;
     case BLOCK_ID::MUX3 :
         blk = new Mux3(b_uid);
+        break;
     case BLOCK_ID::PID :
         blk = new PID_Block(_dt, b_uid);
         break;
