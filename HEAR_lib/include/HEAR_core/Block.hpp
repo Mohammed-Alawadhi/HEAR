@@ -11,7 +11,7 @@ namespace HEAR{
 
 class Block{
 public:
-    Block(BLOCK_ID block_id, int b_uid);  
+    Block(BLOCK_ID block_id, int b_uid) : _block_id(block_id), _block_uid(b_uid)  {}
     virtual ~Block(){}
     template <class T> InputPort<T>* createInputPort(int idx, std::string name);
     template <class T> OutputPort<T>* createOutputPort(int idx, std::string name);
@@ -36,8 +36,6 @@ private:
     std::map<int, std::string> _output_port_names;
     
 };
-
-Block::Block(BLOCK_ID block_id, int b_uid) : _block_id(block_id), _block_uid(b_uid)  {}
 
 template <class T> 
 InputPort<T>* Block::createInputPort(int idx, std::string name){
