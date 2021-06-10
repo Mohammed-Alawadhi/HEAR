@@ -29,7 +29,7 @@ namespace HEAR{
 class System{
 public:
     System(const int frequency, const std::string& sys_name) : _dt(1.0/frequency), _sys_name(sys_name), _exit_flag(false) {}
-    ~System();
+    virtual ~System();
     int init(bool print_diagram);
     Block* createBlock(BLOCK_ID b_type, const std::string& name, TYPE d_type=TYPE::NA);
     void addExternalTrigger(ExternalTrigger* ext_tirg, const std::string& name);

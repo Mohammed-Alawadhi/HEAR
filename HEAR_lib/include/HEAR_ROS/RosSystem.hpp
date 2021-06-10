@@ -1,5 +1,5 @@
 // TODO: add printing pub sub connections
-// TODO: refactoring the ros services
+// TODO: refactoring the ros services (priority)
 
 #ifndef ROSSYSTEM_HPP
 #define ROSSYSTEM_HPP
@@ -23,7 +23,8 @@ namespace HEAR{
 
 class RosSystem : public System {
 public:
-    RosSystem(ros::NodeHandle& nh, ros::NodeHandle& pnh, const int frequency, const std::string& sys_name ) : nh_(nh), pnh_(pnh), System(frequency, sys_name){} 
+    RosSystem(ros::NodeHandle& nh, ros::NodeHandle& pnh, const int frequency, const std::string& sys_name ) : nh_(nh), pnh_(pnh), System(frequency, sys_name){}
+    ~RosSystem(); 
     ROSUnit_Sub* createSub(TYPE d_type, std::string topic_name);
     ROSUnit_Sub* createSub(std::string topic_name, InputPort<float>* dest_port);
     template <class T> ROSUnit_Sub* createSub(TYPE d_type, std::string topic_name, InputPort<T>* dest_port);
@@ -51,6 +52,16 @@ private:
     template <class T> void connectPub(ROSUnit_Pub* pub, OutputPort<T>* port);
  
 };
+
+RosSystem::~RosSystem(){
+    timer_.stop();
+    for(auto const& ros_pub : _ros_pubs){
+        delete ros_pub;
+    }
+    for(auto const& ros_sub : _ros_subs){
+        delete ros_sub;
+    }
+}
 
 template <class T> 
 void RosSystem::connectSub(ROSUnit_Sub* sub, InputPort<T>* port){
