@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 
-# set(PROJECT_NAME hear_flight_controller)
+set(PROJECT_NAME hear_flight_controller)
 
 project(hear_flight_controller)
 
@@ -46,12 +46,15 @@ target_link_libraries(
     ${catkin_LIBRARIES}
 )
 
-install(TARGETS outer_sys_nodelet
+install(TARGETS outer_sys_nodelet ${PROJECT_NAME}
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
 )
 
-install(FILES outer_sys_nodelet.xml
+install(DIRECTORY include/
+        DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
+
+install(FILES outer_sys_nodelet.xml 
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
