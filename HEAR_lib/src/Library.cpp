@@ -2,7 +2,7 @@
 
 namespace HEAR
 {
-Block* Library::createBlock(BLOCK_ID b_type, int b_uid, float _dt = 0, TYPE d_type=TYPE::NA){
+Block* Library::createBlock(BLOCK_ID b_type, int b_uid, float _dt = 0, TYPE d_type){
     Block* blk;
     switch (b_type)
     {
