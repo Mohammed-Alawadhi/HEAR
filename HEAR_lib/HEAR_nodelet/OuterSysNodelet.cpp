@@ -1,5 +1,5 @@
 
-#include "HEAR_nodelet/OuterSysNodelet.h"
+#include "OuterSysNodelet.h"
 #include <pluginlib/class_list_macros.h>
 
 #include "HEAR_ROS/RosSystem.hpp"

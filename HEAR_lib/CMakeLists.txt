@@ -27,7 +27,8 @@ catkin_package(
 )
 
 include_directories(
-    include    
+    include
+    HEAR_nodelet    
     ${catkin_INCLUDE_DIRS}
 )
 
