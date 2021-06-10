@@ -6,7 +6,7 @@ namespace HEAR
 class OuterSysNodelet : public nodelet::Nodelet{
 
 public:
-    OuterSysNodelet();
+    OuterSysNodelet() = default;
 
 private:
     const int SAT_XY_VALUE = 0.25;
