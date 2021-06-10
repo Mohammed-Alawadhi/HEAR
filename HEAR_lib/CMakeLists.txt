@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 2.8.3)
 
-set(PROJECT_NAME hear_flight_controller)
+# set(PROJECT_NAME hear_flight_controller)
 
-project(${PROJECT_NAME})
+project(hear_flight_controller)
 
 find_package(catkin REQUIRED COMPONENTS
     roscpp
@@ -10,6 +10,7 @@ find_package(catkin REQUIRED COMPONENTS
     hear_msgs
     geometry_msgs
     tf2
+    nodelet
 )
 
 catkin_package(
@@ -22,6 +23,7 @@ catkin_package(
     hear_hardware_interface
     hear_msgs
     tf2
+    nodelet
 )
 
 include_directories(
@@ -30,6 +32,24 @@ include_directories(
 )
 
 file(GLOB HEAR_SRCs src/*)
-add_executable(hear_fc_node ${HEAR_SRCs})
-add_dependencies(hear_fc_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(hear_fc_node ${catkin_LIBRARIES})
+add_library(${PROJECT_NAME} ${HEAR_SRCs})
+
+add_executable(outer_sys_node src/outer_sys_node.cpp)
+target_link_libraries(outer_sys_node ${catkin_LIBRARIES})
+
+add_library(outer_sys_nodelet src/OuterSysNodelet.cpp)
+add_dependencies(outer_sys_nodelet ${catkin_EXPORTED_TARGETS})
+target_link_libraries(
+    ${PROJECT_NAME}
+    ${catkin_LIBRARIES}
+)
+
+install(TARGETS outer_sys_nodelet
+  ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+  RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
+)
+
+install(FILES outer_sys_nodelet.xml
+  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
+)

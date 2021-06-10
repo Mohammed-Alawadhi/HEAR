@@ -8,7 +8,8 @@ namespace HEAR{
         Float,
         Float3,
         FloatVec,
-        RotMat
+        RotMat,
+        QUAT
     };
     enum BLOCK_ID{
         EXT_IP,
@@ -23,16 +24,13 @@ namespace HEAR{
         SATURATION,
         EUL2ROT,
         ROT2EUL,
+        ROT2QUAT,
+        QUAT2ROT,
         TOHORIZON,
         FROMHORIZON,
         FORCE2ROT,
         ROTDIFF2ROD,
         HEXAACTUATIONSYSTEM,
-        ROSFLOATSUB,
-        ROSPOINTSUB,
-        ROSFLOATPUB,
-        ROSFLOATARRPUB,
-        ROSPOSPROV
     };
     enum IOTYPE{
         INPUT =0,

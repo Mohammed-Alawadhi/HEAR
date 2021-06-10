@@ -4,17 +4,19 @@
 #ifndef ROSSYSTEM_HPP
 #define ROSSYSTEM_HPP
 
-#include "System.hpp"
+#include "HEAR_core/System.hpp"
 #include "HEAR_ROS/ROSUnit_Pub.hpp"
 #include "HEAR_ROS/ROSUnit_FloatArrPub.hpp"
 #include "HEAR_ROS/ROSUnit_FloatPub.hpp"
 #include "HEAR_ROS/ROSUnit_PointPub.hpp"
+#include "HEAR_ROS/ROSUnit_QuatPub.hpp"
 #include "HEAR_ROS/ROSUnit_ResetSrv.hpp"
 #include "HEAR_ROS/ROSUnit_UpdateContSrv.hpp"
 #include "HEAR_ROS/ROSUnit_BoolSrv.hpp"
 #include "HEAR_ROS/ROSUnit_Sub.hpp"
 #include "HEAR_ROS/ROSUnit_PointSub.hpp"
 #include "HEAR_ROS/ROSUnit_FloatSub.hpp"
+#include "HEAR_ROS/ROSUnit_QuatSub.hpp"
 #include <ros/ros.h>
 
 namespace HEAR{
@@ -23,25 +25,31 @@ class RosSystem : public System {
 public:
     RosSystem(ros::NodeHandle& nh, ros::NodeHandle& pnh, const int frequency, const std::string& sys_name ) : nh_(nh), pnh_(pnh), System(frequency, sys_name){} 
     ROSUnit_Sub* createSub(TYPE d_type, std::string topic_name);
+    ROSUnit_Sub* createSub(std::string topic_name, InputPort<float>* dest_port);
+    template <class T> ROSUnit_Sub* createSub(TYPE d_type, std::string topic_name, InputPort<T>* dest_port);
     template <class T> void createPub(TYPE d_type, std::string topic_name, OutputPort<T>* src_port);
     void createPub(std::string topic_name, OutputPort<float>* src_port);
-    template <class T> ROSUnit_Sub* createSub(TYPE d_type, std::string topic_name, InputPort<T>* dest_port);
+
     template <class T> void connectSub(ROSUnit_Sub* sub, InputPort<T>* port);
+
     ExternalTrigger* createResetTrigger(std::string topic);
     ExternalTrigger* createResetTrigger(std::string topic, Block* dest_block);
     ExternalTrigger* createUpdateTrigger(UPDATE_MSG_TYPE type, std::string topic);
     ExternalTrigger* createUpdateTrigger(UPDATE_MSG_TYPE type, std::string topic, Block* dest_block);
-    void run();
+    void start();
 private:
     ros::NodeHandle nh_;
     ros::NodeHandle pnh_;
+    ros::Timer timer_;
     std::vector<ROSUnit_Pub*> _ros_pubs;
     std::vector<ROSUnit_Sub*> _ros_subs;
     std::vector<std::string> ros_pub_names, ros_sub_names;
     std::vector<std::pair<int, Port*>> pub_cons, sub_cons;
-    template <class T> void connectPub(ROSUnit_Pub* pub, OutputPort<T>* port);
     int pub_counter = 0;
     int sub_counter = 0;
+    void loopCb(const ros::TimerEvent& event);
+    template <class T> void connectPub(ROSUnit_Pub* pub, OutputPort<T>* port);
+ 
 };
 
 template <class T> 
@@ -54,15 +62,25 @@ ROSUnit_Sub* RosSystem::createSub(TYPE d_type, std::string topic_name){
     ROSUnit_Sub* sub;
     switch(d_type){
         case TYPE::Float3 :
-            sub = new ROSUnitPointSub(pnh_, topic_name, sub_counter++);
+            sub = new ROSUnitPointSub(nh_, topic_name, sub_counter++);
+            break;
+        case TYPE::QUAT :
+            sub = new ROSUnitQuatSub(nh_, topic_name, sub_counter++);
             break;
         case TYPE::Float :
-        default:
             sub = new ROSUnitFloatSub(nh_, topic_name, sub_counter++);
+            break;
+        default:
+            std::cout <<"invalid subscriber type" <<std::endl;
+            assert(false);
             break;
     }
     _ros_subs.push_back(sub);
     return sub;
+}
+
+ROSUnit_Sub* RosSystem::createSub(std::string topic_name, InputPort<float>* dest_port){
+    return this->createSub<float>(TYPE::Float, topic_name, dest_port);
 }
 
 template <class T>
@@ -88,9 +106,15 @@ void RosSystem::createPub(TYPE d_type, std::string topic_name, OutputPort<T>* sr
         case TYPE::FloatVec :
             pub = new ROSUnitFloatArrPub(pnh_, topic_name, pub_counter++);
             break;
+        case TYPE::QUAT :
+            pub = new ROSUnitQuatPub(pnh_, topic_name, pub_counter++);
+            break;
         case TYPE::Float :
-        default:
             pub = new ROSUnitFloatPub(nh_, topic_name, pub_counter++);
+            break;
+        default:
+            std::cout <<"invalid publisher type" <<std::endl;
+            assert(false);
             break;
     }
     this->connectPub<T>(pub, src_port);
@@ -141,13 +165,23 @@ ExternalTrigger* RosSystem::createUpdateTrigger(UPDATE_MSG_TYPE type, std::strin
     return trig;
 }
 
-void RosSystem::run(){
-    
+void RosSystem::loopCb(const ros::TimerEvent& event){
+
+    if(event.profile.last_duration > ros::WallDuration(_dt)){
+        std::cout << "[WARN] " << this->_sys_name << " taking longer" << std::endl;  
+    }
+
     this->loop();
     
     for(const auto& ros_pub : _ros_pubs){
         ros_pub->process();
     }
+
+}
+
+void RosSystem::start(){
+    this->init(true);
+    timer_ = nh_.createTimer(ros::Duration(_dt), &RosSystem::loopCb, this);
 
 }
 

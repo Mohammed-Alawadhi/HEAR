@@ -8,6 +8,8 @@
 #include "HEAR_core/DataTypes.hpp"
 #include "HEAR_core/ExternalTrigger.hpp"
 
+#include "HEAR_library/Library.hpp"
+
 #include <string>
 #include <vector>
 #include <algorithm>
@@ -38,13 +40,13 @@ public:
     template <class T> void connectExternalInput(ExternalInputPort<T>* sys_ip, InputPort<T>* ip);
     template <class T> void connectExternalInput(ExternalInputPort<T>* sys_ip, ExternalOutputPort<T>* ext_port);
     template <class T> void connect(OutputPort<T>* op, InputPort<T>* ip);
-    void loop();
+    void loop();    
+    double _dt;
+    std::string _sys_name;
 
 private:
     int num_blocks = 0;
     int num_ext_trigs = 0;
-    double _dt;
-    std::string _sys_name;
     std::atomic<bool> _exit_flag;
     std::vector<Edge> _edges;
     Graph _graph;
@@ -80,6 +82,13 @@ int System::init(bool print_diagram){
         printSystem();
     }
     return true;
+}
+
+Block* System::createBlock(BLOCK_ID b_type, const std::string& name, TYPE d_type=TYPE::NA){
+    Block* blk = Library::createBlock(b_type, num_blocks++, _dt, d_type);
+    _blocks.push_back(blk);
+    _block_names.push_back(name);
+    return blk;
 }
 
 template <class T>
