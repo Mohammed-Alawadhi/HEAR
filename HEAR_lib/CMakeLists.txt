@@ -33,20 +33,18 @@ include_directories(
 )
 
 file(GLOB HEAR_SRCs src/*.cpp)
-add_library(${PROJECT_NAME} ${HEAR_SRCs})
 
 add_executable(outer_sys_node HEAR_nodelet/outer_sys_node.cpp)
 add_dependencies(outer_sys_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_LIBRARIES})
 target_link_libraries(outer_sys_node ${PROJECT_NAME} ${catkin_LIBRARIES})
 
-add_library(outer_sys_nodelet HEAR_nodelet/OuterSysNodelet.cpp)
+add_library(outer_sys_nodelet HEAR_nodelet/OuterSysNodelet.cpp ${HEAR_SRCs})
 add_dependencies(outer_sys_nodelet ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(
-    ${PROJECT_NAME}
     ${catkin_LIBRARIES}
 )
 
-install(TARGETS outer_sys_nodelet ${PROJECT_NAME}
+install(TARGETS outer_sys_nodelet
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
