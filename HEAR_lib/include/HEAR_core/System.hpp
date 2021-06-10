@@ -133,7 +133,7 @@ void System::connect(OutputPort<T>* op, InputPort<T>* ip){
 
 template <class T>
 void System::connectExternalInput(ExternalInputPort<T>* sys_ip, InputPort<T>* ip){
-    this->connect<T>((sys_ip->getOutputPort<T>(0), ip);
+    this->connect<T>(sys_ip->getOutputPort<T>(0), ip);
 }
 
 template <class T>
