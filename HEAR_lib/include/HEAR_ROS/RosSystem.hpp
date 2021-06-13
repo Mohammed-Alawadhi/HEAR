@@ -188,10 +188,12 @@ void RosSystem::loopCb(const ros::TimerEvent& event){
     }
 
     this->loop();
-    std::cout << "running\n";
     for(const auto& ros_pub : _ros_pubs){
+        std::cout << "running";
+
         ros_pub->process();
     }
+    std::cout << std::endl;
 
 }
 

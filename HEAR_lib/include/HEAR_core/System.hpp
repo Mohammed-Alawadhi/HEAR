@@ -183,10 +183,12 @@ void System::findsequence(){
 
 void System::loop(){
     for (const auto& ext_trig : _external_triggers){
+        std::cout << "running";
         ext_trig->process();
     }
 
     for(const auto &it : seq){
+        std::cout << "running";
         it->process();
     }
 }
