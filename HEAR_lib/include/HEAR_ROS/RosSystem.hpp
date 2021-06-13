@@ -54,6 +54,7 @@ private:
 };
 
 RosSystem::~RosSystem(){
+    std::cout << "stopping timer" << std::endl;
     timer_.stop();
     for(auto const& ros_pub : _ros_pubs){
         delete ros_pub;

@@ -9,7 +9,9 @@ PLUGINLIB_EXPORT_CLASS(HEAR::OuterSysNodelet, nodelet::Nodelet)
 namespace HEAR
 {
     OuterSysNodelet::~OuterSysNodelet(){
+        std::cout << "deleting sys object \n";
         delete outer_sys;
+        std::cout << "deleted \n";
     }
     void OuterSysNodelet::onInit(){
         ros::NodeHandle nh(getNodeHandle());
