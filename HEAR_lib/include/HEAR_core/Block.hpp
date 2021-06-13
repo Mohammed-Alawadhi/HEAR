@@ -4,6 +4,7 @@
 
 #include <map>
 #include <string>
+#include <iostream>
 
 #include "HEAR_core/Port.hpp"
 
