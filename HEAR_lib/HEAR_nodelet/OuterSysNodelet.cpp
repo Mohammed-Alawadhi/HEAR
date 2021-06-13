@@ -2,18 +2,21 @@
 #include "OuterSysNodelet.h"
 #include <pluginlib/class_list_macros.h>
 
-#include "HEAR_ROS/RosSystem.hpp"
-#include "HEAR_ROS/ROSUnit_PoseProvider.hpp"
+
 
 PLUGINLIB_EXPORT_CLASS(HEAR::OuterSysNodelet, nodelet::Nodelet)
 
 namespace HEAR
 {
+    OuterSysNodelet::~OuterSysNodelet(){
+        delete outer_sys;
+    }
     void OuterSysNodelet::onInit(){
         ros::NodeHandle nh(getNodeHandle());
         ros::NodeHandle pnh(getPrivateNodeHandle());
-        auto outer_sys = new RosSystem(nh, pnh, FREQUENCY, "OuterLoop");
+        outer_sys = new RosSystem(nh, pnh, FREQUENCY, "OuterLoop");
 
+        std::cout << "Creating blocks \n";
         std::cout << "Creating blocks \n";
 
         // creating Blocks
@@ -98,7 +101,11 @@ namespace HEAR
         outer_sys->connectExternalTrigger(updat_pid_trig, pid_y);
         outer_sys->connectExternalTrigger(updat_pid_trig, pid_z);
         
+        std::cout << "starting loop \n";
+
         outer_sys->start();
+
+        std::cout << "init completed \n";
 
     }
     

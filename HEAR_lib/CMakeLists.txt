@@ -33,6 +33,10 @@ include_directories(
 )
 
 file(GLOB HEAR_SRCs src/*.cpp)
+# add_executable(outer_sys_node ${HEAR_SRCs})
+# add_dependencies(outer_sys_node ${catkin_LIBRARIES})
+# target_link_libraries(outer_sys_node ${catkin_LIBRARIES})
+
 add_library(${PROJECT_NAME} ${HEAR_SRCs})
 add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
 
