@@ -66,6 +66,8 @@ System::~System(){
     for (auto &block : _blocks){
         delete block;
     }
+    std::cout << "deleted blocks\n";
+
 }
 int System::init(bool print_diagram){
     // do some checks for errors in connectivity etc
