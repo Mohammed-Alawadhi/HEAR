@@ -56,12 +56,14 @@ private:
 RosSystem::~RosSystem(){
     std::cout << "stopping timer" << std::endl;
     timer_.stop();
+    std::cout << "stopped \n";
     for(auto const& ros_pub : _ros_pubs){
         delete ros_pub;
     }
     for(auto const& ros_sub : _ros_subs){
         delete ros_sub;
     }
+    std::cout << "deleted all objects";
 }
 
 template <class T> 

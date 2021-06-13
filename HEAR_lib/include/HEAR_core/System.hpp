@@ -62,6 +62,7 @@ private:
 };
 
 System::~System(){
+    std::cout << "deleting blocks \n";
     for (auto &block : _blocks){
         delete block;
     }
