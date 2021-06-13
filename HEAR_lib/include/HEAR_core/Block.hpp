@@ -15,6 +15,8 @@ public:
     Block(BLOCK_ID block_id, int b_uid) : _block_id(block_id), _block_uid(b_uid)  {}
     virtual ~Block(){
         std::cout << "deleting ports \n";
+        // TODO : deleting ports this way causing seg fault,
+        //        need to find a better way for cleanup
         // for (const auto& port : _input_ports ){
         //     delete port.second;    
         // }
