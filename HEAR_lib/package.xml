@@ -15,5 +15,8 @@
 
   <export>
     <nodelet plugin="${prefix}/outer_sys_nodelet.xml" />
+    <nodelet plugin="${prefix}/inner_sys_nodelet.xml" />
+    <nodelet plugin="${prefix}/actuation_sys_nodelet.xml" />
   </export>
+
 </package>

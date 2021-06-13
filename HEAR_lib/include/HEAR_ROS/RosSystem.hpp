@@ -54,17 +54,13 @@ private:
 };
 
 RosSystem::~RosSystem(){
-    std::cout << "stopping timer" << std::endl;
     timer_.stop();
-    std::cout << "checking timer " << timer_.hasStarted() <<std::endl;
-    std::cout << "stopped \n";
     for(auto const& ros_pub : _ros_pubs){
         delete ros_pub;
     }
     for(auto const& ros_sub : _ros_subs){
         delete ros_sub;
     }
-    std::cout << "deleted all objects";
 }
 
 template <class T> 
@@ -189,11 +185,9 @@ void RosSystem::loopCb(const ros::TimerEvent& event){
 
     this->loop();
     for(const auto& ros_pub : _ros_pubs){
-        std::cout << "running";
 
         ros_pub->process();
     }
-    std::cout << std::endl;
 
 }
 

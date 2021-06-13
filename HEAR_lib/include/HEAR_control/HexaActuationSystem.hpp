@@ -77,6 +77,15 @@ public:
     }
     void command();
     int constrain(float value, int min_value, int max_value);
+    void init(const int& pwm_freq){
+        auto M1 = new ESCMotor(0, pwm_freq);
+        auto M2 = new ESCMotor(1, pwm_freq);
+        auto M3 = new ESCMotor(2, pwm_freq);
+        auto M4 = new ESCMotor(3, pwm_freq);
+        auto M5 = new ESCMotor(4, pwm_freq);
+        auto M6 = new ESCMotor(5, pwm_freq);
+        _actuators={M1, M2, M3, M4, M5, M6};
+    }
     HexaActuationSystem(int);
     ~HexaActuationSystem(){}
 }; 

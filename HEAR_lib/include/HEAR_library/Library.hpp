@@ -5,6 +5,7 @@
 #include "HEAR_core/Vector3D.hpp"
 
 #include "HEAR_control/BWFilter.hpp"
+#include "HEAR_control/Constant.hpp"
 #include "HEAR_control/Demux3.hpp"
 #include "HEAR_control/Differentiator.hpp"
 #include "HEAR_control/Eul2Rot.hpp"
@@ -42,6 +43,14 @@ Block* Library::createBlock(BLOCK_ID b_type, int b_uid, float _dt, TYPE d_type){
         }
         else{
             blk = new BWFilter2<float>(b_uid);
+        }
+        break;
+    case BLOCK_ID::CONSTANT :
+        if(d_type == TYPE::Float3){
+            blk = new Constant<Vector3D<float>>(b_uid);
+        }
+        else{
+            blk = new Constant<float>(b_uid);
         }
         break;
     case BLOCK_ID::DEMUX3 :

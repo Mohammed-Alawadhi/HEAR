@@ -19,6 +19,7 @@ namespace HEAR{
         GAIN,
         MUX3,
         DEMUX3,
+        CONSTANT,
         DIFFERENTIATOR,
         BW_FILT2,
         SATURATION,

@@ -14,14 +14,12 @@ class Block{
 public:
     Block(BLOCK_ID block_id, int b_uid) : _block_id(block_id), _block_uid(b_uid)  {}
     virtual ~Block(){
-        std::cout << "deleting ports \n";
         // for (const auto& port : _input_ports ){
         //     delete port.second;    
         // }
         // for (const auto& port : _output_ports ){
         //     delete port.second;    
         // }
-        std::cout << "deleted ports \n";
     }
     template <class T> InputPort<T>* createInputPort(int idx, std::string name);
     template <class T> OutputPort<T>* createOutputPort(int idx, std::string name);

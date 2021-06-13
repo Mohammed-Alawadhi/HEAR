@@ -33,9 +33,6 @@ include_directories(
 )
 
 file(GLOB HEAR_SRCs src/*.cpp)
-# add_executable(outer_sys_node ${HEAR_SRCs})
-# add_dependencies(outer_sys_node ${catkin_LIBRARIES})
-# target_link_libraries(outer_sys_node ${catkin_LIBRARIES})
 
 add_library(${PROJECT_NAME} ${HEAR_SRCs})
 add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
@@ -44,6 +41,15 @@ add_executable(outer_sys_node HEAR_nodelet/outer_sys_node.cpp)
 add_dependencies(outer_sys_node ${catkin_LIBRARIES})
 target_link_libraries(outer_sys_node ${PROJECT_NAME} ${catkin_LIBRARIES})
 
+add_executable(inner_sys_node HEAR_nodelet/inner_sys_node.cpp)
+add_dependencies(inner_sys_node ${catkin_LIBRARIES})
+target_link_libraries(inner_sys_node ${PROJECT_NAME} ${catkin_LIBRARIES})
+
+add_executable(actuation_sys_node HEAR_nodelet/actuation_sys_node.cpp)
+add_dependencies(actuation_sys_node ${catkin_LIBRARIES})
+target_link_libraries(actuation_sys_node ${PROJECT_NAME} ${catkin_LIBRARIES})
+
+
 add_library(outer_sys_nodelet HEAR_nodelet/OuterSysNodelet.cpp)
 add_dependencies(outer_sys_nodelet ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
 target_link_libraries(outer_sys_nodelet
@@ -51,7 +57,22 @@ target_link_libraries(outer_sys_nodelet
     ${catkin_LIBRARIES}
 )
 
-install(TARGETS outer_sys_nodelet ${PROJECT_NAME}
+add_library(inner_sys_nodelet HEAR_nodelet/InnerSysNodelet.cpp)
+add_dependencies(inner_sys_nodelet ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(inner_sys_nodelet
+    ${PROJECT_NAME}
+    ${catkin_LIBRARIES}
+)
+
+add_library(actuation_sys_nodelet HEAR_nodelet/ActuationSysNodelet.cpp)
+add_dependencies(actuation_sys_nodelet ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(actuation_sys_nodelet
+    ${PROJECT_NAME}
+    ${catkin_LIBRARIES}
+)
+
+
+install(TARGETS outer_sys_nodelet inner_sys_nodelet actuation_sys_nodelet ${PROJECT_NAME}
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
@@ -60,6 +81,6 @@ install(TARGETS outer_sys_nodelet ${PROJECT_NAME}
 install(DIRECTORY include/
         DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
 
-install(FILES outer_sys_nodelet.xml 
+install(FILES outer_sys_nodelet.xml inner_sys_nodelet.xml actuation_sys_nodelet.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )

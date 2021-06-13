@@ -62,12 +62,9 @@ private:
 };
 
 System::~System(){
-    std::cout << "deleting blocks \n";
     for (auto &block : _blocks){
         delete block;
     }
-    std::cout << "deleted blocks\n";
-
 }
 int System::init(bool print_diagram){
     // do some checks for errors in connectivity etc
@@ -185,12 +182,10 @@ void System::findsequence(){
 
 void System::loop(){
     for (const auto& ext_trig : _external_triggers){
-        std::cout << "running";
         ext_trig->process();
     }
 
     for(const auto &it : seq){
-        std::cout << "running";
         it->process();
     }
 }
