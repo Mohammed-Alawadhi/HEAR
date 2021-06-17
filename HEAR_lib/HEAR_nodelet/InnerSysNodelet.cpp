@@ -73,6 +73,7 @@ namespace HEAR
         inner_sys->createPub(TYPE::Float3, "/angle_u", mux_angle_u->getOutputPort<Vector3D<float>>(Mux3::OP::OUTPUT));
         inner_sys->createPub( "/thrust_cmd", roterr2angerr->getOutputPort<float>(FbLinearizer::RotDiff2Rod::OP::THRUST));
         inner_sys->createPub(TYPE::Float3, "body_ori", mux_rpy->getOutputPort<Vector3D<float>>(Mux3::OP::OUTPUT));
+        inner_sys->createPub(TYPE::Float3, "filtered_angle_rt", filt_angle_rate->getOutputPort<Vector3D<float>>(0));
 
         auto update_pid_trig = inner_sys->createUpdateTrigger(UPDATE_MSG_TYPE::PID_UPDATE, "/update_controller/pid/inner");
         inner_sys->connectExternalTrigger(update_pid_trig, pid_roll);
