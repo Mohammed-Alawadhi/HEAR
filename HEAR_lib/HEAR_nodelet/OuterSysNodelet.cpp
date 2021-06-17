@@ -61,19 +61,19 @@ namespace HEAR
         outer_sys->connect(to_horizon_pos->getOutputPort<Vector3D<float>>(ToHorizon::OUT_VEC), pos_h_demux->getInputPort<Vector3D<float>>(Demux3::INPUT));
         outer_sys->connect(to_horizon_vel->getOutputPort<Vector3D<float>>(ToHorizon::OUT_VEC), vel_h_demux->getInputPort<Vector3D<float>>(Demux3::INPUT));
         
-        outer_sys->createSub("waypoint_reference/x", sum_ref_x->getInputPort<float>(Sum::IP::OPERAND1));
+        outer_sys->createSub("/waypoint_reference/x", sum_ref_x->getInputPort<float>(Sum::IP::OPERAND1));
         outer_sys->connect(pos_h_demux->getOutputPort<float>(Demux3::OP::X), sum_ref_x->getInputPort<float>(Sum::IP::OPERAND2));
         outer_sys->connect(sum_ref_x->getOutputPort<float>(Sum::OP::OUTPUT), pid_x->getInputPort<float>(PID_Block::IP::ERROR));
         outer_sys->connect(vel_h_demux->getOutputPort<float>(Demux3::OP::X), pid_x->getInputPort<float>(PID_Block::IP::PV_DOT));
         outer_sys->connect(pid_x->getOutputPort<float>(PID_Block::OP::COMMAND), mux_fh_des->getInputPort<float>(Mux3::IP::X));
 
-        outer_sys->createSub("waypoint_reference/y", sum_ref_y->getInputPort<float>(Sum::IP::OPERAND1));
+        outer_sys->createSub("/waypoint_reference/y", sum_ref_y->getInputPort<float>(Sum::IP::OPERAND1));
         outer_sys->connect(pos_h_demux->getOutputPort<float>(Demux3::OP::Y), sum_ref_y->getInputPort<float>(Sum::IP::OPERAND2));
         outer_sys->connect(sum_ref_y->getOutputPort<float>(Sum::OP::OUTPUT), pid_y->getInputPort<float>(PID_Block::IP::ERROR));
         outer_sys->connect(vel_h_demux->getOutputPort<float>(Demux3::OP::Y), pid_y->getInputPort<float>(PID_Block::IP::PV_DOT));
         outer_sys->connect(pid_y->getOutputPort<float>(PID_Block::OP::COMMAND), mux_fh_des->getInputPort<float>(Mux3::IP::Y));
 
-        outer_sys->createSub("waypoint_reference/z", sum_ref_z->getInputPort<float>(Sum::IP::OPERAND1));
+        outer_sys->createSub("/waypoint_reference/z", sum_ref_z->getInputPort<float>(Sum::IP::OPERAND1));
         outer_sys->connect(pos_h_demux->getOutputPort<float>(Demux3::OP::Z), sum_ref_z->getInputPort<float>(Sum::IP::OPERAND2));
         outer_sys->connect(sum_ref_z->getOutputPort<float>(Sum::OP::OUTPUT), pid_z->getInputPort<float>(PID_Block::IP::ERROR));
         outer_sys->connect(vel_h_demux->getOutputPort<float>(Demux3::OP::Z), pid_z->getInputPort<float>(PID_Block::IP::PV_DOT));
@@ -86,7 +86,7 @@ namespace HEAR
         outer_sys->connect(demux_ori->getOutputPort<float>(Demux3::OP::Z), fh2fi->getInputPort<float>(FromHorizon::IP::YAW));
 
         outer_sys->connect(fh2fi->getOutputPort<Vector3D<float>>(FromHorizon::OP::OUT_VEC), f2rot->getInputPort<Vector3D<float>>(FbLinearizer::Force2Rot::IP::FORCE_I_DES));
-        outer_sys->createSub("waypoint_reference/yaw", f2rot->getInputPort<float>(FbLinearizer::Force2Rot::IP::YAW_REF));
+        outer_sys->createSub("/waypoint_reference/yaw", f2rot->getInputPort<float>(FbLinearizer::Force2Rot::IP::YAW_REF));
 
         outer_sys->connect(f2rot->getOutputPort<tf2::Matrix3x3>(FbLinearizer::Force2Rot::OP::ROT_DES), rot2eul->getInputPort<tf2::Matrix3x3>(Rot2Eul::IP::ROT_MAT));
         outer_sys->connect(rot2eul->getOutputPort<Vector3D<float>>(Rot2Eul::OP::EUL_ANGLES), demux_eul_des->getInputPort<Vector3D<float>>(Demux3::IP::INPUT));
@@ -100,10 +100,14 @@ namespace HEAR
         outer_sys->createPub<Vector3D<float>>(TYPE::Float3, "/fh_des", mux_fh_des->getOutputPort<Vector3D<float>>(Mux3::OP::OUTPUT));
         outer_sys->createPub<Vector3D<float>>(TYPE::Float3, "/fi_des", fh2fi->getOutputPort<Vector3D<float>>(FromHorizon::OP::OUT_VEC));
         outer_sys->createPub<Vector3D<float>>(TYPE::Float3, "/rot_des", mux_eul_des->getOutputPort<Vector3D<float>>(Mux3::OP::OUTPUT));
-        outer_sys->createPub("/providers/yaw", demux_ori->getOutputPort<float>(Demux3::OP::Z));
+        outer_sys->createPub( TYPE::Float3, "/vel_h_x", diff_pos->getOutputPort<Vector3D<float>>(0));
+
+        auto mux_yaw = outer_sys->createBlock(BLOCK_ID::MUX3, "Mux_Yaw");
+        outer_sys->connect( demux_ori->getOutputPort<float>(Demux3::OP::Z), mux_yaw->getInputPort<float>(Mux3::IP::X));
+        outer_sys->createPub( TYPE::Float3, "/providers/yaw", mux_yaw->getOutputPort<Vector3D<float>>(Mux3::OP::OUTPUT));
 
         outer_sys->createResetTrigger("reset_controller", pid_z);
-        auto update_pid_trig = outer_sys->createUpdateTrigger(UPDATE_MSG_TYPE::PID_UPDATE, "update_controller/pid/outer");
+        auto update_pid_trig = outer_sys->createUpdateTrigger(UPDATE_MSG_TYPE::PID_UPDATE, "/update_controller/pid/outer");
         outer_sys->connectExternalTrigger(update_pid_trig, pid_x);
         outer_sys->connectExternalTrigger(update_pid_trig, pid_y);
         outer_sys->connectExternalTrigger(update_pid_trig, pid_z);

@@ -27,6 +27,7 @@ Differentiator<T>::Differentiator (double dt, int b_uid) : Block(BLOCK_ID::DIFFE
     _inp = createInputPort<T>(0, "INPUT");
     _out = createOutputPort<T>(0, "OUTPUT");
     prev_inp = 0;
+    _dt = dt;
     
 }
 

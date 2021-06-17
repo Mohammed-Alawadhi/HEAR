@@ -31,6 +31,7 @@ namespace HEAR
         auto sum_ref_yaw_rt = inner_sys->createBlock(BLOCK_ID::SUM, "Sum_Ref_Yaw_rt");
         auto mux_angle_u = inner_sys->createBlock(BLOCK_ID::MUX3, "Mux_Angle_u");
         auto sat_yaw = inner_sys->createBlock(BLOCK_ID::SATURATION, "Sat_yaw"); ((Saturation*)sat_yaw)->setClipValue(YAW_SAT_VALUE);
+        auto demux_yaw = inner_sys->createBlock(BLOCK_ID::DEMUX3, "Demux_Yaw");
 
         //connecting blocks
         providers = new ROSUnit_PoseProvider (nh);
@@ -43,7 +44,8 @@ namespace HEAR
         inner_sys->connect(filt_angle_rate->getOutputPort<Vector3D<float>>(0), demux_angle_rate->getInputPort<Vector3D<float>>(Demux3::IP::INPUT));
 
         inner_sys->createSub( TYPE::Float3, "/rot_des", eul2Rb_des->getInputPort<Vector3D<float>>(Eul2Rot::IP::EUL_ANGLES));
-        inner_sys->createSub( "/providers/yaw", mux_rpy->getInputPort<float>(Mux3::IP::Z));
+        inner_sys->createSub( TYPE::Float3, "/providers/yaw", demux_yaw->getInputPort<Vector3D<float>>(Demux3::IP::INPUT));
+        inner_sys->connect(demux_yaw->getOutputPort<float>(Demux3::OP::X), mux_rpy->getInputPort<float>(Mux3::IP::Z));
         inner_sys->connect(demux_ori->getOutputPort<float>(Demux3::OP::X), mux_rpy->getInputPort<float>(Mux3::IP::X));
         inner_sys->connect(demux_ori->getOutputPort<float>(Demux3::OP::Y), mux_rpy->getInputPort<float>(Mux3::IP::Y));
         inner_sys->connect(mux_rpy->getOutputPort<Vector3D<float>>(Mux3::OP::OUTPUT), eul2Rb->getInputPort<Vector3D<float>>(Eul2Rot::IP::EUL_ANGLES));
@@ -72,7 +74,7 @@ namespace HEAR
         inner_sys->createPub( "/thrust_cmd", roterr2angerr->getOutputPort<float>(FbLinearizer::RotDiff2Rod::OP::THRUST));
         inner_sys->createPub(TYPE::Float3, "body_ori", mux_rpy->getOutputPort<Vector3D<float>>(Mux3::OP::OUTPUT));
 
-        auto update_pid_trig = inner_sys->createUpdateTrigger(UPDATE_MSG_TYPE::PID_UPDATE, "update_controller/pid/inner");
+        auto update_pid_trig = inner_sys->createUpdateTrigger(UPDATE_MSG_TYPE::PID_UPDATE, "/update_controller/pid/inner");
         inner_sys->connectExternalTrigger(update_pid_trig, pid_roll);
         inner_sys->connectExternalTrigger(update_pid_trig, pid_pitch);
         inner_sys->connectExternalTrigger(update_pid_trig, pid_yaw);

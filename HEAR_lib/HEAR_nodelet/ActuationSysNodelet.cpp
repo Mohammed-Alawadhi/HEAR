@@ -30,7 +30,6 @@ namespace HEAR
 
         actuation_sys->createUpdateTrigger(UPDATE_MSG_TYPE::BOOL_MSG, "/arm", hexa);
 
-        ros_heartbeat = new ROSUnit_Heartbeat(nh, ros::Duration(0.5));
         
         actuation_sys->start();
 

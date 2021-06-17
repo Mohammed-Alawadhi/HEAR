@@ -20,7 +20,6 @@ private:
     virtual void onInit();
     
     RosSystem* actuation_sys;
-    ROSUnit_Heartbeat* ros_heartbeat;    
 };
     
 } 

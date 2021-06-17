@@ -19,7 +19,8 @@ private:
     virtual void onInit();
     
     RosSystem* inner_sys;
-    ROSUnit_PoseProvider* providers;    
+    ROSUnit_PoseProvider* providers; 
+   
 };
     
 } 

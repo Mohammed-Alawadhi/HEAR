@@ -10,7 +10,7 @@ ToHorizon::ToHorizon(int b_uid) : Block(BLOCK_ID::TOHORIZON, b_uid){
 
 void ToHorizon::process(){
     Vector3D<float> data;
-    float yaw;
+    float yaw =0;
     yaw_port->read(yaw);
     Rot.setEulerYPR(-yaw, 0.0, 0.0);
     inp_vec_port->read(data);

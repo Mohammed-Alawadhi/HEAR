@@ -13,6 +13,5 @@ int main(int argc, char **argv){
   nodelet.load(ros::this_node::getName(), "hear_flight_controller/ActuationSysNodelet", remap, nargv);
   
   ros::spin();
-  std::cout << "finished node \n";
   return 0;
   }
