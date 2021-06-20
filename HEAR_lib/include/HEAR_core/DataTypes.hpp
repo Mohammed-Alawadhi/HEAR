@@ -15,6 +15,7 @@ namespace HEAR{
         EXT_IP,
         EXT_OP,
         PID,
+        MRFT,
         SUM,
         GAIN,
         MUX3,
@@ -32,6 +33,9 @@ namespace HEAR{
         FORCE2ROT,
         ROTDIFF2ROD,
         HEXAACTUATIONSYSTEM,
+        SWITCH,
+        INVERTED_SWITCH,
+        MEDIAN_FILTER
     };
     enum IOTYPE{
         INPUT =0,
@@ -53,6 +57,9 @@ namespace HEAR{
         ON,
         TOGGLE
     };
+    enum SWITCH_ID{
+        MRFT_SW
+    };
     enum PID_ID{
         PID_X,
         PID_Y,
@@ -63,11 +70,23 @@ namespace HEAR{
         PID_YAW_RATE
     };
 
+    enum MRFT_ID{
+        MRFT_X=14, MRFT_Y=15, MRFT_Z=16, MRFT_ROLL=17, MRFT_PITCH=18, 
+					MRFT_YAW=19, MRFT_YAW_RATE=20
+    };
+
     class PID_parameters {
     public:
         int id;
         float kp=1, ki=0, kd=0, kdd=0, anti_windup=0;
         bool en_pv_derivation = false;
+    };
+    
+    class MRFT_parameters {
+    public:
+        int id;	   
+        float beta=0, relay_amp=0;
+        int no_switch_delay_in_ms=20, num_of_peak_conf_samples=5;
     };
 
     class UpdateMsg{
@@ -86,9 +105,20 @@ namespace HEAR{
                return Copy;
             } 
     };
+    class MRFT_UpdateMsg : UpdateMsg{
+        public:
+            MRFT_parameters param;
+            UPDATE_MSG_TYPE getType()const {return UPDATE_MSG_TYPE::MRFT_UPDATE;}
+            UpdateMsg* copy() const{
+               auto Copy = new MRFT_UpdateMsg;
+               *Copy = *this;
+               return Copy;
+            }
+    };
 
     class SwitchMsg : UpdateMsg{
         public:
+            int sw_id;
             SWITCH_STATE sw_state = SWITCH_STATE::OFF;
             UPDATE_MSG_TYPE getType() const {return UPDATE_MSG_TYPE::SWITCH_TRIG;}
             UpdateMsg* copy() const{
