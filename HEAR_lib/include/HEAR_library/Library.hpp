@@ -13,11 +13,15 @@
 #include "HEAR_control/FromHorizon.hpp"
 #include "HEAR_control/Gain.hpp"
 #include "HEAR_control/HexaActuationSystem.hpp"
+#include "HEAR_control/InvertedSwitch.hpp"
+#include "HEAR_control/MedianFilter.hpp"
+#include "HEAR_control/Mrft.hpp"
 #include "HEAR_control/Mux3.hpp"
 #include "HEAR_control/PID_Block.hpp"
 #include "HEAR_control/Rot2Eul.hpp"
 #include "HEAR_control/Saturation.hpp"
 #include "HEAR_control/Sum.hpp"
+#include "HEAR_control/Switch.hpp"
 #include "HEAR_control/ToHorizon.hpp"
 #include "HEAR_control/Rot2Quat.hpp"
 #include "HEAR_control/Quat2Rot.hpp"
@@ -79,6 +83,15 @@ Block* Library::createBlock(BLOCK_ID b_type, int b_uid, double _dt, TYPE d_type)
     case BLOCK_ID::HEXAACTUATIONSYSTEM :
         blk = new HexaActuationSystem(b_uid);
         break;
+    case BLOCK_ID::INVERTED_SWITCH :
+        blk = new InvertedSwitch(b_uid);
+        break;
+    case BLOCK_ID::MEDIAN_FILTER :
+        blk = new MedianFilter(b_uid);
+        break;
+    case BLOCK_ID::MRFT :
+        blk = new MRFT_Block(b_uid);
+        break;
     case BLOCK_ID::MUX3 :
         blk = new Mux3(b_uid);
         break;
@@ -102,6 +115,9 @@ Block* Library::createBlock(BLOCK_ID b_type, int b_uid, double _dt, TYPE d_type)
         break;
     case BLOCK_ID::SUM :
         blk = new Sum(b_uid);
+        break;
+    case BLOCK_ID::SWITCH :
+        blk = new Switch(b_uid);
         break;
     case BLOCK_ID::TOHORIZON:
         blk = new ToHorizon(b_uid);

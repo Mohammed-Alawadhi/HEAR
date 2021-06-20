@@ -12,6 +12,7 @@
 #include "HEAR_ROS/ROSUnit_QuatPub.hpp"
 #include "HEAR_ROS/ROSUnit_ResetSrv.hpp"
 #include "HEAR_ROS/ROSUnit_UpdateContSrv.hpp"
+#include "HEAR_ROS/ROSUnit_UpdateMRFTsrv.hpp"
 #include "HEAR_ROS/ROSUnit_BoolSrv.hpp"
 #include "HEAR_ROS/ROSUnit_Sub.hpp"
 #include "HEAR_ROS/ROSUnit_PointSub.hpp"
@@ -159,6 +160,11 @@ ExternalTrigger* RosSystem::createUpdateTrigger(UPDATE_MSG_TYPE type, std::strin
             break;}
         case UPDATE_MSG_TYPE::BOOL_MSG :{
             auto srv = new ROSUnit_BoolServer(pnh_);
+            trig = srv->registerServer(topic);
+            break;
+        }
+        case UPDATE_MSG_TYPE::MRFT_UPDATE : {
+            auto srv = new ROSUnit_UpdateMRFTsrv(pnh_);
             trig = srv->registerServer(topic);
             break;
         }
