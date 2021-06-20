@@ -10,7 +10,7 @@ PID_Block::PID_Block(double dt, int b_uid): _dt(dt), Block(BLOCK_ID::PID, b_uid)
 }
 
 void PID_Block::process(){
-	if(!freeze_){
+	if(_enable){
 		float err, pv_dot;
 		err_port->read(err);
 		pv_dot_port->read(pv_dot);
@@ -33,7 +33,7 @@ void PID_Block::update(UpdateMsg* u_msg){
     	update_params(&((PID_UpdateMsg*)u_msg)->param);
     }
 	else if (u_msg->getType() == UPDATE_MSG_TYPE::BOOL_MSG ){
-		freeze_ = ((BoolMsg*)u_msg)->data;
+		_enable = ((BoolMsg*)u_msg)->data;
 	}
 	else{
 		std::cout <<"update message type mismatch for PID block\n";

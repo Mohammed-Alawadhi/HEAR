@@ -29,7 +29,7 @@ namespace HEAR
         actuation_sys->createPub(TYPE::FloatVec, "/actuation_cmd", hexa->getOutputPort<std::vector<float>>(HexaActuationSystem::OP::MOTOR_CMD));
 
         actuation_sys->createUpdateTrigger(UPDATE_MSG_TYPE::BOOL_MSG, "/arm", hexa);
-
+        _hb_sub = nh.subscribe("/heartbeat", 10, &HexaActuationSystem::heartbeatCb, (HexaActuationSystem*)hexa);
         
         actuation_sys->start();
 

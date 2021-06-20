@@ -2,7 +2,6 @@
 #include "nodelet/nodelet.h"
 
 #include "HEAR_ROS/RosSystem.hpp"
-#include "HEAR_ROS/ROSUnit_Heartbeat.hpp"
 
 #define BIG_HEXA
 
@@ -20,6 +19,7 @@ private:
     virtual void onInit();
     
     RosSystem* actuation_sys;
+    ros::Subscriber _hb_sub;
 };
     
 } 
