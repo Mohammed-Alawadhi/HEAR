@@ -38,6 +38,9 @@ HexaActuationSystem::HexaActuationSystem(int b_uid) : Block(BLOCK_ID::HEXAACTUAT
 }
 
 void HexaActuationSystem::process() {
+    if ( _hb_timer.tockMilliSeconds() > _hb_tol_ms){
+        _armed = false;
+    }
     Vector3D<float> body_rate_cmd;
     body_rate_port->read(body_rate_cmd);
     _u[0] = body_rate_cmd.x; 
@@ -45,6 +48,10 @@ void HexaActuationSystem::process() {
     _u[2] = body_rate_cmd.z;
     thrust_port->read(_u[3]);
     this->command();
+}
+
+void HexaActuationSystem::heartbeatCb(const std_msgs::Empty::ConstPtr& msg){
+    _hb_timer.tick();
 }
 
 void HexaActuationSystem::update(UpdateMsg* u_msg){
