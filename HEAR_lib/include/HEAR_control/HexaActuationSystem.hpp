@@ -59,6 +59,7 @@ private:
     int _escMin_armed = 1150;
     int _escMax = 2000;
     bool _armed = false;
+    bool _take_off = false;
     float _u[4]; //[roll, pitch, yaw, throttle]
     std::vector<float> _commands {0,0,0,0,0,0};
     float _geometry[6][4] = {{-1,    0,          1,     1},
