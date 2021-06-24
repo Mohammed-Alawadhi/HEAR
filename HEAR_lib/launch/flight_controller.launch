@@ -1,8 +1,8 @@
 <launch> 
   <!-- <include file="$(find mocap_optitrack)/launch/mocap.launch"/> -->
-  <!-- <include file="$(find xsens_mti_driver)/launch/xsens_mti_node.launch"/>
+  <include file="$(find xsens_mti_driver)/launch/xsens_mti_node.launch"/>
   <node pkg="hear_navio_fc_example" type="waypoint_reference_node" 
-  name="waypoint_reference_node" output="screen" required="true"/>  -->
+  name="waypoint_reference_node" output="screen" required="true"/> 
   <node pkg="nodelet" type="nodelet" name="nodelet_manager"  args="manager" output="screen"/>
 
   <node pkg="nodelet" type="nodelet" name="Outer_Sys" args="load hear_flight_controller/OuterSysNodelet nodelet_manager" output="screen"/>
