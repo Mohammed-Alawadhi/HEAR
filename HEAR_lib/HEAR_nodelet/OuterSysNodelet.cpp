@@ -108,6 +108,7 @@ namespace HEAR
         outer_sys->createPub( TYPE::Float3, "/providers/yaw", mux_yaw->getOutputPort<Vector3D<float>>(Mux3::OP::OUTPUT));
 
         outer_sys->createResetTrigger("reset_controller", pid_z);
+        outer_sys->createUpdateTrigger(UPDATE_MSG_TYPE::BOOL_MSG, "/pid_z_trig", pid_z);
         auto update_pid_trig = outer_sys->createUpdateTrigger(UPDATE_MSG_TYPE::PID_UPDATE, "/update_controller/pid/outer");
         outer_sys->connectExternalTrigger(update_pid_trig, pid_x);
         outer_sys->connectExternalTrigger(update_pid_trig, pid_y);
