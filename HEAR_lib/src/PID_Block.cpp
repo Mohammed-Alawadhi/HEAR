@@ -56,14 +56,13 @@ void PID_Block::update_params(PID_parameters* para){
     else{
         i_term = false;
     }
-	_parameters.kd = para->kd;
-	// if(para->kd > 0.0){
-	// 	_parameters.kd = para->kd;
-    //     d_term = true;
-	// }
-    // else{
-    //     d_term = false;
-    // }
+	if(para->kd != 0.0){
+		_parameters.kd = para->kd;
+        d_term = true;
+	}
+    else{
+        d_term = false;
+    }
 	if(para->kdd > 0.0){
 		_parameters.kdd = para->kdd;
 	}
