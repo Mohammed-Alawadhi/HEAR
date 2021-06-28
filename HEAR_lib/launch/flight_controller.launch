@@ -5,7 +5,7 @@
   name="waypoint_reference_node" output="screen" required="true"/> 
   <node pkg="nodelet" type="nodelet" name="nodelet_manager"  args="manager" output="screen"/>
 
-  <node pkg="nodelet" type="nodelet" name="Outer_Sys" args="load hear_flight_controller/OuterSysNodelet nodelet_manager" output="screen"/>
+  <node pkg="nodelet" type="nodelet" name="Outer_Sys" args="load hear_flight_controller/OuterSysNodelet nodelet_manager" output="screen" required="true"/>
   <node pkg="nodelet" type="nodelet" name="Inner_Sys" args="load hear_flight_controller/InnerSysNodelet nodelet_manager" output="screen"/>
   <node pkg="nodelet" type="nodelet" name="Actuation_Sys" args="load hear_flight_controller/ActuationSysNodelet nodelet_manager" output="screen"/>
 

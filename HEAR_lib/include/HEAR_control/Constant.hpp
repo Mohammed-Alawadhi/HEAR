@@ -14,7 +14,7 @@ private:
     T _val;
 public:
     enum OP{OUTPUT};
-    Constant(int b_id);
+    Constant(int);
     ~Constant(){}
     void setValue(const T& val);
     void process();    
