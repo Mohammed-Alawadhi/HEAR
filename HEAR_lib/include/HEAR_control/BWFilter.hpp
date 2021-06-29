@@ -39,7 +39,6 @@ public:
     ~BWFilter2(){}
     void process(){
         T x;
-        x=0;
         _inp_port->read(x);
         T y = -coeff_[0] * prev_y - coeff_[1] * prev2_y + coeff_[2] * x + coeff_[3] * prev_x + coeff_[4] * prev2_x;
         prev2_y = prev_y;
