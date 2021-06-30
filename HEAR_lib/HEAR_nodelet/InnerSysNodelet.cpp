@@ -16,7 +16,7 @@ namespace HEAR
 
         // creating Blocks
         auto filt_angle_rate = inner_sys->createBlock(BLOCK_ID::BW_FILT2, "Filt_angle_rate", TYPE::Float3);
-        ((BWFilter2<Vector3D<float>>*)filt_angle_rate)->setCoeff(BWFilt2_coeff::coeff_N200C50);
+        ((BWFilter2<Vector3D<float>>*)filt_angle_rate)->setCoeff(BWFilt2_coeff::coeff_200Hz_2nd_butter_50hz);
         auto demux_angle_rate = inner_sys->createBlock(BLOCK_ID::DEMUX3, "Demux_AngleRate");
         auto demux_ori = inner_sys->createBlock(BLOCK_ID::DEMUX3, "Demux_Ori");
         auto mux_rpy = inner_sys->createBlock(BLOCK_ID::MUX3, "Mux_Ori");
@@ -71,6 +71,7 @@ namespace HEAR
         inner_sys->connect(pid_yaw_rt->getOutputPort<float>(PID_Block::OP::COMMAND), mux_angle_u->getInputPort<float>(Mux3::IP::Z));
 
         inner_sys->createPub(TYPE::Float3, "/angle_u", mux_angle_u->getOutputPort<Vector3D<float>>(Mux3::OP::OUTPUT));
+        inner_sys->createPub(TYPE::Float3, "/angle_err", roterr2angerr->getOutputPort<Vector3D<float>>(FbLinearizer::RotDiff2Rod::OP::ROD_ANGLES));
         inner_sys->createPub( "/thrust_cmd", roterr2angerr->getOutputPort<float>(FbLinearizer::RotDiff2Rod::OP::THRUST));
         inner_sys->createPub(TYPE::Float3, "body_ori", mux_rpy->getOutputPort<Vector3D<float>>(Mux3::OP::OUTPUT));
         inner_sys->createPub(TYPE::Float3, "filtered_angle_rt", filt_angle_rate->getOutputPort<Vector3D<float>>(0));

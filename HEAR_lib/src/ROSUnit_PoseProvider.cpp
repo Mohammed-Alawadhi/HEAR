@@ -74,13 +74,13 @@ void ROSUnit_PoseProvider::callback_ori(const geometry_msgs::QuaternionStamped::
 }
 
 void ROSUnit_PoseProvider::callback_angular_vel(const geometry_msgs::Vector3Stamped::ConstPtr& msg){
-    Vector3D<float> vec = {(float)msg->vector.x, (float)msg->vector.x, (float)msg->vector.z};
+    Vector3D<float> vec = {(float)msg->vector.x, (float)msg->vector.y, (float)msg->vector.z};
 
     imu_angular_rt_port->write(vec);
 }
 
 void ROSUnit_PoseProvider::callback_free_acc(const geometry_msgs::Vector3Stamped::ConstPtr& msg){
-    Vector3D<float> vec = {(float)msg->vector.x, (float)msg->vector.x, (float)msg->vector.z};
+    Vector3D<float> vec = {(float)msg->vector.x, (float)msg->vector.y, (float)msg->vector.z};
 
     imu_acc_port->write(vec);
 }

@@ -56,7 +56,7 @@ void PID_Block::update_params(PID_parameters* para){
     else{
         i_term = false;
     }
-	if(para->kd > 0.0){
+	if(para->kd != 0.0){
 		_parameters.kd = para->kd;
         d_term = true;
 	}

@@ -15,7 +15,7 @@ private:
     InputPort<float>* err_port;
     InputPort<float>* pv_dot_port;
     OutputPort<float>* u_port;
-    bool i_term = false, d_term = false, dd_term = false;
+    bool i_term = false, d_term = true, dd_term = false;
     bool en_pv_derivation = false, en_anti_windup = false;
     bool _enable = true;
     float prev_err = 0, prev2_err = 0, prev_pv_rate = 0, accum_u = 0, accum_I = 0;

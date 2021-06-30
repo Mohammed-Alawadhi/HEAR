@@ -17,6 +17,7 @@ namespace HEAR
         // creating Blocks
         auto hexa = actuation_sys->createBlock(BLOCK_ID::HEXAACTUATIONSYSTEM, "Hexa");
         ((HexaActuationSystem*)hexa)->init(FREQUENCY);
+        ((HexaActuationSystem*)hexa)->setHbTol(250);
         #ifdef BIG_HEXA
         ((HexaActuationSystem*)hexa)->setESCValues(1165 ,1000, 2000);
         #else

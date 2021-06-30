@@ -40,6 +40,7 @@ HexaActuationSystem::HexaActuationSystem(int b_uid) : Block(BLOCK_ID::HEXAACTUAT
 void HexaActuationSystem::process() {
     if ( _hb_timer.tockMilliSeconds() > _hb_tol_ms){
         _armed = false;
+        _take_off = false;
     }
     Vector3D<float> body_rate_cmd;
     body_rate_port->read(body_rate_cmd);
@@ -56,7 +57,22 @@ void HexaActuationSystem::heartbeatCb(const std_msgs::Empty::ConstPtr& msg){
 
 void HexaActuationSystem::update(UpdateMsg* u_msg){
     if(u_msg->getType() == UPDATE_MSG_TYPE::BOOL_MSG){
-        _armed = ((BoolMsg*)u_msg)->data;
+        bool arm_val = ((BoolMsg*)u_msg)->data;;
+        if(arm_val){
+            if(_armed){
+                _take_off = arm_val;
+                std::cout << "take off \n";
+            }
+            else{
+                _armed = arm_val;
+                std::cout << "arm called \n";
+            }
+        }
+        else{
+            _armed = arm_val;
+            _take_off = arm_val;
+            std::cout << "disarm called \n";
+        }
         // print armed
     }
 }
@@ -110,7 +126,12 @@ void HexaActuationSystem::command(){
 
     for(int i = 0; i < 6; i++){
         if(_armed){
-            _commands[i] = this->constrain(_commands[i], _escMin_armed, _escMax);
+            if(_take_off){
+                _commands[i] = this->constrain(_commands[i], _escMin_armed, _escMax);
+            }
+            else{
+                _commands[i] = _escMin_armed;
+            }
         }else{
             _commands[i] = _escMin;
         }  
