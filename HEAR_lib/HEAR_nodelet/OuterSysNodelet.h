@@ -16,7 +16,7 @@ public:
 private:
     const float SAT_XY_VALUE = 0.25;
     const float SAT_Z_VALUE = 0.9;
-    const float BIAS_Z_VALUE = 0.35;
+    const float BIAS_Z_VALUE = 0.4;
     const int FREQUENCY = 120;
     virtual void onInit();
     

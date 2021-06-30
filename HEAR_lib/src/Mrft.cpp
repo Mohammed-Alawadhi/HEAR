@@ -37,6 +37,7 @@ void MRFT_Block::update(UpdateMsg* u_msg){
 		auto mrft_update_params = ((MRFT_UpdateMsg*)u_msg)->param;
 		if(mrft_update_params.id == _id){
 			parameters = mrft_update_params;
+			std::cout << "Mrft parameters updated for ID " << _id << std::endl;
 		}
 	}
 	else if(u_msg->getType() == UPDATE_MSG_TYPE::BOOL_MSG){
