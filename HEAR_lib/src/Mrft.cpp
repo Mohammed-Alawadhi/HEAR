@@ -42,7 +42,10 @@ void MRFT_Block::update(UpdateMsg* u_msg){
 	}
 	else if(u_msg->getType() == UPDATE_MSG_TYPE::BOOL_MSG){
 		_enable = ((BoolMsg*)u_msg)->data;
-		if(_enable == true){ this->reset();}
+		if(_enable == true){ 
+			std::cout << "mrft started \n";
+			this->reset();
+		}
 	}
 
 }

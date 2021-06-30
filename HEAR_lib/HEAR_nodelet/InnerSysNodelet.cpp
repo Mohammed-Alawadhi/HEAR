@@ -108,6 +108,7 @@ namespace HEAR
         inner_sys->connect(pid_yaw_rt->getOutputPort<float>(PID_Block::OP::COMMAND), mux_angle_u->getInputPort<float>(Mux3::IP::Z));
 
         inner_sys->createPub(TYPE::Float3, "/angle_u", mux_angle_u->getOutputPort<Vector3D<float>>(Mux3::OP::OUTPUT));
+        inner_sys->createPub(TYPE::Float3, "/angle_ref", mux_angle_ref->getOutputPort<Vector3D<float>>(Mux3::OP::OUTPUT));
         inner_sys->createPub(TYPE::Float3, "/angle_err", roterr2angerr->getOutputPort<Vector3D<float>>(FbLinearizer::RotDiff2Rod::OP::ROD_ANGLES));
         inner_sys->createPub( "/thrust_cmd", roterr2angerr->getOutputPort<float>(FbLinearizer::RotDiff2Rod::OP::THRUST));
         inner_sys->createPub(TYPE::Float3, "body_ori", mux_rpy->getOutputPort<Vector3D<float>>(Mux3::OP::OUTPUT));
