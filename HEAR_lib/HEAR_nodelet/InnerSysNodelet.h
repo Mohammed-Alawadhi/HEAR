@@ -3,6 +3,7 @@
 
 #include "HEAR_ROS/RosSystem.hpp"
 #include "HEAR_ROS/ROSUnit_PoseProvider.hpp"
+#include "HEAR_ROS/RosUnit_MRFTSwitchSrv.hpp"
 
 namespace HEAR
 {
@@ -20,6 +21,8 @@ private:
     
     RosSystem* inner_sys;
     ROSUnit_PoseProvider* providers; 
+    ROSUnit_MRFTSwitchSrv* trig_srv_roll;
+    ROSUnit_MRFTSwitchSrv* trig_srv_pitch;
    
 };
     

@@ -16,7 +16,7 @@ namespace HEAR
         ros::NodeHandle pnh(getPrivateNodeHandle());
         outer_sys = new RosSystem(nh, pnh, FREQUENCY, "OuterLoop");
 
-        // creating Blocks
+        //////////// creating blocks /////////////
         auto diff_pos = outer_sys->createBlock(BLOCK_ID::DIFFERENTIATOR, "Pos_Derivative", TYPE::Float3);
         auto pos_filt = outer_sys->createBlock(BLOCK_ID::BW_FILT2, "Vel_Filt", TYPE::Float3);
         ((BWFilter2<Vector3D<float>>*)pos_filt)->setCoeff(BWFilt2_coeff::coeff_120Hz_2nd_butter_5hz);
@@ -31,15 +31,6 @@ namespace HEAR
         auto pid_x = outer_sys->createBlock(BLOCK_ID::PID, "Pid_x"); ((PID_Block*)pid_x)->setPID_ID(PID_ID::PID_X);
         auto pid_y = outer_sys->createBlock(BLOCK_ID::PID, "Pid_y"); ((PID_Block*)pid_y)->setPID_ID(PID_ID::PID_Y);
         auto pid_z = outer_sys->createBlock(BLOCK_ID::PID, "Pid_z"); ((PID_Block*)pid_z)->setPID_ID(PID_ID::PID_Z);
-        auto mrft_x = outer_sys->createBlock(BLOCK_ID::MRFT, "Mrft_x"); ((MRFT_Block*)mrft_x)->setMRFT_ID(MRFT_ID::MRFT_X);
-        auto mrft_y = outer_sys->createBlock(BLOCK_ID::MRFT, "Mrft_y"); ((MRFT_Block*)mrft_y)->setMRFT_ID(MRFT_ID::MRFT_Y);
-        auto mrft_z = outer_sys->createBlock(BLOCK_ID::MRFT, "Mrft_z"); ((MRFT_Block*)mrft_z)->setMRFT_ID(MRFT_ID::MRFT_Z);
-        auto mrft_sw_x = outer_sys->createBlock(BLOCK_ID::INVERTED_SWITCH, "Mrft_Sw_x");
-        auto mrft_sw_y = outer_sys->createBlock(BLOCK_ID::INVERTED_SWITCH, "Mrft_Sw_y");
-        auto mrft_sw_z = outer_sys->createBlock(BLOCK_ID::INVERTED_SWITCH, "Mrft_Sw_z");
-        auto med_filt_x = outer_sys->createBlock(BLOCK_ID::MEDIAN_FILTER, "Med_Filt_x"); ((MedianFilter*)med_filt_x)->setWinSize(50);
-        auto med_filt_y = outer_sys->createBlock(BLOCK_ID::MEDIAN_FILTER, "Med_Filt_y"); ((MedianFilter*)med_filt_y)->setWinSize(50);
-        auto med_filt_z = outer_sys->createBlock(BLOCK_ID::MEDIAN_FILTER, "Med_Filt_z"); ((MedianFilter*)med_filt_z)->setWinSize(50);        
         auto sat_x = outer_sys->createBlock(BLOCK_ID::SATURATION, "Sat_x"); ((Saturation*)sat_x)->setClipValue(SAT_XY_VALUE); 
         auto sat_y = outer_sys->createBlock(BLOCK_ID::SATURATION, "Sat_y"); ((Saturation*)sat_y)->setClipValue(SAT_XY_VALUE);
         auto sat_z = outer_sys->createBlock(BLOCK_ID::SATURATION, "Sat_z"); ((Saturation*)sat_z)->setClipValue(SAT_Z_VALUE);
@@ -52,7 +43,26 @@ namespace HEAR
         auto bias_z = outer_sys->createBlock(BLOCK_ID::CONSTANT, "Bias_z", TYPE::Float); ((Constant<float>*)bias_z)->setValue(BIAS_Z_VALUE);
         auto sum_bias_z = outer_sys->createBlock(BLOCK_ID::SUM, "sum_bias_z"); ((Sum*)sum_bias_z)->setOperation(Sum::OPERATION::ADD);
 
-        // connecting blocks
+        //////// creating MRFT specific blocks ////////////
+        auto mrft_x = outer_sys->createBlock(BLOCK_ID::MRFT, "Mrft_x"); ((MRFT_Block*)mrft_x)->setMRFT_ID(MRFT_ID::MRFT_X);
+        auto mrft_y = outer_sys->createBlock(BLOCK_ID::MRFT, "Mrft_y"); ((MRFT_Block*)mrft_y)->setMRFT_ID(MRFT_ID::MRFT_Y);
+        auto mrft_z = outer_sys->createBlock(BLOCK_ID::MRFT, "Mrft_z"); ((MRFT_Block*)mrft_z)->setMRFT_ID(MRFT_ID::MRFT_Z);
+        auto mrft_sw_x = outer_sys->createBlock(BLOCK_ID::INVERTED_SWITCH, "Mrft_Sw_x");
+        auto mrft_sw_y = outer_sys->createBlock(BLOCK_ID::INVERTED_SWITCH, "Mrft_Sw_y");
+        auto mrft_sw_z = outer_sys->createBlock(BLOCK_ID::INVERTED_SWITCH, "Mrft_Sw_z");
+        auto med_filt_x = outer_sys->createBlock(BLOCK_ID::MEDIAN_FILTER, "Med_Filt_x"); ((MedianFilter*)med_filt_x)->setWinSize(50);
+        auto med_filt_y = outer_sys->createBlock(BLOCK_ID::MEDIAN_FILTER, "Med_Filt_y"); ((MedianFilter*)med_filt_y)->setWinSize(50);
+        auto med_filt_z = outer_sys->createBlock(BLOCK_ID::MEDIAN_FILTER, "Med_Filt_z"); ((MedianFilter*)med_filt_z)->setWinSize(50);
+        auto ref_sw_x = outer_sys->createBlock(BLOCK_ID::INVERTED_SWITCH, "Ref_Sw_x");
+        auto ref_sw_y = outer_sys->createBlock(BLOCK_ID::INVERTED_SWITCH, "Ref_Sw_y");
+        auto ref_sw_z = outer_sys->createBlock(BLOCK_ID::INVERTED_SWITCH, "Ref_Sw_z");
+        auto hold_ref_x = outer_sys->createBlock(BLOCK_ID::HOLDVAL, "Hold_Ref_x");
+        auto hold_ref_y = outer_sys->createBlock(BLOCK_ID::HOLDVAL, "Hold_Ref_y");
+        auto hold_ref_z = outer_sys->createBlock(BLOCK_ID::HOLDVAL, "Hold_Ref_z");
+                
+        ////////////// connecting blocks /////////
+
+        // external input configuration 
         providers = new ROSUnit_PoseProvider(nh);
         auto pos_port = outer_sys->createExternalInputPort<Vector3D<float>>("Pos_Port");
         auto ori_port = outer_sys->createExternalInputPort<Vector3D<float>>("Ori_Port");
@@ -60,6 +70,7 @@ namespace HEAR
         outer_sys->connectExternalInput(pos_port, opti_port[0]);
         outer_sys->connectExternalInput(ori_port, opti_port[1]);
 
+        // connecting input data preparation blocks
         outer_sys->connectExternalInput(ori_port, demux_ori->getInputPort<Vector3D<float>>(Demux3::IP::INPUT));
         outer_sys->connectExternalInput(pos_port, diff_pos->getInputPort<Vector3D<float>>(0));
         outer_sys->connect(diff_pos->getOutputPort<Vector3D<float>>(0), pos_filt->getInputPort<Vector3D<float>>(0));
@@ -70,7 +81,11 @@ namespace HEAR
         outer_sys->connect(to_horizon_pos->getOutputPort<Vector3D<float>>(ToHorizon::OUT_VEC), pos_h_demux->getInputPort<Vector3D<float>>(Demux3::INPUT));
         outer_sys->connect(to_horizon_vel->getOutputPort<Vector3D<float>>(ToHorizon::OUT_VEC), vel_h_demux->getInputPort<Vector3D<float>>(Demux3::INPUT));
         
-        outer_sys->createSub("/waypoint_reference/x", sum_ref_x->getInputPort<float>(Sum::IP::OPERAND1));
+        // connecting x control sys blocks
+        outer_sys->createSub("/waypoint_reference/x", ref_sw_x->getInputPort<float>(InvertedSwitch::IP::NC));
+        outer_sys->connect(pos_h_demux->getOutputPort<float>(Demux3::OP::X), hold_ref_x->getInputPort<float>(HoldVal::IP::INPUT));
+        outer_sys->connect(hold_ref_x->getOutputPort<float>(HoldVal::OP::OUTPUT), ref_sw_x->getInputPort<float>(InvertedSwitch::IP::NO));
+        outer_sys->connect(ref_sw_x->getOutputPort<float>(InvertedSwitch::OP::COM), sum_ref_x->getInputPort<float>(Sum::IP::OPERAND1));
         outer_sys->connect(pos_h_demux->getOutputPort<float>(Demux3::OP::X), sum_ref_x->getInputPort<float>(Sum::IP::OPERAND2));
         outer_sys->connect(sum_ref_x->getOutputPort<float>(Sum::OP::OUTPUT), pid_x->getInputPort<float>(PID_Block::IP::ERROR));
         outer_sys->connect(vel_h_demux->getOutputPort<float>(Demux3::OP::X), pid_x->getInputPort<float>(PID_Block::IP::PV_DOT));
@@ -81,7 +96,11 @@ namespace HEAR
         outer_sys->connect(mrft_x->getOutputPort<float>(MRFT_Block::OP::COMMAND), mrft_sw_x->getInputPort<float>(InvertedSwitch::IP::NO));
         outer_sys->connect(mrft_sw_x->getOutputPort<float>(InvertedSwitch::OP::COM), mux_fh_des->getInputPort<float>(Mux3::IP::X));
 
-        outer_sys->createSub("/waypoint_reference/y", sum_ref_y->getInputPort<float>(Sum::IP::OPERAND1));
+        // connecting y control sys blocks
+        outer_sys->createSub("/waypoint_reference/y", ref_sw_y->getInputPort<float>(InvertedSwitch::IP::NC));
+        outer_sys->connect(pos_h_demux->getOutputPort<float>(Demux3::OP::Y), hold_ref_y->getInputPort<float>(HoldVal::IP::INPUT));
+        outer_sys->connect(hold_ref_y->getOutputPort<float>(HoldVal::OP::OUTPUT), ref_sw_y->getInputPort<float>(InvertedSwitch::IP::NO));
+        outer_sys->connect(ref_sw_y->getOutputPort<float>(InvertedSwitch::OP::COM), sum_ref_y->getInputPort<float>(Sum::IP::OPERAND1));
         outer_sys->connect(pos_h_demux->getOutputPort<float>(Demux3::OP::Y), sum_ref_y->getInputPort<float>(Sum::IP::OPERAND2));
         outer_sys->connect(sum_ref_y->getOutputPort<float>(Sum::OP::OUTPUT), pid_y->getInputPort<float>(PID_Block::IP::ERROR));
         outer_sys->connect(vel_h_demux->getOutputPort<float>(Demux3::OP::Y), pid_y->getInputPort<float>(PID_Block::IP::PV_DOT));
@@ -92,7 +111,11 @@ namespace HEAR
         outer_sys->connect(mrft_y->getOutputPort<float>(MRFT_Block::OP::COMMAND), mrft_sw_y->getInputPort<float>(InvertedSwitch::IP::NO));
         outer_sys->connect(mrft_sw_y->getOutputPort<float>(InvertedSwitch::OP::COM), mux_fh_des->getInputPort<float>(Mux3::IP::Y));
 
-        outer_sys->createSub("/waypoint_reference/z", sum_ref_z->getInputPort<float>(Sum::IP::OPERAND1));
+        // connecting z control sys blocks
+        outer_sys->createSub("/waypoint_reference/z", ref_sw_x->getInputPort<float>(InvertedSwitch::IP::NC));
+        outer_sys->connect(pos_h_demux->getOutputPort<float>(Demux3::OP::X), hold_ref_x->getInputPort<float>(HoldVal::IP::INPUT));
+        outer_sys->connect(hold_ref_x->getOutputPort<float>(HoldVal::OP::OUTPUT), ref_sw_x->getInputPort<float>(InvertedSwitch::IP::NO));
+        outer_sys->connect(ref_sw_x->getOutputPort<float>(InvertedSwitch::OP::COM), sum_ref_x->getInputPort<float>(Sum::IP::OPERAND1));
         outer_sys->connect(pos_h_demux->getOutputPort<float>(Demux3::OP::Z), sum_ref_z->getInputPort<float>(Sum::IP::OPERAND2));
         outer_sys->connect(sum_ref_z->getOutputPort<float>(Sum::OP::OUTPUT), pid_z->getInputPort<float>(PID_Block::IP::ERROR));
         outer_sys->connect(vel_h_demux->getOutputPort<float>(Demux3::OP::Z), pid_z->getInputPort<float>(PID_Block::IP::PV_DOT));
@@ -106,13 +129,14 @@ namespace HEAR
         outer_sys->connect(mrft_z->getOutputPort<float>(MRFT_Block::OP::COMMAND), mrft_sw_z->getInputPort<float>(InvertedSwitch::IP::NO));
         outer_sys->connect(mrft_sw_z->getOutputPort<float>(InvertedSwitch::OP::COM), mux_fh_des->getInputPort<float>(Mux3::IP::Z));
 
+        // connecting feedback linearization blocks
         outer_sys->connect(mux_fh_des->getOutputPort<Vector3D<float>>(Mux3::OP::OUTPUT), fh2fi->getInputPort<Vector3D<float>>(FromHorizon::IP::INP_VEC));
         outer_sys->connect(demux_ori->getOutputPort<float>(Demux3::OP::Z), fh2fi->getInputPort<float>(FromHorizon::IP::YAW));
-
         outer_sys->connect(fh2fi->getOutputPort<Vector3D<float>>(FromHorizon::OP::OUT_VEC), f2rot->getInputPort<Vector3D<float>>(FbLinearizer::Force2Rot::IP::FORCE_I_DES));
         outer_sys->createSub("/waypoint_reference/yaw", f2rot->getInputPort<float>(FbLinearizer::Force2Rot::IP::YAW_REF));
-
         outer_sys->connect(f2rot->getOutputPort<tf2::Matrix3x3>(FbLinearizer::Force2Rot::OP::ROT_DES), rot2eul->getInputPort<tf2::Matrix3x3>(Rot2Eul::IP::ROT_MAT));
+
+        // connecting ref angles data preparation blocks
         outer_sys->connect(rot2eul->getOutputPort<Vector3D<float>>(Rot2Eul::OP::EUL_ANGLES), demux_eul_des->getInputPort<Vector3D<float>>(Demux3::IP::INPUT));
         outer_sys->connect(demux_eul_des->getOutputPort<float>(Demux3::OP::X), sat_x->getInputPort<float>(Saturation::IP::INPUT));
         outer_sys->connect(demux_eul_des->getOutputPort<float>(Demux3::OP::Y), sat_y->getInputPort<float>(Saturation::IP::INPUT));
@@ -120,6 +144,7 @@ namespace HEAR
         outer_sys->connect(sat_y->getOutputPort<float>(Saturation::OP::OUTPUT), mux_eul_des->getInputPort<float>(Mux3::IP::Y));
         outer_sys->connect(demux_eul_des->getOutputPort<float>(Demux3::OP::Z), mux_eul_des->getInputPort<float>(Mux3::IP::Z));
 
+        ///////////////// configuring publishers //////////////////
         outer_sys->createPub<Vector3D<float>>(TYPE::Float3, "/pos_horizon", to_horizon_pos->getOutputPort<Vector3D<float>>(ToHorizon::OUT_VEC));
         outer_sys->createPub<Vector3D<float>>(TYPE::Float3, "/fh_des", mux_fh_des->getOutputPort<Vector3D<float>>(Mux3::OP::OUTPUT));
         outer_sys->createPub<Vector3D<float>>(TYPE::Float3, "/fi_des", fh2fi->getOutputPort<Vector3D<float>>(FromHorizon::OP::OUT_VEC));
@@ -127,11 +152,14 @@ namespace HEAR
         outer_sys->createPub("/pid_z", pid_z->getOutputPort<float>(PID_Block::OP::COMMAND));
         outer_sys->createPub( TYPE::Float3, "/vel_h_x", diff_pos->getOutputPort<Vector3D<float>>(0));
 
+        // configuring yaw provider for mission scenario
         auto mux_yaw = outer_sys->createBlock(BLOCK_ID::MUX3, "Mux_Yaw");
         outer_sys->connect( demux_ori->getOutputPort<float>(Demux3::OP::Z), mux_yaw->getInputPort<float>(Mux3::IP::X));
         outer_sys->createPub( TYPE::Float3, "/providers/yaw", mux_yaw->getOutputPort<Vector3D<float>>(Mux3::OP::OUTPUT));
 
-        // Setting External Triggers
+        /////////////////// Setting External Triggers /////////////////
+
+        // setting pid controller triggers
         outer_sys->createResetTrigger("reset_controller", pid_z);
         outer_sys->createUpdateTrigger(UPDATE_MSG_TYPE::BOOL_MSG, "/pid_z_trig", pid_z);
         auto update_pid_trig = outer_sys->createUpdateTrigger(UPDATE_MSG_TYPE::PID_UPDATE, "/update_controller/pid/outer");
@@ -139,35 +167,46 @@ namespace HEAR
         outer_sys->connectExternalTrigger(update_pid_trig, pid_y);
         outer_sys->connectExternalTrigger(update_pid_trig, pid_z);
 
+        // MRFT X triggering configuration
         trig_srv_x = new ROSUnit_MRFTSwitchSrv(nh, "mrft_switch_x");
         auto pid_x_trig = trig_srv_x->getPIDTrig(); outer_sys->addExternalTrigger(pid_x_trig, "Pid_Trig_x");
         auto mrft_x_trig = trig_srv_x->getMRFTTrig(); outer_sys->addExternalTrigger(mrft_x_trig, "Mrft_Trig_x");
         auto mrft_sw_x_trig = trig_srv_x->registerSwitchTrig(); outer_sys->addExternalTrigger(mrft_sw_x_trig, "Mrft_Sw_Trig_x");
         outer_sys->connectExternalTrigger(pid_x_trig, pid_x);
         outer_sys->connectExternalTrigger(mrft_x_trig, mrft_x);
+        outer_sys->connectExternalTrigger(mrft_x_trig, hold_ref_x);
         outer_sys->connectExternalTrigger(mrft_sw_x_trig, mrft_sw_x);
+        outer_sys->connectExternalTrigger(mrft_sw_x_trig, ref_sw_x);
 
+        // MRFT Y triggering configuration
         trig_srv_y = new ROSUnit_MRFTSwitchSrv(nh, "mrft_switch_y");
         auto pid_y_trig = trig_srv_y->getPIDTrig(); outer_sys->addExternalTrigger(pid_y_trig, "Pid_Trig_y");
         auto mrft_y_trig = trig_srv_y->getMRFTTrig(); outer_sys->addExternalTrigger(mrft_y_trig, "Mrft_Trig_y");
         auto mrft_sw_y_trig = trig_srv_y->registerSwitchTrig(); outer_sys->addExternalTrigger(mrft_sw_y_trig, "Mrft_Sw_Trig_y");
         outer_sys->connectExternalTrigger(pid_y_trig, pid_y);
         outer_sys->connectExternalTrigger(mrft_y_trig, mrft_y);
+        outer_sys->connectExternalTrigger(mrft_y_trig, hold_ref_y);
         outer_sys->connectExternalTrigger(mrft_sw_y_trig, mrft_sw_y);
+        outer_sys->connectExternalTrigger(mrft_sw_y_trig, ref_sw_y);
 
+        // MRFT Z triggering configuration
         trig_srv_z = new ROSUnit_MRFTSwitchSrv(nh, "mrft_switch_z");
         auto pid_z_trig = trig_srv_z->getPIDTrig(); outer_sys->addExternalTrigger(pid_z_trig, "Pid_Trig_z");
         auto mrft_z_trig = trig_srv_z->getMRFTTrig(); outer_sys->addExternalTrigger(mrft_z_trig, "Mrft_Trig_z");
         auto mrft_sw_z_trig = trig_srv_z->registerSwitchTrig(); outer_sys->addExternalTrigger(mrft_sw_z_trig, "Mrft_Sw_Trig_z");
         outer_sys->connectExternalTrigger(pid_z_trig, pid_z);
         outer_sys->connectExternalTrigger(mrft_z_trig, mrft_z);
+        outer_sys->connectExternalTrigger(mrft_z_trig, hold_ref_z);
         outer_sys->connectExternalTrigger(mrft_sw_z_trig, mrft_sw_z);
-        
+        outer_sys->connectExternalTrigger(mrft_sw_z_trig, ref_sw_z);
+
+        // setting mrft controllers triggers        
         auto mrft_update_trig = outer_sys->createUpdateTrigger(UPDATE_MSG_TYPE::MRFT_UPDATE, "/update_controller/mrft") ;
         outer_sys->connectExternalTrigger(mrft_update_trig, mrft_x);
         outer_sys->connectExternalTrigger(mrft_update_trig, mrft_y);
         outer_sys->connectExternalTrigger(mrft_update_trig, mrft_z);
 
+        /////////////// initializing and starting the outer loop system  /////////////////
         outer_sys->start();
 
     }

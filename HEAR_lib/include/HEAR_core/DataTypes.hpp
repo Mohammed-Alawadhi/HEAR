@@ -22,6 +22,7 @@ namespace HEAR{
         DEMUX3,
         CONSTANT,
         DIFFERENTIATOR,
+        HOLDVAL,
         BW_FILT2,
         SATURATION,
         EUL2ROT,
