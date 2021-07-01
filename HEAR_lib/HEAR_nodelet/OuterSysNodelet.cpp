@@ -112,10 +112,10 @@ namespace HEAR
         outer_sys->connect(mrft_sw_y->getOutputPort<float>(InvertedSwitch::OP::COM), mux_fh_des->getInputPort<float>(Mux3::IP::Y));
 
         // connecting z control sys blocks
-        outer_sys->createSub("/waypoint_reference/z", ref_sw_x->getInputPort<float>(InvertedSwitch::IP::NC));
-        outer_sys->connect(pos_h_demux->getOutputPort<float>(Demux3::OP::X), hold_ref_x->getInputPort<float>(HoldVal::IP::INPUT));
-        outer_sys->connect(hold_ref_x->getOutputPort<float>(HoldVal::OP::OUTPUT), ref_sw_x->getInputPort<float>(InvertedSwitch::IP::NO));
-        outer_sys->connect(ref_sw_x->getOutputPort<float>(InvertedSwitch::OP::COM), sum_ref_x->getInputPort<float>(Sum::IP::OPERAND1));
+        outer_sys->createSub("/waypoint_reference/z", ref_sw_z->getInputPort<float>(InvertedSwitch::IP::NC));
+        outer_sys->connect(pos_h_demux->getOutputPort<float>(Demux3::OP::Z), hold_ref_z->getInputPort<float>(HoldVal::IP::INPUT));
+        outer_sys->connect(hold_ref_z->getOutputPort<float>(HoldVal::OP::OUTPUT), ref_sw_z->getInputPort<float>(InvertedSwitch::IP::NO));
+        outer_sys->connect(ref_sw_z->getOutputPort<float>(InvertedSwitch::OP::COM), sum_ref_z->getInputPort<float>(Sum::IP::OPERAND1));
         outer_sys->connect(pos_h_demux->getOutputPort<float>(Demux3::OP::Z), sum_ref_z->getInputPort<float>(Sum::IP::OPERAND2));
         outer_sys->connect(sum_ref_z->getOutputPort<float>(Sum::OP::OUTPUT), pid_z->getInputPort<float>(PID_Block::IP::ERROR));
         outer_sys->connect(vel_h_demux->getOutputPort<float>(Demux3::OP::Z), pid_z->getInputPort<float>(PID_Block::IP::PV_DOT));
