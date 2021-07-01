@@ -120,6 +120,8 @@ namespace HEAR
         inner_sys->connectExternalTrigger(update_pid_trig, pid_yaw);
         inner_sys->connectExternalTrigger(update_pid_trig, pid_yaw_rt);
 
+        auto enable_bwfilt_trig = inner_sys->createUpdateTrigger(UPDATE_MSG_TYPE::BOOL_MSG, "/enable_inner_filter");
+        inner_sys->connectExternalTrigger(enable_bwfilt_trig, filt_angle_rate);
         // auto mrft_update_trig = inner_sys->createUpdateTrigger(UPDATE_MSG_TYPE::MRFT_UPDATE, "/update_controller/mrft") ;
         // inner_sys->connectExternalTrigger(mrft_update_trig, mrft_roll);
         // inner_sys->connectExternalTrigger(mrft_update_trig, mrft_pitch);
