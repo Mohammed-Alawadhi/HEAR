@@ -120,29 +120,29 @@ namespace HEAR
         inner_sys->connectExternalTrigger(update_pid_trig, pid_yaw);
         inner_sys->connectExternalTrigger(update_pid_trig, pid_yaw_rt);
 
-        auto mrft_update_trig = inner_sys->createUpdateTrigger(UPDATE_MSG_TYPE::MRFT_UPDATE, "/update_controller/mrft") ;
-        inner_sys->connectExternalTrigger(mrft_update_trig, mrft_roll);
-        inner_sys->connectExternalTrigger(mrft_update_trig, mrft_pitch);
+        // auto mrft_update_trig = inner_sys->createUpdateTrigger(UPDATE_MSG_TYPE::MRFT_UPDATE, "/update_controller/mrft") ;
+        // inner_sys->connectExternalTrigger(mrft_update_trig, mrft_roll);
+        // inner_sys->connectExternalTrigger(mrft_update_trig, mrft_pitch);
 
-        trig_srv_roll = new ROSUnit_MRFTSwitchSrv(nh, "mrft_switch_roll");
-        auto pid_roll_trig = trig_srv_roll->getPIDTrig(); inner_sys->addExternalTrigger(pid_roll_trig, "Pid_Trig_roll");
-        auto mrft_roll_trig = trig_srv_roll->getMRFTTrig(); inner_sys->addExternalTrigger(mrft_roll_trig, "Mrft_Trig_roll");
-        auto mrft_sw_roll_trig = trig_srv_roll->registerSwitchTrig(); inner_sys->addExternalTrigger(mrft_sw_roll_trig, "Mrft_Sw_Trig_roll");
-        inner_sys->connectExternalTrigger(pid_roll_trig, pid_roll);
-        inner_sys->connectExternalTrigger(mrft_roll_trig, mrft_roll);
-        inner_sys->connectExternalTrigger(mrft_roll_trig, hold_ref_roll);
-        inner_sys->connectExternalTrigger(mrft_sw_roll_trig, mrft_sw_roll);
-        inner_sys->connectExternalTrigger(mrft_sw_roll_trig, ref_sw_roll);
+        // trig_srv_roll = new ROSUnit_MRFTSwitchSrv(nh, "mrft_switch_roll");
+        // auto pid_roll_trig = trig_srv_roll->getPIDTrig(); inner_sys->addExternalTrigger(pid_roll_trig, "Pid_Trig_roll");
+        // auto mrft_roll_trig = trig_srv_roll->getMRFTTrig(); inner_sys->addExternalTrigger(mrft_roll_trig, "Mrft_Trig_roll");
+        // auto mrft_sw_roll_trig = trig_srv_roll->registerSwitchTrig(); inner_sys->addExternalTrigger(mrft_sw_roll_trig, "Mrft_Sw_Trig_roll");
+        // inner_sys->connectExternalTrigger(pid_roll_trig, pid_roll);
+        // inner_sys->connectExternalTrigger(mrft_roll_trig, mrft_roll);
+        // inner_sys->connectExternalTrigger(mrft_roll_trig, hold_ref_roll);
+        // inner_sys->connectExternalTrigger(mrft_sw_roll_trig, mrft_sw_roll);
+        // inner_sys->connectExternalTrigger(mrft_sw_roll_trig, ref_sw_roll);
 
-        trig_srv_pitch = new ROSUnit_MRFTSwitchSrv(nh, "mrft_switch_pitch");
-        auto pid_pitch_trig = trig_srv_pitch->getPIDTrig(); inner_sys->addExternalTrigger(pid_pitch_trig, "Pid_Trig_pitch");
-        auto mrft_pitch_trig = trig_srv_pitch->getMRFTTrig(); inner_sys->addExternalTrigger(mrft_pitch_trig, "Mrft_Trig_pitch");
-        auto mrft_sw_pitch_trig = trig_srv_pitch->registerSwitchTrig(); inner_sys->addExternalTrigger(mrft_sw_pitch_trig, "Mrft_Sw_Trig_pitch");
-        inner_sys->connectExternalTrigger(pid_pitch_trig, pid_pitch);
-        inner_sys->connectExternalTrigger(mrft_pitch_trig, mrft_pitch);
-        inner_sys->connectExternalTrigger(mrft_pitch_trig, hold_ref_pitch);
-        inner_sys->connectExternalTrigger(mrft_sw_pitch_trig, mrft_sw_pitch);
-        inner_sys->connectExternalTrigger(mrft_sw_pitch_trig, ref_sw_pitch);
+        // trig_srv_pitch = new ROSUnit_MRFTSwitchSrv(nh, "mrft_switch_pitch");
+        // auto pid_pitch_trig = trig_srv_pitch->getPIDTrig(); inner_sys->addExternalTrigger(pid_pitch_trig, "Pid_Trig_pitch");
+        // auto mrft_pitch_trig = trig_srv_pitch->getMRFTTrig(); inner_sys->addExternalTrigger(mrft_pitch_trig, "Mrft_Trig_pitch");
+        // auto mrft_sw_pitch_trig = trig_srv_pitch->registerSwitchTrig(); inner_sys->addExternalTrigger(mrft_sw_pitch_trig, "Mrft_Sw_Trig_pitch");
+        // inner_sys->connectExternalTrigger(pid_pitch_trig, pid_pitch);
+        // inner_sys->connectExternalTrigger(mrft_pitch_trig, mrft_pitch);
+        // inner_sys->connectExternalTrigger(mrft_pitch_trig, hold_ref_pitch);
+        // inner_sys->connectExternalTrigger(mrft_sw_pitch_trig, mrft_sw_pitch);
+        // inner_sys->connectExternalTrigger(mrft_sw_pitch_trig, ref_sw_pitch);
 
         inner_sys->start();
 

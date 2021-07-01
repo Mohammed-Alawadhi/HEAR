@@ -201,10 +201,10 @@ namespace HEAR
         outer_sys->connectExternalTrigger(mrft_sw_z_trig, ref_sw_z);
 
         // setting mrft controllers triggers        
-        // auto mrft_update_trig = outer_sys->createUpdateTrigger(UPDATE_MSG_TYPE::MRFT_UPDATE, "/update_controller/mrft") ;
-        // outer_sys->connectExternalTrigger(mrft_update_trig, mrft_x);
-        // outer_sys->connectExternalTrigger(mrft_update_trig, mrft_y);
-        // outer_sys->connectExternalTrigger(mrft_update_trig, mrft_z);
+        auto mrft_update_trig = outer_sys->createUpdateTrigger(UPDATE_MSG_TYPE::MRFT_UPDATE, "/update_controller/mrft") ;
+        outer_sys->connectExternalTrigger(mrft_update_trig, mrft_x);
+        outer_sys->connectExternalTrigger(mrft_update_trig, mrft_y);
+        outer_sys->connectExternalTrigger(mrft_update_trig, mrft_z);
 
         /////////////// initializing and starting the outer loop system  /////////////////
         outer_sys->start();
