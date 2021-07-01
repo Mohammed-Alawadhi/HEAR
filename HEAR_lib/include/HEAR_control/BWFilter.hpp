@@ -55,8 +55,8 @@ public:
     }
     void update(UpdateMsg* u_msg) override{
         if(u_msg->getType() == UPDATE_MSG_TYPE::BOOL_MSG){
-            std::cout << "filter " << (_enable? "enabled" : "disabled") << std::endl;
             _enable = ((BoolMsg*)u_msg)->data;
+            std::cout << "filter " << (_enable? "enabled" : "disabled") << std::endl;
         }
     }
 
