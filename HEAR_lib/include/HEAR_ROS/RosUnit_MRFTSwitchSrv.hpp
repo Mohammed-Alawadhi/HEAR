@@ -52,6 +52,7 @@ bool ROSUnit_MRFTSwitchSrv::srvCallback(hear_msgs::set_float::Request& req, hear
             else{
                 sw_msg.sw_state = SWITCH_STATE::OFF;
             }
+            trig.first->UpdateCallback((UpdateMsg*)&sw_msg);
         }
 
     }
@@ -69,6 +70,7 @@ bool ROSUnit_MRFTSwitchSrv::srvCallback(hear_msgs::set_float::Request& req, hear
             else{
                 sw_msg.sw_state = SWITCH_STATE::ON;
             }
+            trig.first->UpdateCallback((UpdateMsg*)&sw_msg);
         }
     }
 }
