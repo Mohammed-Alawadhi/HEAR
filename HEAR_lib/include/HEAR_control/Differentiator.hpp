@@ -12,7 +12,8 @@ class Differentiator : public Block{
 private:
     InputPort<T>* _inp;
     OutputPort<T>* _out;
-    T prev_inp;
+    T prev_inp, prev_diff;
+    int reset_count = 0;
     double _dt;
 public:
     enum IP{INPUT};
@@ -33,11 +34,25 @@ Differentiator<T>::Differentiator (double dt, int b_uid) : Block(BLOCK_ID::DIFFE
 
 template <class T>
 void Differentiator<T>::process(){
-    T inp;
+    T inp, out;
     inp = 0;
     _inp->read(inp);
-    T out  = (inp - prev_inp)/_dt;
-    prev_inp = inp;
+    auto dx = inp - prev_inp;
+    if(inp == prev_inp){
+        inp == 0? out = 0 : out = prev_diff;
+        reset_count++;
+    }
+    else{
+        if(reset_count > 0){
+            out = dx / (_dt*(reset_count+1));
+            reset_count = 0;
+        }
+        else{
+            out = dx/_dt;
+        }
+        prev_inp = inp;
+    }
+    prev_diff = out;
     _out->write(out);
 }
 

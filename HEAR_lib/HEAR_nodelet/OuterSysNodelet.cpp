@@ -151,6 +151,7 @@ namespace HEAR
         outer_sys->createPub<Vector3D<float>>(TYPE::Float3, "/rot_des", mux_eul_des->getOutputPort<Vector3D<float>>(Mux3::OP::OUTPUT));
         outer_sys->createPub("/pid_z", pid_z->getOutputPort<float>(PID_Block::OP::COMMAND));
         outer_sys->createPub( TYPE::Float3, "/vel_h_x", diff_pos->getOutputPort<Vector3D<float>>(0));
+        outer_sys->createPub( TYPE::Float3, "/vel_h_filt", pos_filt->getOutputPort<Vector3D<float>>(0));
 
         // configuring yaw provider for mission scenario
         auto mux_yaw = outer_sys->createBlock(BLOCK_ID::MUX3, "Mux_Yaw");
@@ -158,6 +159,10 @@ namespace HEAR
         outer_sys->createPub( TYPE::Float3, "/providers/yaw", mux_yaw->getOutputPort<Vector3D<float>>(Mux3::OP::OUTPUT));
 
         /////////////////// Setting External Triggers /////////////////
+
+        //setting filter trigger
+        auto enable_bwfilt_trig = outer_sys->createUpdateTrigger(UPDATE_MSG_TYPE::BOOL_MSG, "/enable_outer_filter");
+        outer_sys->connectExternalTrigger(enable_bwfilt_trig, pos_filt);
 
         // setting pid controller triggers
         outer_sys->createResetTrigger("reset_controller", pid_z);

@@ -53,6 +53,11 @@ class Vector3D {
                         if(v1.x == v2.x && v1.y == v2.y && v1.z == v2.z) {return true;}
                         else {return false;}
                 }
+                inline friend bool operator == (const Vector3D<T> &v1, const T& val) {
+                        if(v1.x == val && v1.y == val && v1.z == val) {return true;}
+                        else {return false;}
+                }
+
                 inline friend bool operator != (const Vector3D<T> &v1, const Vector3D<T> &v2) {
                         if(v1.x != v2.x || v1.y != v2.y || v1.z != v2.z) {return true;}
                         else {return false;}
