@@ -57,6 +57,11 @@ class Vector3D {
                         if(v1.x != v2.x || v1.y != v2.y || v1.z != v2.z) {return true;}
                         else {return false;}
                 }
+                void operator() (const T& x_, const T& y_, const T& z_) {
+                        this->x = x_;
+                        this->y = y_;
+                        this->z = z_;
+                }
                 template <typename M>
                 operator Vector3D<M>() {
                         Vector3D<M> tmp;
