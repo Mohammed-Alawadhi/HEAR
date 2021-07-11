@@ -2,14 +2,14 @@
 
 namespace HEAR{
 
-KF3D::KF3D(int b_uid) : Block(BLOCK_ID::FORCE2ROT, b_uid) {
+KF3D::KF3D(int b_uid, float dt) : Block(BLOCK_ID::KF, b_uid), _dt(dt) {
     u_gyro_port = createInputPort<Vector3D<float>>(IP::GYRO, "RAW_GYRO");
     u_acc_port = createInputPort<Vector3D<float>>(IP::ACC, "RAW_ACC");
-    ang_meas_port = createInputPort<tf2::Quaternion>(IP::ANGLES, "ANG_MEASUREMENTS");
+    ang_meas_port = createInputPort<Vector3D<float>>(IP::ANGLES, "ANG_MEASUREMENTS");
     pos_meas_port = createInputPort<Vector3D<float>>(IP::POS, "POS_MEASUREMENT");
     predicted_pos = createOutputPort<Vector3D<float>>(OP::PRED_POS, "PREDICTED_POS");
     predicted_vel = createOutputPort<Vector3D<float>>(OP::PRED_VEL, "PREDCITED_VEL");
-    predicted_angles = createOutputPort<tf2::Quaternion>(OP::PRED_ANG, "PREDICTED_ANG");
+    predicted_angles = createOutputPort<Vector3D<float>>(OP::PRED_ANG, "PREDICTED_ANG");
     //predicted_acc_b = createOutputPort<Vector3D<float>>(OP::PRED_ACC_B, "PREDCITED_ACC_B");
     //predicted_gyro_b = createOutputPort<Vector3D<float>>(OP::PRED_GYRO_B, "PREDICTED_GYRO_B");
     reset();
@@ -29,6 +29,9 @@ void KF3D::reset() {
     _R_ang.diagonal() << 0.001, 0.001, 0.001, 0.001;
 }
 
+void KF3D::update(UpdateMsg* u_msg){
+
+}
 void KF3D::process(){
     predict();
     correct();
@@ -51,6 +54,11 @@ void KF3D::predictAngle() {
     _pred_ang = _pred_ang * (q_dot*_dt);
     _pred_ang.normalize();
     _x(6,0) = _pred_ang.getW(), _x(7,0) = _pred_ang.getX(), _x(8,0) = _pred_ang.getY(), _x(9,0) = _pred_ang.getZ();
+
+    tf2::Matrix3x3 _pred_rot; _pred_rot.setRotation(_pred_ang);
+    double yaw, pitch, roll;
+    _pred_rot.getEulerYPR(yaw, pitch, roll);
+    predicted_angles->write(Vector3D<float>(roll, pitch, yaw));
 };
 void KF3D::predictVelocity() {
     _R.setRotation(_pred_ang);
@@ -64,12 +72,16 @@ void KF3D::predictVelocity() {
     _x(3,0) = _x(3,0)+_acc_inertial.x*_dt;
     _x(4,0) = _x(4,0)+_acc_inertial.y*_dt;
     _x(5,0) = _x(5,0)+_acc_inertial.z*_dt;
+
+    predicted_vel->write(Vector3D<float>(_x(3, 0), _x(4, 0), _x(5, 0)));
 };
 void KF3D::predictPosition() {
     float t2 = _dt*_dt;
     _x(0,0) = _x(0,0)+(_acc_inertial.x*t2)/2.0+_dt*_x(3,0);
     _x(1,0) = _x(1,0)+(_acc_inertial.y*t2)/2.0+_dt*_x(4,0);
     _x(2,0) = _x(2,0)+(_acc_inertial.z*t2)/2.0+_dt*_x(5,0);
+
+    predicted_pos->write(Vector3D<float>(_x(0, 0), _x(1, 0), _x(2, 0)));
 };
 
 void KF3D::updatePredictionCoveriance() {
@@ -215,9 +227,11 @@ void KF3D::correct() {
     H.conservativeResize(Eigen::NoChange_t::NoChange, 16);
     z.conservativeResize(Eigen::NoChange_t::NoChange, 1);
     Vector3D<float> _new_pos;
+    Vector3D<float> _new_eul;
     tf2::Quaternion _new_ang;
     pos_meas_port->read(_new_pos);
-    ang_meas_port->read(_new_ang);
+    ang_meas_port->read(_new_eul);
+    _new_ang.setRPY(_new_eul.x, _new_eul.y, _new_eul.z);
     if(_new_pos != _meas_pos) {
         H.conservativeResize(H.rows() + 3, Eigen::NoChange_t::NoChange);
         H.row(H.rows() - 3) << _H_pos;

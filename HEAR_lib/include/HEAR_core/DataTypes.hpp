@@ -36,7 +36,8 @@ namespace HEAR{
         HEXAACTUATIONSYSTEM,
         SWITCH,
         INVERTED_SWITCH,
-        MEDIAN_FILTER
+        MEDIAN_FILTER, 
+        KF
     };
     enum IOTYPE{
         INPUT =0,

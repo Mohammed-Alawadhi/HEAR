@@ -14,11 +14,11 @@ class KF3D : public Block{
 private:
     InputPort<Vector3D<float>>* u_gyro_port;
     InputPort<Vector3D<float>>* u_acc_port;
-    InputPort<tf2::Quaternion>* ang_meas_port;
+    InputPort<Vector3D<float>>* ang_meas_port;
     InputPort<Vector3D<float>>* pos_meas_port;
     OutputPort<Vector3D<float>>* predicted_pos;
     OutputPort<Vector3D<float>>* predicted_vel;
-    OutputPort<tf2::Quaternion>* predicted_angles;
+    OutputPort<Vector3D<float>>* predicted_angles;
     //OutputPort<Vector3D<float>>* predicted_acc_b;
     //OutputPort<Vector3D<float>>* predicted_gyro_b;
     float _dt;
@@ -48,7 +48,7 @@ public:
     enum OP{PRED_POS, PRED_VEL, PRED_ANG};//, PRED_ACC_B, PRED_GYRO_B};
     enum COEFF{};
 
-    KF3D(int b_uid);
+    KF3D(int b_uid, float dt);
     void setCoeff(COEFF, float);
     void update(UpdateMsg* u_msg) override;
     void reset() override;
