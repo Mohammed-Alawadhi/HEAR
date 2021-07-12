@@ -24,7 +24,7 @@ int main(int argc, char **argv){
     auto imu_acc_port = sys->createExternalInputPort<Vector3D<float>>("Acc_port");
     sys->connectExternalInput(imu_ori_port, imu_port);
     sys->connectExternalInput(imu_ang_vel_port, angle_rate_port);
-    sys->connectExternalInput(imu_ori_port, acc_port);
+    sys->connectExternalInput(imu_acc_port, acc_port);
 
     // connect ports to KF input ports
     auto kf = sys->createBlock(BLOCK_ID::KF, "KF_3D");

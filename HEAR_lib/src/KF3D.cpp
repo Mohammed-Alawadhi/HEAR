@@ -36,7 +36,7 @@ void KF3D::update(UpdateMsg* u_msg){
 }
 void KF3D::process(){
     predict();
-    //correct();
+    correct();
     publish();
 
 }
@@ -86,7 +86,6 @@ void KF3D::updatePredictionCoveriance() {
     updatePredictionJacobian();
     updateProcessNoiseJacobian();
 };
-
 void KF3D::updatePredictionJacobian() {
     float q1 = _x(6,0), q2 =_x(7,0), q3 = _x(8,0), q4 =_x(9,0);
     float t2 = _dt*_dt;
@@ -172,7 +171,6 @@ void KF3D::updatePredictionJacobian() {
            0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,0.0,1.0;
     assert((_Fx.rows() == _Fx.cols()) && (_Fx.rows() == 16));
 };
-
 void KF3D::updateProcessNoiseJacobian() {
     float q1 = _x(6,0), q2 =_x(7,0), q3 = _x(8,0), q4 =_x(9,0);
     float t2 = _dt*_dt;
@@ -221,7 +219,7 @@ void KF3D::updateProcessNoiseJacobian() {
 };
 
 void KF3D::correct() {
-    Eigen::MatrixXd H, K, z, S, R, I_KH;
+    Eigen::MatrixXf H, K, z, S, R, I_KH;
     H.conservativeResize(Eigen::NoChange_t::NoChange, 16);
     z.conservativeResize(Eigen::NoChange_t::NoChange, 1);
     Vector3D<float> _new_pos;
@@ -229,15 +227,14 @@ void KF3D::correct() {
     tf2::Quaternion _new_ang;
     pos_meas_port->read(_new_pos);
     ang_meas_port->read(_new_eul);
-    //_new_ang.setRPY(_new_eul.x, _new_eul.y, _new_eul.z);
     if(_new_pos != _meas_pos) {
-        // _meas_pos = _new_pos;
-        // H.conservativeResize(H.rows() + 3, Eigen::NoChange_t::NoChange);
-        // H.row(H.rows() - 3) << _H_pos;
-        // z.conservativeResize(z.rows()+3, Eigen::NoChange_t::NoChange);
-        // z.row(z.rows() - 3) << _new_pos.x, _new_pos.y, _new_pos.z;
-        // R.conservativeResize(R.rows() + 3, R.cols() + 3);
-        // R.block<3, 3>(R.rows()-3 , R.cols()-3) = _R_pos.asDiagonal();
+        _meas_pos = _new_pos;
+        H.conservativeResize(H.rows() + 3, Eigen::NoChange_t::NoChange);
+        H.row(H.rows() - 3) << _H_pos;
+        z.conservativeResize(z.rows()+3, Eigen::NoChange_t::NoChange);
+        z.row(z.rows() - 3) << _new_pos.x, _new_pos.y, _new_pos.z;
+        R.conservativeResize(R.rows() + 3, R.cols() + 3);
+        R.block<3, 3>(R.rows()-3 , R.cols()-3) << _R_pos;
     }
     if(_new_eul != _meas_ang) {
         // _meas_ang = _new_eul;
@@ -249,15 +246,16 @@ void KF3D::correct() {
         // R.conservativeResize(R.rows() + 4, R.cols() + 4);
         // R.block<4, 4>(R.rows()-4 , R.cols()-4) = _R_ang.asDiagonal();
     }
-    if(H.rows() > 1) {
-        // S = H * _P * H.transpose();
-        // K = _P * H.transpose() * S.inverse();
-        // _x = _x + K * (z - H * _x);
-        // _pred_ang(_x(6,0), _x(7,0), _x(8,0), _x(9,0));
-        // _pred_ang.normalize();
-        // _x(6,0) = _pred_ang.w, _x(7,0) = _pred_ang.x, _x(8,0) = _pred_ang.y, _x(9,0) = _pred_ang.z;
-        // I_KH = Eigen::MatrixXd::Identity(_P.rows(), _P.cols()) - K*H;
-        // _P = I_KH * _P * I_KH.transpose() + K * R * K.transpose();
+    if(H.rows() > 0) {
+        //std:: cout << H.rows() << " " << 
+        S = H * _P * H.transpose();
+        K = _P * H.transpose() * S.inverse();
+        _x = _x + K * (z - H * _x);
+        _pred_ang(_x(6,0), _x(7,0), _x(8,0), _x(9,0));
+        _pred_ang.normalize();
+        _x(6,0) = _pred_ang.w, _x(7,0) = _pred_ang.x, _x(8,0) = _pred_ang.y, _x(9,0) = _pred_ang.z;
+        I_KH = Eigen::MatrixXf::Identity(_P.rows(), _P.cols()) - K*H;
+        _P = I_KH * _P * I_KH.transpose() + K * R * K.transpose();
     }
 }
 
