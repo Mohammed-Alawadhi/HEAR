@@ -1,5 +1,7 @@
 #include "HEAR_control/KF3D.hpp"
 
+#include <iostream>
+
 namespace HEAR{
 
 KF3D::KF3D(int b_uid, float dt) : Block(BLOCK_ID::KF, b_uid), _dt(dt) {
@@ -25,8 +27,8 @@ void KF3D::reset() {
     _H_ang.Zero(); _H_ang(0,6) = 1; _H_ang(1,7) = 1; _H_ang(2,8) = 1; _H_ang(3,9) = 1; 
     _H_pos.Zero(); _H_pos(0,0) = 1; _H_pos(1,1) = 1; _H_pos(2,2) = 1;
     _Q.diagonal() << 0.1893, 0.2238, 1.5781, 0.0097, 0.0133, 0.000106;
-    _R_pos.diagonal() << 0.0000000339, 0.0000000875, 0.0000001986;
-    _R_ang.diagonal() << 0.001, 0.001, 0.001, 0.001;
+    _R_pos << 0.0000000339, 0.0000000875, 0.0000001986;
+    _R_ang << 0.001, 0.001, 0.001, 0.001;
 }
 
 void KF3D::update(UpdateMsg* u_msg){
@@ -34,7 +36,9 @@ void KF3D::update(UpdateMsg* u_msg){
 }
 void KF3D::process(){
     predict();
-    correct();
+    //correct();
+    publish();
+
 }
 
 void KF3D::predict(){
@@ -49,19 +53,17 @@ void KF3D::predict(){
 
 void KF3D::predictAngle() {
     _omega(_raw_gyro.x- _x(13,0), _raw_gyro.y-_x(14,0), _raw_gyro.z-_x(15,0));
-    tf2::Quaternion q_dot(_omega.x, _omega.y, _omega.z, 0);
-    _pred_ang.setX(_x(7,0)); _pred_ang.setY(_x(8,0)); _pred_ang.setZ(_x(9,0)); _pred_ang.setW(_x(6,0));
-    _pred_ang = _pred_ang * (q_dot*_dt);
+    //std::cout << "_omega: " << _omega.x << " " << _omega.y << " " << _omega.z << "\n";
+    Quaternion4D<float> q_dot(0, _omega.x, _omega.y, _omega.z);
+    _pred_ang(_x(6,0), _x(7,0), _x(8,0), _x(9,0));
+    //std::cout << "_pred_ang: " << _pred_ang.w << " " << _pred_ang.x << " " << _pred_ang.y << " " << _pred_ang.z << "\n";
+    q_dot = q_dot * _dt;
+    _pred_ang = _pred_ang + (q_dot);
     _pred_ang.normalize();
-    _x(6,0) = _pred_ang.getW(), _x(7,0) = _pred_ang.getX(), _x(8,0) = _pred_ang.getY(), _x(9,0) = _pred_ang.getZ();
-
-    tf2::Matrix3x3 _pred_rot; _pred_rot.setRotation(_pred_ang);
-    double yaw, pitch, roll;
-    _pred_rot.getEulerYPR(yaw, pitch, roll);
-    predicted_angles->write(Vector3D<float>(roll, pitch, yaw));
+    _x(6,0) = _pred_ang.w, _x(7,0) = _pred_ang.x, _x(8,0) = _pred_ang.y, _x(9,0) = _pred_ang.z;
 };
 void KF3D::predictVelocity() {
-    _R.setRotation(_pred_ang);
+    _R.setRotation(tf2::Quaternion(_pred_ang.x, _pred_ang.y, _pred_ang.z, _pred_ang.w));
     float t2 = -_x(10,0);
     float t3 = -_x(11,0);
     float t4 = -_x(12,0);
@@ -72,16 +74,12 @@ void KF3D::predictVelocity() {
     _x(3,0) = _x(3,0)+_acc_inertial.x*_dt;
     _x(4,0) = _x(4,0)+_acc_inertial.y*_dt;
     _x(5,0) = _x(5,0)+_acc_inertial.z*_dt;
-
-    predicted_vel->write(Vector3D<float>(_x(3, 0), _x(4, 0), _x(5, 0)));
 };
 void KF3D::predictPosition() {
     float t2 = _dt*_dt;
     _x(0,0) = _x(0,0)+(_acc_inertial.x*t2)/2.0+_dt*_x(3,0);
     _x(1,0) = _x(1,0)+(_acc_inertial.y*t2)/2.0+_dt*_x(4,0);
     _x(2,0) = _x(2,0)+(_acc_inertial.z*t2)/2.0+_dt*_x(5,0);
-
-    predicted_pos->write(Vector3D<float>(_x(0, 0), _x(1, 0), _x(2, 0)));
 };
 
 void KF3D::updatePredictionCoveriance() {
@@ -219,7 +217,7 @@ void KF3D::updateProcessNoiseJacobian() {
             0.0,0.0,0.0,0.0,0.0,0.0,
             0.0,0.0,0.0,0.0,0.0,0.0,
             0.0,0.0,0.0,0.0,0.0,0.0;
-    assert((_FQ.rows() == 16) && (_Fx.cols() == 6));
+    assert((_FQ.rows() == 16) && (_FQ.cols() == 6));
 };
 
 void KF3D::correct() {
@@ -231,33 +229,47 @@ void KF3D::correct() {
     tf2::Quaternion _new_ang;
     pos_meas_port->read(_new_pos);
     ang_meas_port->read(_new_eul);
-    _new_ang.setRPY(_new_eul.x, _new_eul.y, _new_eul.z);
+    //_new_ang.setRPY(_new_eul.x, _new_eul.y, _new_eul.z);
     if(_new_pos != _meas_pos) {
-        H.conservativeResize(H.rows() + 3, Eigen::NoChange_t::NoChange);
-        H.row(H.rows() - 3) << _H_pos;
-        z.conservativeResize(z.rows()+3, Eigen::NoChange_t::NoChange);
-        z.row(z.rows() - 3) << _new_pos.x, _new_pos.y, _new_pos.z;
-        R.conservativeResize(R.rows() + 3, R.cols() + 3);
-        R.block<3, 3>(R.rows()-3 , R.cols()-3) = _R_pos.asDiagonal();
+        // _meas_pos = _new_pos;
+        // H.conservativeResize(H.rows() + 3, Eigen::NoChange_t::NoChange);
+        // H.row(H.rows() - 3) << _H_pos;
+        // z.conservativeResize(z.rows()+3, Eigen::NoChange_t::NoChange);
+        // z.row(z.rows() - 3) << _new_pos.x, _new_pos.y, _new_pos.z;
+        // R.conservativeResize(R.rows() + 3, R.cols() + 3);
+        // R.block<3, 3>(R.rows()-3 , R.cols()-3) = _R_pos.asDiagonal();
     }
-    if(_new_ang.getX() != _meas_ang.getX() && _new_ang.getY() != _meas_ang.getY() && _new_ang.getZ() != _meas_ang.getZ() && _new_ang.getW() != _meas_ang.getW()) {
-        H.conservativeResize(H.rows() + 4, Eigen::NoChange_t::NoChange);
-        H.row(H.rows() - 4) << _H_ang;
-        z.conservativeResize(z.rows()+4, Eigen::NoChange_t::NoChange);
-        z.row(z.rows() - 4) << _new_ang.getW(), _new_ang.getX(), _new_ang.getY(), _new_ang.getZ();
-        R.conservativeResize(R.rows() + 4, R.cols() + 4);
-        R.block<3, 3>(R.rows()-4 , R.cols()-4) = _R_ang.asDiagonal();
+    if(_new_eul != _meas_ang) {
+        // _meas_ang = _new_eul;
+        // _new_ang.setRPY(_new_eul.x, _new_eul.y, _new_eul.z);
+        // H.conservativeResize(H.rows() + 4, Eigen::NoChange_t::NoChange);
+        // H.row(H.rows() - 4) << _H_ang;
+        // z.conservativeResize(z.rows()+4, Eigen::NoChange_t::NoChange);
+        // z.row(z.rows() - 4) << _new_ang.getW(), _new_ang.getX(), _new_ang.getY(), _new_ang.getZ();
+        // R.conservativeResize(R.rows() + 4, R.cols() + 4);
+        // R.block<4, 4>(R.rows()-4 , R.cols()-4) = _R_ang.asDiagonal();
     }
     if(H.rows() > 1) {
-        S = H * _P * H.transpose();
-        K = _P * H.transpose() * S.inverse();
-        _x = _x + K * (z - H * _x);
-        _pred_ang.setX(_x(7,0)); _pred_ang.setY(_x(8,0)); _pred_ang.setZ(_x(9,0)); _pred_ang.setW(_x(6,0));
-        _pred_ang.normalize();
-        _x(6,0) = _pred_ang.getW(), _x(7,0) = _pred_ang.getX(), _x(8,0) = _pred_ang.getY(), _x(9,0) = _pred_ang.getZ();
-        I_KH = Eigen::MatrixXd::Identity(_P.rows(), _P.cols()) - K*H;
-        _P = I_KH * _P * I_KH.transpose() + K * R * K.transpose();
+        // S = H * _P * H.transpose();
+        // K = _P * H.transpose() * S.inverse();
+        // _x = _x + K * (z - H * _x);
+        // _pred_ang(_x(6,0), _x(7,0), _x(8,0), _x(9,0));
+        // _pred_ang.normalize();
+        // _x(6,0) = _pred_ang.w, _x(7,0) = _pred_ang.x, _x(8,0) = _pred_ang.y, _x(9,0) = _pred_ang.z;
+        // I_KH = Eigen::MatrixXd::Identity(_P.rows(), _P.cols()) - K*H;
+        // _P = I_KH * _P * I_KH.transpose() + K * R * K.transpose();
     }
+}
+
+void KF3D::publish() {
+    tf2::Matrix3x3 _pred_rot; _pred_rot.setRotation(tf2::Quaternion(_pred_ang.x, _pred_ang.y, _pred_ang.z, _pred_ang.w));
+    double yaw, pitch, roll;
+    _pred_rot.getEulerYPR(yaw, pitch, roll);
+    predicted_angles->write(Vector3D<float>(roll, pitch, yaw));
+
+    predicted_vel->write(Vector3D<float>(_x(3, 0), _x(4, 0), _x(5, 0)));
+    
+    predicted_pos->write(Vector3D<float>(_x(0, 0), _x(1, 0), _x(2, 0)));
 }
 
 }
