@@ -24,7 +24,7 @@ int main(int argc, char **argv){
     auto imu_acc_port = sys->createExternalInputPort<Vector3D<float>>("Acc_port");
     sys->connectExternalInput(imu_ori_port, imu_port);
     sys->connectExternalInput(imu_ang_vel_port, angle_rate_port);
-    sys->connectExternalInput(imu_ori_port, acc_port);
+    sys->connectExternalInput(imu_acc_port, acc_port);
 
     // connect ports to KF input ports
     auto kf = sys->createBlock(BLOCK_ID::KF, "KF_3D");
@@ -34,6 +34,8 @@ int main(int argc, char **argv){
     sys->connectExternalInput(ori_port, kf->getInputPort<Vector3D<float>>(KF3D::IP::ANGLES));
     
     // connect publishers to KF output ports
+    sys->createPub<Vector3D<float>>(TYPE::Float3,"/opti_pos", pos_port->getOutputPort<Vector3D<float>>(0));
+    sys->createPub<Vector3D<float>>(TYPE::Float3,"/opti_ori", ori_port->getOutputPort<Vector3D<float>>(0));
     sys->createPub<Vector3D<float>>(TYPE::Float3,"/imu_ori", imu_ori_port->getOutputPort<Vector3D<float>>(0));
     sys->createPub<Vector3D<float>>(TYPE::Float3, "/KF/position", kf->getOutputPort<Vector3D<float>>(KF3D::OP::PRED_POS));
     sys->createPub<Vector3D<float>>(TYPE::Float3, "/KF/velocity", kf->getOutputPort<Vector3D<float>>(KF3D::OP::PRED_VEL));
