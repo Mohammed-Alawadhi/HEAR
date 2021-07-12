@@ -70,6 +70,16 @@ namespace HEAR
         outer_sys->connectExternalInput(pos_port, opti_port[0]);
         outer_sys->connectExternalInput(ori_port, opti_port[1]);
 
+        // external input for slam
+        providers_slam = new ROSUnit_SLAM(nh);
+        providers_slam->connectInputs(((Block*)pos_port)->getOutputPort<Vector3D<float>>(0), ((Block*)ori_port)->getOutputPort<Vector3D<float>>(0));
+        auto pos_slam_port = outer_sys->createExternalInputPort<Vector3D<float>>("Pos_SLAM_Port");
+        auto ori_slam_port = outer_sys->createExternalInputPort<Vector3D<float>>("Ori_SLAM_Port");
+        auto slam_port = providers_slam->registerSLAM("/zedm/zed_node/odom");
+        outer_sys->connectExternalInput(pos_slam_port, slam_port[0]);
+        outer_sys->connectExternalInput(ori_slam_port, slam_port[1]);
+
+
         // connecting input data preparation blocks
         outer_sys->connectExternalInput(ori_port, demux_ori->getInputPort<Vector3D<float>>(Demux3::IP::INPUT));
         outer_sys->connectExternalInput(pos_port, diff_pos->getInputPort<Vector3D<float>>(0));
@@ -152,6 +162,12 @@ namespace HEAR
         outer_sys->createPub("/pid_z", pid_z->getOutputPort<float>(PID_Block::OP::COMMAND));
         outer_sys->createPub( TYPE::Float3, "/vel_h_x", diff_pos->getOutputPort<Vector3D<float>>(0));
         outer_sys->createPub( TYPE::Float3, "/vel_h_filt", pos_filt->getOutputPort<Vector3D<float>>(0));
+
+        // setting publishers for opti and slam pose data
+        outer_sys->createPub<Vector3D<float>>(TYPE::Float3, "opti_pos", ((Block*)pos_port)->getOutputPort<Vector3D<float>>(0));
+        outer_sys->createPub<Vector3D<float>>(TYPE::Float3, "opti_ori", ((Block*)ori_port)->getOutputPort<Vector3D<float>>(0));
+        outer_sys->createPub<Vector3D<float>>(TYPE::Float3, "slam_pos", ((Block*)pos_slam_port)->getOutputPort<Vector3D<float>>(0));
+        outer_sys->createPub<Vector3D<float>>(TYPE::Float3, "slam_ori", ((Block*)ori_slam_port)->getOutputPort<Vector3D<float>>(0));
 
         // configuring yaw provider for mission scenario
         auto mux_yaw = outer_sys->createBlock(BLOCK_ID::MUX3, "Mux_Yaw");

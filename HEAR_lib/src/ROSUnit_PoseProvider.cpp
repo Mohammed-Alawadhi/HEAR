@@ -14,7 +14,7 @@ std::vector<ExternalOutputPort<Vector3D<float>>*> ROSUnit_PoseProvider::register
     opti_pos_port = new ExternalOutputPort<Vector3D<float>>(0);
     opti_pos_port->write(Vector3D<float>(0,0,0));
     opti_ori_port = new ExternalOutputPort<Vector3D<float>>(0);
-    opti_pos_port->write(Vector3D<float>(0,0,0));
+    opti_ori_port->write(Vector3D<float>(0,0,0));
     opti_sub = nh_.subscribe(t_name, 10, &ROSUnit_PoseProvider::callback_opti_pose, this, ros::TransportHints().tcpNoDelay());
     return std::vector<ExternalOutputPort<Vector3D<float>>*>{opti_pos_port, opti_ori_port};
 }
