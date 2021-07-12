@@ -55,9 +55,8 @@ void ROSUnit_PoseProvider::callback_opti_pose(const geometry_msgs::PoseStamped::
 
     tf2Scalar yaw, pitch, roll;
     R_mat.getEulerYPR(yaw, pitch, roll);
-    tf2::Vector3 vec_ori_temp((float)roll, (float)pitch, (float)yaw);
-    vec_ori_temp = rot_offset*vec_ori_temp;
-    Vector3D<float> vec_ori = {(float)vec_ori_temp.x(), (float)vec_ori_temp.y(), (float)vec_ori_temp.z()};
+
+    Vector3D<float> vec_ori = {(float)-pitch, (float)roll, (float)yaw};
 
     opti_pos_port->write(vec);
     opti_ori_port->write(vec_ori);

@@ -34,6 +34,8 @@ int main(int argc, char **argv){
     sys->connectExternalInput(ori_port, kf->getInputPort<Vector3D<float>>(KF3D::IP::ANGLES));
     
     // connect publishers to KF output ports
+    sys->createPub<Vector3D<float>>(TYPE::Float3,"/opti_pos", pos_port->getOutputPort<Vector3D<float>>(0));
+    sys->createPub<Vector3D<float>>(TYPE::Float3,"/opti_ori", ori_port->getOutputPort<Vector3D<float>>(0));
     sys->createPub<Vector3D<float>>(TYPE::Float3,"/imu_ori", imu_ori_port->getOutputPort<Vector3D<float>>(0));
     sys->createPub<Vector3D<float>>(TYPE::Float3, "/KF/position", kf->getOutputPort<Vector3D<float>>(KF3D::OP::PRED_POS));
     sys->createPub<Vector3D<float>>(TYPE::Float3, "/KF/velocity", kf->getOutputPort<Vector3D<float>>(KF3D::OP::PRED_VEL));
