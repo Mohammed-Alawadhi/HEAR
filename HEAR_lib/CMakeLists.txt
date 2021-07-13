@@ -9,6 +9,7 @@ find_package(catkin REQUIRED COMPONENTS
     hear_hardware_interface
     hear_msgs
     geometry_msgs
+    tf2_geometry_msgs
     tf2
     tf2_ros
     nodelet
@@ -25,6 +26,7 @@ catkin_package(
     hear_msgs
     tf2
     tf2_ros
+    tf2_geometry_msgs
     nodelet
 )
 
