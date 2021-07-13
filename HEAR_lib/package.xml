@@ -9,6 +9,7 @@
   <depend>hear_msgs</depend>
   <depend>hear_hardware_interface</depend>
   <depend>tf2</depend>
+  <depend>tf2_ros</depend>
   <depend>roscpp</depend>
   <depend>geometry_msgs</depend>
    <depend>nodelet</depend>
