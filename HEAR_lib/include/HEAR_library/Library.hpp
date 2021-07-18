@@ -10,6 +10,7 @@
 #include "HEAR_control/Differentiator.hpp"
 #include "HEAR_control/Eul2Rot.hpp"
 #include "HEAR_control/FbLinearizer.hpp"
+#include "HEAR_control/FoH.hpp"
 #include "HEAR_control/FromHorizon.hpp"
 #include "HEAR_control/Gain.hpp"
 #include "HEAR_control/HexaActuationSystem.hpp"
@@ -71,6 +72,14 @@ Block* Library::createBlock(BLOCK_ID b_type, int b_uid, double _dt, TYPE d_type)
         break;
     case BLOCK_ID::EUL2ROT :
         blk = new Eul2Rot(b_uid);
+        break;
+    case BLOCK_ID::FOH :
+        if(d_type == TYPE::Float3){
+            blk = new FoH<Vector3D<float>>(_dt, b_uid);
+        }
+        else{
+            blk = new FoH<float>(_dt, b_uid);
+        }
         break;
     case BLOCK_ID::FORCE2ROT :
         blk = new FbLinearizer::Force2Rot(b_uid);

@@ -36,7 +36,9 @@ void Switch::update(UpdateMsg* u_msg){
             break;
         }
     }
-
+    if(u_msg->getType() == UPDATE_MSG_TYPE::BOOL_MSG){
+        _triggered = ((BoolMsg*)u_msg)->data;
+    }
 }
 
 }

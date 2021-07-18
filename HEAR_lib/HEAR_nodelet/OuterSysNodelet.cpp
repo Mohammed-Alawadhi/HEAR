@@ -53,12 +53,18 @@ namespace HEAR
         auto med_filt_x = outer_sys->createBlock(BLOCK_ID::MEDIAN_FILTER, "Med_Filt_x"); ((MedianFilter*)med_filt_x)->setWinSize(50);
         auto med_filt_y = outer_sys->createBlock(BLOCK_ID::MEDIAN_FILTER, "Med_Filt_y"); ((MedianFilter*)med_filt_y)->setWinSize(50);
         auto med_filt_z = outer_sys->createBlock(BLOCK_ID::MEDIAN_FILTER, "Med_Filt_z"); ((MedianFilter*)med_filt_z)->setWinSize(50);
-        auto ref_sw_x = outer_sys->createBlock(BLOCK_ID::INVERTED_SWITCH, "Ref_Sw_x");
-        auto ref_sw_y = outer_sys->createBlock(BLOCK_ID::INVERTED_SWITCH, "Ref_Sw_y");
-        auto ref_sw_z = outer_sys->createBlock(BLOCK_ID::INVERTED_SWITCH, "Ref_Sw_z");
         auto hold_ref_x = outer_sys->createBlock(BLOCK_ID::HOLDVAL, "Hold_Ref_x");
         auto hold_ref_y = outer_sys->createBlock(BLOCK_ID::HOLDVAL, "Hold_Ref_y");
         auto hold_ref_z = outer_sys->createBlock(BLOCK_ID::HOLDVAL, "Hold_Ref_z");
+
+        //////// creating SLAM specific Blocks ///////////
+        auto pos_slam_demux = outer_sys->createBlock(BLOCK_ID::DEMUX3, "Pos_SLAM_Demux");
+        auto ref_sw_x = outer_sys->createBlock(BLOCK_ID::INVERTED_SWITCH, "Ref_Sw_x");
+        auto ref_sw_y = outer_sys->createBlock(BLOCK_ID::INVERTED_SWITCH, "Ref_Sw_y");
+        auto ref_sw_z = outer_sys->createBlock(BLOCK_ID::INVERTED_SWITCH, "Ref_Sw_z");
+        auto prov_sw_x = outer_sys->createBlock(BLOCK_ID::INVERTED_SWITCH, "Prov_Sw_x");
+        auto prov_sw_y = outer_sys->createBlock(BLOCK_ID::INVERTED_SWITCH, "Prov_Sw_y");
+        auto prov_sw_z = outer_sys->createBlock(BLOCK_ID::INVERTED_SWITCH, "Prov_Sw_z");
                 
         ////////////// connecting blocks /////////
 
@@ -78,7 +84,7 @@ namespace HEAR
         auto slam_port = providers_slam->registerSLAM("/zedm/zed_node/odom");
         outer_sys->connectExternalInput(pos_slam_port, slam_port[0]);
         outer_sys->connectExternalInput(ori_slam_port, slam_port[1]);
-
+        outer_sys->connectExternalInput(pos_slam_port, pos_slam_demux->getInputPort<Vector3D<float>>(Demux3::IP::INPUT));
 
         // connecting input data preparation blocks
         outer_sys->connectExternalInput(ori_port, demux_ori->getInputPort<Vector3D<float>>(Demux3::IP::INPUT));
@@ -93,10 +99,12 @@ namespace HEAR
         
         // connecting x control sys blocks
         outer_sys->createSub("/waypoint_reference/x", ref_sw_x->getInputPort<float>(InvertedSwitch::IP::NC));
-        outer_sys->connect(pos_h_demux->getOutputPort<float>(Demux3::OP::X), hold_ref_x->getInputPort<float>(HoldVal::IP::INPUT));
+        outer_sys->connect(pos_slam_demux->getOutputPort<float>(Demux3::OP::X), hold_ref_x->getInputPort<float>(HoldVal::IP::INPUT));
         outer_sys->connect(hold_ref_x->getOutputPort<float>(HoldVal::OP::OUTPUT), ref_sw_x->getInputPort<float>(InvertedSwitch::IP::NO));
         outer_sys->connect(ref_sw_x->getOutputPort<float>(InvertedSwitch::OP::COM), sum_ref_x->getInputPort<float>(Sum::IP::OPERAND1));
-        outer_sys->connect(pos_h_demux->getOutputPort<float>(Demux3::OP::X), sum_ref_x->getInputPort<float>(Sum::IP::OPERAND2));
+        outer_sys->connect(pos_h_demux->getOutputPort<float>(Demux3::OP::X), prov_sw_x->getInputPort<float>(InvertedSwitch::IP::NC));
+        outer_sys->connect(pos_slam_demux->getOutputPort<float>(Demux3::OP::X), prov_sw_x->getInputPort<float>(InvertedSwitch::IP::NO));
+        outer_sys->connect(prov_sw_x->getOutputPort<float>(InvertedSwitch::OP::COM), sum_ref_x->getInputPort<float>(Sum::IP::OPERAND2));
         outer_sys->connect(sum_ref_x->getOutputPort<float>(Sum::OP::OUTPUT), pid_x->getInputPort<float>(PID_Block::IP::ERROR));
         outer_sys->connect(vel_h_demux->getOutputPort<float>(Demux3::OP::X), pid_x->getInputPort<float>(PID_Block::IP::PV_DOT));
         outer_sys->connect(pid_x->getOutputPort<float>(PID_Block::OP::COMMAND), mrft_sw_x->getInputPort<float>(InvertedSwitch::IP::NC));
@@ -108,10 +116,12 @@ namespace HEAR
 
         // connecting y control sys blocks
         outer_sys->createSub("/waypoint_reference/y", ref_sw_y->getInputPort<float>(InvertedSwitch::IP::NC));
-        outer_sys->connect(pos_h_demux->getOutputPort<float>(Demux3::OP::Y), hold_ref_y->getInputPort<float>(HoldVal::IP::INPUT));
+        outer_sys->connect(pos_slam_demux->getOutputPort<float>(Demux3::OP::Y), hold_ref_y->getInputPort<float>(HoldVal::IP::INPUT));
         outer_sys->connect(hold_ref_y->getOutputPort<float>(HoldVal::OP::OUTPUT), ref_sw_y->getInputPort<float>(InvertedSwitch::IP::NO));
         outer_sys->connect(ref_sw_y->getOutputPort<float>(InvertedSwitch::OP::COM), sum_ref_y->getInputPort<float>(Sum::IP::OPERAND1));
-        outer_sys->connect(pos_h_demux->getOutputPort<float>(Demux3::OP::Y), sum_ref_y->getInputPort<float>(Sum::IP::OPERAND2));
+        outer_sys->connect(pos_h_demux->getOutputPort<float>(Demux3::OP::Y), prov_sw_y->getInputPort<float>(InvertedSwitch::IP::NC));
+        outer_sys->connect(pos_slam_demux->getOutputPort<float>(Demux3::OP::Y), prov_sw_y->getInputPort<float>(InvertedSwitch::IP::NO));
+        outer_sys->connect(prov_sw_y->getOutputPort<float>(InvertedSwitch::OP::COM), sum_ref_y->getInputPort<float>(Sum::IP::OPERAND2));
         outer_sys->connect(sum_ref_y->getOutputPort<float>(Sum::OP::OUTPUT), pid_y->getInputPort<float>(PID_Block::IP::ERROR));
         outer_sys->connect(vel_h_demux->getOutputPort<float>(Demux3::OP::Y), pid_y->getInputPort<float>(PID_Block::IP::PV_DOT));
         outer_sys->connect(pid_y->getOutputPort<float>(PID_Block::OP::COMMAND),mrft_sw_y->getInputPort<float>(InvertedSwitch::IP::NC));
@@ -123,10 +133,12 @@ namespace HEAR
 
         // connecting z control sys blocks
         outer_sys->createSub("/waypoint_reference/z", ref_sw_z->getInputPort<float>(InvertedSwitch::IP::NC));
-        outer_sys->connect(pos_h_demux->getOutputPort<float>(Demux3::OP::Z), hold_ref_z->getInputPort<float>(HoldVal::IP::INPUT));
+        outer_sys->connect(pos_slam_demux->getOutputPort<float>(Demux3::OP::Z), hold_ref_z->getInputPort<float>(HoldVal::IP::INPUT));
         outer_sys->connect(hold_ref_z->getOutputPort<float>(HoldVal::OP::OUTPUT), ref_sw_z->getInputPort<float>(InvertedSwitch::IP::NO));
         outer_sys->connect(ref_sw_z->getOutputPort<float>(InvertedSwitch::OP::COM), sum_ref_z->getInputPort<float>(Sum::IP::OPERAND1));
-        outer_sys->connect(pos_h_demux->getOutputPort<float>(Demux3::OP::Z), sum_ref_z->getInputPort<float>(Sum::IP::OPERAND2));
+        outer_sys->connect(pos_h_demux->getOutputPort<float>(Demux3::OP::Z), prov_sw_z->getInputPort<float>(InvertedSwitch::IP::NC));
+        outer_sys->connect(pos_slam_demux->getOutputPort<float>(Demux3::OP::Z), prov_sw_z->getInputPort<float>(InvertedSwitch::IP::NO));
+        outer_sys->connect(prov_sw_z->getOutputPort<float>(InvertedSwitch::OP::COM), sum_ref_z->getInputPort<float>(Sum::IP::OPERAND2));
         outer_sys->connect(sum_ref_z->getOutputPort<float>(Sum::OP::OUTPUT), pid_z->getInputPort<float>(PID_Block::IP::ERROR));
         outer_sys->connect(vel_h_demux->getOutputPort<float>(Demux3::OP::Z), pid_z->getInputPort<float>(PID_Block::IP::PV_DOT));
         outer_sys->connect(pid_z->getOutputPort<float>(PID_Block::OP::COMMAND), sum_bias_z->getInputPort<float>(Sum::IP::OPERAND1));
@@ -197,7 +209,7 @@ namespace HEAR
         outer_sys->connectExternalTrigger(mrft_x_trig, mrft_x);
         outer_sys->connectExternalTrigger(mrft_x_trig, hold_ref_x);
         outer_sys->connectExternalTrigger(mrft_sw_x_trig, mrft_sw_x);
-        outer_sys->connectExternalTrigger(mrft_sw_x_trig, ref_sw_x);
+        // outer_sys->connectExternalTrigger(mrft_sw_x_trig, ref_sw_x);
 
         // MRFT Y triggering configuration
         trig_srv_y = new ROSUnit_MRFTSwitchSrv(nh, "mrft_switch_y");
@@ -208,7 +220,7 @@ namespace HEAR
         outer_sys->connectExternalTrigger(mrft_y_trig, mrft_y);
         outer_sys->connectExternalTrigger(mrft_y_trig, hold_ref_y);
         outer_sys->connectExternalTrigger(mrft_sw_y_trig, mrft_sw_y);
-        outer_sys->connectExternalTrigger(mrft_sw_y_trig, ref_sw_y);
+        // outer_sys->connectExternalTrigger(mrft_sw_y_trig, ref_sw_y);
 
         // MRFT Z triggering configuration
         trig_srv_z = new ROSUnit_MRFTSwitchSrv(nh, "mrft_switch_z");
@@ -219,13 +231,18 @@ namespace HEAR
         outer_sys->connectExternalTrigger(mrft_z_trig, mrft_z);
         outer_sys->connectExternalTrigger(mrft_z_trig, hold_ref_z);
         outer_sys->connectExternalTrigger(mrft_sw_z_trig, mrft_sw_z);
-        outer_sys->connectExternalTrigger(mrft_sw_z_trig, ref_sw_z);
+        // outer_sys->connectExternalTrigger(mrft_sw_z_trig, ref_sw_z);
 
         // setting mrft controllers triggers        
         auto mrft_update_trig = outer_sys->createUpdateTrigger(UPDATE_MSG_TYPE::MRFT_UPDATE, "/update_controller/mrft") ;
         outer_sys->connectExternalTrigger(mrft_update_trig, mrft_x);
         outer_sys->connectExternalTrigger(mrft_update_trig, mrft_y);
         outer_sys->connectExternalTrigger(mrft_update_trig, mrft_z);
+
+        // setting slam provider switches
+        outer_sys->createUpdateTrigger(UPDATE_MSG_TYPE::BOOL_MSG, "/slam_switch_x", ref_sw_x);
+        outer_sys->createUpdateTrigger(UPDATE_MSG_TYPE::BOOL_MSG, "/slam_switch_y", ref_sw_y);
+        outer_sys->createUpdateTrigger(UPDATE_MSG_TYPE::BOOL_MSG, "/slam_switch_z", ref_sw_z);
 
         /////////////// initializing and starting the outer loop system  /////////////////
         outer_sys->start();

@@ -26,6 +26,7 @@ namespace HEAR{
         BW_FILT2,
         SATURATION,
         EUL2ROT,
+        FOH,
         ROT2EUL,
         ROT2QUAT,
         QUAT2ROT,
