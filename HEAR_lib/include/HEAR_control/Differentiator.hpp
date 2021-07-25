@@ -44,7 +44,10 @@ void Differentiator<T>::process(){
     auto dx = inp - prev_inp;
     auto diff = dx/_dt;
     out = diff;
-    if(_sup_peak){
+    if(diff == 0){
+        out = _hold;
+    }
+    else if(_sup_peak){
         if((diff -prev_diff)  > _max_diff){
             out = _hold;
         } 
@@ -55,6 +58,9 @@ void Differentiator<T>::process(){
             _hold = diff; 
         }
         prev_diff = diff;
+    }
+    else{
+        _hold = diff;
     }
     _out->write(out);
 }
