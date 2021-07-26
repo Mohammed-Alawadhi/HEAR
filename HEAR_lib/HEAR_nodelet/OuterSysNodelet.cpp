@@ -17,7 +17,7 @@ namespace HEAR
         outer_sys = new RosSystem(nh, pnh, FREQUENCY, "OuterLoop");
 
         //////////// creating blocks /////////////
-        auto diff_pos = outer_sys->createBlock(BLOCK_ID::DIFFERENTIATOR, "Pos_Derivative", TYPE::Float3); ((Differentiator<Vector3D<float>>*)diff_pos)->supPeak(0.15);
+        auto diff_pos = outer_sys->createBlock(BLOCK_ID::DIFFERENTIATOR, "Pos_Derivative", TYPE::Float3); ((Differentiator<Vector3D<float>>*)diff_pos)->supPeak(0.3);
         auto pos_filt = outer_sys->createBlock(BLOCK_ID::BW_FILT2, "Vel_Filt", TYPE::Float3);
         ((BWFilter2<Vector3D<float>>*)pos_filt)->setCoeff(BWFilt2_coeff::coeff_120Hz_2nd_butter_5hz);
         auto demux_ori = outer_sys->createBlock(BLOCK_ID::DEMUX3, "Demux_ori");
