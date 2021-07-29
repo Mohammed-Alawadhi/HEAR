@@ -29,7 +29,9 @@ private:
 
     ExternalOutputPort<Vector3D<float>>* pos_out_port;
     ExternalOutputPort<Vector3D<float>>* ori_out_port;
-    tf2::Transform offset_tf;    
+    tf2::Transform offset_tf;
+    tf2::Vector3 slam_pos;
+    tf2::Matrix3x3 slam_rot;    
     bool to_map = false;
 
     void odom_callback(const nav_msgs::Odometry::ConstPtr& odom_msg);

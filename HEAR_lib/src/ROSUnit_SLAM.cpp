@@ -9,6 +9,7 @@ ROSUnit_SLAM::ROSUnit_SLAM(ros::NodeHandle& nh, bool use_map) : nh_(nh), to_map(
     tf2::Matrix3x3 rot;
     rot.setIdentity();
     offset_tf = tf2::Transform(rot);
+    slam_pos = tf2::Vector3(0,0,0); slam_rot.setIdentity();
 }
 
 std::vector<ExternalOutputPort<Vector3D<float>>*> ROSUnit_SLAM::registerSLAM(const std::string& t_name){
@@ -51,8 +52,8 @@ void ROSUnit_SLAM::odom_callback(const nav_msgs::Odometry::ConstPtr& odom_msg){
         pos = tf2::Vector3(slam_pose.pose.position.x, slam_pose.pose.position.y, slam_pose.pose.position.z);
         rot.setRotation(tf2::Quaternion(slam_pose.pose.orientation.x, slam_pose.pose.orientation.y, slam_pose.pose.orientation.z, slam_pose.pose.orientation.w));
     }
-    auto slam_pos = offset_tf*pos;
-    auto slam_rot = offset_tf.getBasis()*rot;
+    slam_pos = offset_tf*pos;
+    slam_rot = offset_tf.getBasis()*rot;
 
     double r, p, y;
     slam_rot.getRPY(r, p, y);
@@ -68,8 +69,8 @@ bool ROSUnit_SLAM::srv_callback(hear_msgs::set_bool::Request& req, hear_msgs::se
     
     tf2::Matrix3x3 rot;
     rot.setEulerYPR(angs.z, angs.y, angs.x);
-    offset_tf.setBasis(rot);
-    offset_tf.setOrigin(tf2::Vector3(trans.x, trans.y, trans.z));
+    offset_tf.setBasis(rot*(slam_rot.transpose()));
+    offset_tf.setOrigin(tf2::Vector3(trans.x, trans.y, trans.z) - offset_tf.getBasis()*slam_pos);
 
     return true;
 }
