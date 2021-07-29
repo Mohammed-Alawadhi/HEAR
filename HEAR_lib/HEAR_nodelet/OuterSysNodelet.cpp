@@ -43,7 +43,13 @@ namespace HEAR
         auto demux_eul_des = outer_sys->createBlock(BLOCK_ID::DEMUX3, "Demux_EulDes");
         auto mux_eul_des = outer_sys->createBlock(BLOCK_ID::MUX3, "Mux_EulDes");
         auto bias_z = outer_sys->createBlock(BLOCK_ID::CONSTANT, "Bias_z", TYPE::Float); ((Constant<float>*)bias_z)->setValue(BIAS_Z_VALUE);
-        auto sum_bias_z = outer_sys->createBlock(BLOCK_ID::SUM, "sum_bias_z"); ((Sum*)sum_bias_z)->setOperation(Sum::OPERATION::ADD);
+        auto sum_bias_z = outer_sys->createBlock(BLOCK_ID::SUM, "Sum_bias_z"); ((Sum*)sum_bias_z)->setOperation(Sum::OPERATION::ADD);
+
+        // feedforward acceleration blocks
+        auto sum_acc_x = outer_sys->createBlock(BLOCK_ID::SUM, "Sum_acc_x"); ((Sum*)sum_acc_x)->setOperation(Sum::OPERATION::ADD);
+        auto sum_acc_y = outer_sys->createBlock(BLOCK_ID::SUM, "Sum_acc_y"); ((Sum*)sum_acc_y)->setOperation(Sum::OPERATION::ADD);
+        auto acc_ref_gain_x = outer_sys->createBlock(BLOCK_ID::GAIN, "Acc_ref_gain_x"); ((Gain*)acc_ref_gain_x)->setGain(ACC_REF_K_X);
+        auto acc_ref_gain_y = outer_sys->createBlock(BLOCK_ID::GAIN, "Acc_ref_gain_y"); ((Gain*)acc_ref_gain_y)->setGain(ACC_REF_K_Y);
 
         //////// creating MRFT specific blocks ////////////
         auto mrft_x = outer_sys->createBlock(BLOCK_ID::MRFT, "Mrft_x"); ((MRFT_Block*)mrft_x)->setMRFT_ID(MRFT_ID::MRFT_X);
@@ -93,7 +99,10 @@ namespace HEAR
         outer_sys->connect(vel_h_demux->getOutputPort<float>(Demux3::OP::X), sum_ref_vel_x->getInputPort<float>(Sum::IP::OPERAND1));
         outer_sys->createSub("/waypoint_reference/vel/x", sum_ref_vel_x->getInputPort<float>(Sum::IP::OPERAND2));
         outer_sys->connect(sum_ref_vel_x->getOutputPort<float>(Sum::OP::OUTPUT), pid_x->getInputPort<float>(PID_Block::IP::PV_DOT));
-        outer_sys->connect(pid_x->getOutputPort<float>(PID_Block::OP::COMMAND), mrft_sw_x->getInputPort<float>(InvertedSwitch::IP::NC));
+        outer_sys->createSub("/waypoint_reference/acc/x", acc_ref_gain_x->getInputPort<float>(Gain::IP::INPUT));
+        outer_sys->connect(acc_ref_gain_x->getOutputPort<float>(Gain::OP::OUTPUT), sum_acc_x->getInputPort<float>(Sum::OPERAND1));
+        outer_sys->connect(pid_x->getOutputPort<float>(PID_Block::OP::COMMAND), sum_acc_x->getInputPort<float>(Sum::OPERAND2));
+        outer_sys->connect(sum_acc_x->getOutputPort<float>(Sum::OP::OUTPUT), mrft_sw_x->getInputPort<float>(InvertedSwitch::IP::NC));
         outer_sys->connect(pid_x->getOutputPort<float>(PID_Block::OP::COMMAND), med_filt_x->getInputPort<float>(MedianFilter::IP::INPUT));
         outer_sys->connect(med_filt_x->getOutputPort<float>(MedianFilter::OP::OUTPUT), mrft_x->getInputPort<float>(MRFT_Block::IP::BIAS));
         outer_sys->connect(sum_ref_x->getOutputPort<float>(Sum::OP::OUTPUT), mrft_x->getInputPort<float>(MRFT_Block::IP::INPUT));
@@ -110,7 +119,10 @@ namespace HEAR
         outer_sys->connect(vel_h_demux->getOutputPort<float>(Demux3::OP::Y), sum_ref_vel_y->getInputPort<float>(Sum::IP::OPERAND1));
         outer_sys->createSub("/waypoint_reference/vel/y", sum_ref_vel_y->getInputPort<float>(Sum::IP::OPERAND2));
         outer_sys->connect(sum_ref_vel_y->getOutputPort<float>(Sum::OP::OUTPUT), pid_y->getInputPort<float>(PID_Block::IP::PV_DOT));
-        outer_sys->connect(pid_y->getOutputPort<float>(PID_Block::OP::COMMAND),mrft_sw_y->getInputPort<float>(InvertedSwitch::IP::NC));
+        outer_sys->createSub("/waypoint_reference/acc/y", acc_ref_gain_y->getInputPort<float>(Gain::IP::INPUT));
+        outer_sys->connect(acc_ref_gain_y->getOutputPort<float>(Gain::OP::OUTPUT), sum_acc_y->getInputPort<float>(Sum::OPERAND1));
+        outer_sys->connect(pid_y->getOutputPort<float>(PID_Block::OP::COMMAND), sum_acc_y->getInputPort<float>(Sum::OPERAND2));
+        outer_sys->connect(sum_acc_y->getOutputPort<float>(Sum::OP::OUTPUT), mrft_sw_y->getInputPort<float>(InvertedSwitch::IP::NC));
         outer_sys->connect(pid_y->getOutputPort<float>(PID_Block::OP::COMMAND), med_filt_y->getInputPort<float>(MedianFilter::IP::INPUT));
         outer_sys->connect(med_filt_y->getOutputPort<float>(MedianFilter::OP::OUTPUT), mrft_y->getInputPort<float>(MRFT_Block::IP::BIAS));
         outer_sys->connect(sum_ref_y->getOutputPort<float>(Sum::OP::OUTPUT), mrft_y->getInputPort<float>(MRFT_Block::IP::INPUT));
