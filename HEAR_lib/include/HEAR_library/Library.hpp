@@ -17,6 +17,7 @@
 #include "HEAR_control/InvertedSwitch.hpp"
 #include "HEAR_control/MedianFilter.hpp"
 #include "HEAR_control/Mrft.hpp"
+#include "HEAR_control/Multiply.hpp"
 #include "HEAR_control/Mux3.hpp"
 #include "HEAR_control/PID_Block.hpp"
 #include "HEAR_control/Rot2Eul.hpp"
@@ -95,6 +96,9 @@ Block* Library::createBlock(BLOCK_ID b_type, int b_uid, double _dt, TYPE d_type)
         break;
     case BLOCK_ID::MRFT :
         blk = new MRFT_Block(b_uid);
+        break;
+    case BLOCK_ID::MULTIPLY :
+        blk = new Multiply(b_uid);
         break;
     case BLOCK_ID::MUX3 :
         blk = new Mux3(b_uid);

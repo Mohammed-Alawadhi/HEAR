@@ -48,8 +48,10 @@ namespace HEAR
         // feedforward acceleration blocks
         auto sum_acc_x = outer_sys->createBlock(BLOCK_ID::SUM, "Sum_acc_x"); ((Sum*)sum_acc_x)->setOperation(Sum::OPERATION::ADD);
         auto sum_acc_y = outer_sys->createBlock(BLOCK_ID::SUM, "Sum_acc_y"); ((Sum*)sum_acc_y)->setOperation(Sum::OPERATION::ADD);
-        auto acc_ref_gain_x = outer_sys->createBlock(BLOCK_ID::GAIN, "Acc_ref_gain_x"); ((Gain*)acc_ref_gain_x)->setGain(ACC_REF_K_X);
-        auto acc_ref_gain_y = outer_sys->createBlock(BLOCK_ID::GAIN, "Acc_ref_gain_y"); ((Gain*)acc_ref_gain_y)->setGain(ACC_REF_K_Y);
+        auto grav_scale = outer_sys->createBlock(BLOCK_ID::GAIN, "Grav_Normalize"); ((Gain*)grav_scale)->setGain(1.0/9.8);
+        auto hold_thrust_val = outer_sys->createBlock(BLOCK_ID::HOLDVAL, "Hold_Thrust_Val");
+        auto acc_ref_gain_x = outer_sys->createBlock(BLOCK_ID::MULTIPLY, "Acc_Ref_Gain_x");
+        auto acc_ref_gain_y = outer_sys->createBlock(BLOCK_ID::MULTIPLY, "Acc_Ref_Gain_y");
 
         //////// creating MRFT specific blocks ////////////
         auto mrft_x = outer_sys->createBlock(BLOCK_ID::MRFT, "Mrft_x"); ((MRFT_Block*)mrft_x)->setMRFT_ID(MRFT_ID::MRFT_X);
@@ -88,6 +90,12 @@ namespace HEAR
         outer_sys->connect(demux_ori->getOutputPort<float>(Demux3::OP::Z), to_horizon_vel->getInputPort<float>(ToHorizon::IP::YAW));
         outer_sys->connect(to_horizon_pos->getOutputPort<Vector3D<float>>(ToHorizon::OUT_VEC), pos_h_demux->getInputPort<Vector3D<float>>(Demux3::INPUT));
         outer_sys->connect(to_horizon_vel->getOutputPort<Vector3D<float>>(ToHorizon::OUT_VEC), vel_h_demux->getInputPort<Vector3D<float>>(Demux3::INPUT));
+
+        // feedforward acceleration thrust scaling
+        outer_sys->createSub("/thrust_cmd", hold_thrust_val->getInputPort<float>(HoldVal::IP::INPUT));
+        outer_sys->connect(hold_thrust_val->getOutputPort<float>(HoldVal::OP::OUTPUT), grav_scale->getInputPort<float>(Gain::IP::INPUT));
+        outer_sys->connect(grav_scale->getOutputPort<float>(Gain::OP::OUTPUT), acc_ref_gain_x->getInputPort<float>(Multiply::IP::INPUT_0));
+        outer_sys->connect(grav_scale->getOutputPort<float>(Gain::OP::OUTPUT), acc_ref_gain_y->getInputPort<float>(Multiply::IP::INPUT_0));
         
         // connecting x control sys blocks
         outer_sys->createSub("/waypoint_reference/x", ref_sw_x->getInputPort<float>(InvertedSwitch::IP::NC));
@@ -99,8 +107,8 @@ namespace HEAR
         outer_sys->connect(vel_h_demux->getOutputPort<float>(Demux3::OP::X), sum_ref_vel_x->getInputPort<float>(Sum::IP::OPERAND1));
         outer_sys->createSub("/waypoint_reference/vel/x", sum_ref_vel_x->getInputPort<float>(Sum::IP::OPERAND2));
         outer_sys->connect(sum_ref_vel_x->getOutputPort<float>(Sum::OP::OUTPUT), pid_x->getInputPort<float>(PID_Block::IP::PV_DOT));
-        outer_sys->createSub("/waypoint_reference/acc/x", acc_ref_gain_x->getInputPort<float>(Gain::IP::INPUT));
-        outer_sys->connect(acc_ref_gain_x->getOutputPort<float>(Gain::OP::OUTPUT), sum_acc_x->getInputPort<float>(Sum::OPERAND1));
+        outer_sys->createSub("/waypoint_reference/acc/x", acc_ref_gain_x->getInputPort<float>(Multiply::IP::INPUT_1));
+        outer_sys->connect(acc_ref_gain_x->getOutputPort<float>(Multiply::OP::OUTPUT), sum_acc_x->getInputPort<float>(Sum::OPERAND1));
         outer_sys->connect(pid_x->getOutputPort<float>(PID_Block::OP::COMMAND), sum_acc_x->getInputPort<float>(Sum::OPERAND2));
         outer_sys->connect(sum_acc_x->getOutputPort<float>(Sum::OP::OUTPUT), mrft_sw_x->getInputPort<float>(InvertedSwitch::IP::NC));
         outer_sys->connect(pid_x->getOutputPort<float>(PID_Block::OP::COMMAND), med_filt_x->getInputPort<float>(MedianFilter::IP::INPUT));
@@ -119,8 +127,8 @@ namespace HEAR
         outer_sys->connect(vel_h_demux->getOutputPort<float>(Demux3::OP::Y), sum_ref_vel_y->getInputPort<float>(Sum::IP::OPERAND1));
         outer_sys->createSub("/waypoint_reference/vel/y", sum_ref_vel_y->getInputPort<float>(Sum::IP::OPERAND2));
         outer_sys->connect(sum_ref_vel_y->getOutputPort<float>(Sum::OP::OUTPUT), pid_y->getInputPort<float>(PID_Block::IP::PV_DOT));
-        outer_sys->createSub("/waypoint_reference/acc/y", acc_ref_gain_y->getInputPort<float>(Gain::IP::INPUT));
-        outer_sys->connect(acc_ref_gain_y->getOutputPort<float>(Gain::OP::OUTPUT), sum_acc_y->getInputPort<float>(Sum::OPERAND1));
+        outer_sys->createSub("/waypoint_reference/acc/y", acc_ref_gain_y->getInputPort<float>(Multiply::IP::INPUT_1));
+        outer_sys->connect(acc_ref_gain_y->getOutputPort<float>(Multiply::OP::OUTPUT), sum_acc_y->getInputPort<float>(Sum::OPERAND1));
         outer_sys->connect(pid_y->getOutputPort<float>(PID_Block::OP::COMMAND), sum_acc_y->getInputPort<float>(Sum::OPERAND2));
         outer_sys->connect(sum_acc_y->getOutputPort<float>(Sum::OP::OUTPUT), mrft_sw_y->getInputPort<float>(InvertedSwitch::IP::NC));
         outer_sys->connect(pid_y->getOutputPort<float>(PID_Block::OP::COMMAND), med_filt_y->getInputPort<float>(MedianFilter::IP::INPUT));
@@ -192,6 +200,9 @@ namespace HEAR
         outer_sys->connectExternalTrigger(update_pid_trig, pid_x);
         outer_sys->connectExternalTrigger(update_pid_trig, pid_y);
         outer_sys->connectExternalTrigger(update_pid_trig, pid_z);
+
+        // setting hold thrust val trigger
+        outer_sys->createUpdateTrigger(UPDATE_MSG_TYPE::BOOL_MSG, "/record_hover_thrust", hold_thrust_val);
 
         // MRFT X triggering configuration
         trig_srv_x = new ROSUnit_MRFTSwitchSrv(nh, "mrft_switch_x");

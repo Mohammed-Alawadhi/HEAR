@@ -19,6 +19,7 @@ namespace HEAR{
         SUM,
         GAIN,
         MUX3,
+        MULTIPLY,
         DEMUX3,
         CONSTANT,
         DIFFERENTIATOR,

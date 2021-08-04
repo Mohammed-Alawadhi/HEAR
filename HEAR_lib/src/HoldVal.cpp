@@ -16,6 +16,7 @@ void HoldVal::process(){
 
 void HoldVal::update(UpdateMsg* u_msg){
     if(u_msg->getType() == UPDATE_MSG_TYPE::BOOL_MSG){
+        inp->read(_val);
         _hold = ((BoolMsg*)u_msg)->data;
     }
 }

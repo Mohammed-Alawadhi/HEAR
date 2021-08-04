@@ -14,8 +14,8 @@ public:
     virtual ~OuterSysNodelet();
 
 private:
-    const float ACC_REF_K_X = 0.0416;
-    const float ACC_REF_K_Y = 0.0416;
+    // const float ACC_REF_K_X = 0.0416;
+    // const float ACC_REF_K_Y = 0.0416;
     const float SAT_XY_VALUE = 0.87;
     const float SAT_Z_VALUE = 0.9;
     const float BIAS_Z_VALUE = 0.4;
