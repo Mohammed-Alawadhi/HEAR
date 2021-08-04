@@ -68,7 +68,7 @@ namespace HEAR
         auto hold_ref_z = outer_sys->createBlock(BLOCK_ID::HOLDVAL, "Hold_Ref_z");
 
         //////// creating SLAM specific Blocks ///////////
-        auto diff_slam_pos = outer_sys->createBlock(BLOCK_ID::DIFFERENTIATOR, "Pos_Derivative", TYPE::Float3); ((Differentiator<Vector3D<float>>*)diff_slam_pos)->supPeak(0.3);
+        auto diff_slam_pos = outer_sys->createBlock(BLOCK_ID::DIFFERENTIATOR, "Pos_Derivative", TYPE::Float3); ((Differentiator<Vector3D<float>>*)diff_slam_pos)->supPeak(1.0);
         auto pos_slam_demux = outer_sys->createBlock(BLOCK_ID::DEMUX3, "Pos_SLAM_Demux");
         auto pos_sw = outer_sys->createBlock(BLOCK_ID::INVERTED_SWITCH3, "Pos_sw");
         auto vel_sw = outer_sys->createBlock(BLOCK_ID::INVERTED_SWITCH3, "Vel_sw");
