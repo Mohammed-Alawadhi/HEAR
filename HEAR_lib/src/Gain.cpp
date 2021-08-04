@@ -10,7 +10,7 @@ Gain::Gain (int b_uid) : Block(BLOCK_ID::GAIN, b_uid) {
 }
 
 void Gain::process(){
-    float x;
+    float x = 0;
     inp->read(x);
     out->write(K*x);
 }

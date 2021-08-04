@@ -17,6 +17,8 @@ public:
 ROSUnitFloatSub::ROSUnitFloatSub(ros::NodeHandle& nh, const std::string& topic, int idx){
     sub_ = nh.subscribe<std_msgs::Float32>(topic, 10, &ROSUnitFloatSub::callback, this);
     _output_port = new OutputPort<float>(idx, 0);
+    
+    ((OutputPort<float>*)_output_port)->write(0);
     id_ = idx;
 }
 void ROSUnitFloatSub::callback(const std_msgs::Float32::ConstPtr& msg){
