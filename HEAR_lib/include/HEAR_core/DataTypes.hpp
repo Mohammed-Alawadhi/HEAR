@@ -95,6 +95,7 @@ namespace HEAR{
 
     class UpdateMsg{
         public:
+            virtual ~UpdateMsg(){}
             virtual UPDATE_MSG_TYPE getType() const =0;
             virtual UpdateMsg* copy() const =0;
     };
