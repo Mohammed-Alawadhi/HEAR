@@ -16,6 +16,7 @@
 #include "HEAR_control/HexaActuationSystem.hpp"
 #include "HEAR_control/HoldVal.hpp"
 #include "HEAR_control/InvertedSwitch.hpp"
+#include "HEAR_control/InvertedSwitch3.hpp"
 #include "HEAR_control/MedianFilter.hpp"
 #include "HEAR_control/Mrft.hpp"
 #include "HEAR_control/Mux3.hpp"
@@ -98,6 +99,9 @@ Block* Library::createBlock(BLOCK_ID b_type, int b_uid, double _dt, TYPE d_type)
         break;
     case BLOCK_ID::INVERTED_SWITCH :
         blk = new InvertedSwitch(b_uid);
+        break;
+    case BLOCK_ID::INVERTED_SWITCH3 :
+        blk = new InvertedSwitch3(b_uid);
         break;
     case BLOCK_ID::MEDIAN_FILTER :
         blk = new MedianFilter(b_uid);

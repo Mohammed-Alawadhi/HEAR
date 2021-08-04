@@ -58,7 +58,11 @@ namespace HEAR
         auto hold_ref_z = outer_sys->createBlock(BLOCK_ID::HOLDVAL, "Hold_Ref_z");
 
         //////// creating SLAM specific Blocks ///////////
+        auto diff_slam_pos = outer_sys->createBlock(BLOCK_ID::DIFFERENTIATOR, "Pos_Derivative", TYPE::Float3); ((Differentiator<Vector3D<float>>*)diff_slam_pos)->supPeak(0.3);
         auto pos_slam_demux = outer_sys->createBlock(BLOCK_ID::DEMUX3, "Pos_SLAM_Demux");
+        auto pos_sw = outer_sys->createBlock(BLOCK_ID::INVERTED_SWITCH3, "Pos_sw");
+        auto vel_sw = outer_sys->createBlock(BLOCK_ID::INVERTED_SWITCH3, "Vel_sw");
+        auto ori_sw = outer_sys->createBlock(BLOCK_ID::INVERTED_SWITCH3, "Ori_sw");
         auto ref_sw_x = outer_sys->createBlock(BLOCK_ID::INVERTED_SWITCH, "Ref_Sw_x");
         auto ref_sw_y = outer_sys->createBlock(BLOCK_ID::INVERTED_SWITCH, "Ref_Sw_y");
         auto ref_sw_z = outer_sys->createBlock(BLOCK_ID::INVERTED_SWITCH, "Ref_Sw_z");
@@ -85,14 +89,21 @@ namespace HEAR
         outer_sys->connectExternalInput(pos_slam_port, slam_port[0]);
         outer_sys->connectExternalInput(ori_slam_port, slam_port[1]);
         outer_sys->connectExternalInput(pos_slam_port, pos_slam_demux->getInputPort<Vector3D<float>>(Demux3::IP::INPUT));
+        outer_sys->connectExternalInput(pos_slam_port, diff_slam_pos->getInputPort<Vector3D<float>>(0));
+        outer_sys->connectExternalInput(pos_slam_port, pos_sw->getInputPort<Vector3D<float>>(InvertedSwitch3::IP::NO));
+        outer_sys->connectExternalInput(ori_slam_port, ori_sw->getInputPort<Vector3D<float>>(InvertedSwitch3::IP::NO));
+        outer_sys->connect(diff_slam_pos->getOutputPort<Vector3D<float>>(0), vel_sw->getInputPort<Vector3D<float>>(InvertedSwitch3::IP::NO));
 
         // connecting input data preparation blocks
-        outer_sys->connectExternalInput(ori_port, demux_ori->getInputPort<Vector3D<float>>(Demux3::IP::INPUT));
+        outer_sys->connectExternalInput(ori_port, ori_sw->getInputPort<Vector3D<float>>(InvertedSwitch3::IP::NC));
+        outer_sys->connect(ori_sw->getOutputPort<Vector3D<float>>(InvertedSwitch3::OP::COM), demux_ori->getInputPort<Vector3D<float>>(Demux3::IP::INPUT));
         outer_sys->connectExternalInput(pos_port, diff_pos->getInputPort<Vector3D<float>>(0));
         outer_sys->connect(diff_pos->getOutputPort<Vector3D<float>>(0), pos_filt->getInputPort<Vector3D<float>>(0));
-        outer_sys->connectExternalInput(pos_port, to_horizon_pos->getInputPort<Vector3D<float>>(ToHorizon::IP::INP_VEC));
+        outer_sys->connectExternalInput(pos_port, pos_sw->getInputPort<Vector3D<float>>(InvertedSwitch3::IP::NC));
+        outer_sys->connect(pos_sw->getOutputPort<Vector3D<float>>(InvertedSwitch3::OP::COM), to_horizon_pos->getInputPort<Vector3D<float>>(ToHorizon::IP::INP_VEC));
         outer_sys->connect(demux_ori->getOutputPort<float>(Demux3::OP::Z), to_horizon_pos->getInputPort<float>(ToHorizon::IP::YAW));
-        outer_sys->connect(pos_filt->getOutputPort<Vector3D<float>>(0), to_horizon_vel->getInputPort<Vector3D<float>>(ToHorizon::IP::INP_VEC));
+        outer_sys->connect(pos_filt->getOutputPort<Vector3D<float>>(0), vel_sw->getInputPort<Vector3D<float>>(InvertedSwitch3::IP::NC));
+        outer_sys->connect(vel_sw->getOutputPort<Vector3D<float>>(InvertedSwitch3::OP::COM), to_horizon_vel->getInputPort<Vector3D<float>>(ToHorizon::IP::INP_VEC));
         outer_sys->connect(demux_ori->getOutputPort<float>(Demux3::OP::Z), to_horizon_vel->getInputPort<float>(ToHorizon::IP::YAW));
         outer_sys->connect(to_horizon_pos->getOutputPort<Vector3D<float>>(ToHorizon::OUT_VEC), pos_h_demux->getInputPort<Vector3D<float>>(Demux3::INPUT));
         outer_sys->connect(to_horizon_vel->getOutputPort<Vector3D<float>>(ToHorizon::OUT_VEC), vel_h_demux->getInputPort<Vector3D<float>>(Demux3::INPUT));
@@ -179,6 +190,7 @@ namespace HEAR
         outer_sys->createPub<Vector3D<float>>(TYPE::Float3, "opti_pos", ((Block*)pos_port)->getOutputPort<Vector3D<float>>(0));
         outer_sys->createPub<Vector3D<float>>(TYPE::Float3, "opti_ori", ((Block*)ori_port)->getOutputPort<Vector3D<float>>(0));
         outer_sys->createPub<Vector3D<float>>(TYPE::Float3, "slam_pos", ((Block*)pos_slam_port)->getOutputPort<Vector3D<float>>(0));
+        outer_sys->createPub<Vector3D<float>>(TYPE::Float3, "slam_vel", diff_slam_pos->getOutputPort<Vector3D<float>>(0));
         outer_sys->createPub<Vector3D<float>>(TYPE::Float3, "slam_ori", ((Block*)ori_slam_port)->getOutputPort<Vector3D<float>>(0));
 
         // configuring yaw provider for mission scenario
@@ -239,7 +251,11 @@ namespace HEAR
         outer_sys->connectExternalTrigger(mrft_update_trig, mrft_y);
         outer_sys->connectExternalTrigger(mrft_update_trig, mrft_z);
 
-        // // setting slam provider switches
+        // setting slam provider switches
+        auto slam_sw_trig = outer_sys->createUpdateTrigger(UPDATE_MSG_TYPE::BOOL_MSG, "/slam_switch");
+        outer_sys->connectExternalTrigger(slam_sw_trig, pos_sw);
+        outer_sys->connectExternalTrigger(slam_sw_trig, vel_sw);
+        outer_sys->connectExternalTrigger(slam_sw_trig, ori_sw);
         // outer_sys->createUpdateTrigger(UPDATE_MSG_TYPE::BOOL_MSG, "/slam_switch_x", prov_sw_x);  //// NEED to add prov for velocity also
         // outer_sys->createUpdateTrigger(UPDATE_MSG_TYPE::BOOL_MSG, "/slam_switch_y", prov_sw_y);
         // outer_sys->createUpdateTrigger(UPDATE_MSG_TYPE::BOOL_MSG, "/slam_switch_z", prov_sw_z);
