@@ -79,6 +79,8 @@ void ROSUnit_SLAM::odom_callback(const nav_msgs::Odometry::ConstPtr& odom_msg){
             _hold = diff;
         }
         prev_diff = diff;
+        prev_pos = pos;
+        prevT = slam_pose.header.stamp;
     }
     slam_vel = offset_tf.getBasis()*vel;
     ////////////////////////
