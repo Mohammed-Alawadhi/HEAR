@@ -18,10 +18,11 @@ std::vector<ExternalOutputPort<Vector3D<float>>*> ROSUnit_SLAM::registerSLAM(con
     odom_sub = nh_.subscribe(t_name, 10, &ROSUnit_SLAM::odom_callback, this);
     
     pos_out_port = new ExternalOutputPort<Vector3D<float>>(0);
+    vel_out_port = new ExternalOutputPort<Vector3D<float>>(0);
     ori_out_port = new ExternalOutputPort<Vector3D<float>>(0);
     tf2_ros::TransformListener tf_listener(tf_Buffer);
 
-    return std::vector<ExternalOutputPort<Vector3D<float>>*>{pos_out_port, ori_out_port};
+    return std::vector<ExternalOutputPort<Vector3D<float>>*>{pos_out_port, ori_out_port, vel_out_port};
 }
 
 void ROSUnit_SLAM::connectInputs(OutputPort<Vector3D<float>>* pos_port, OutputPort<Vector3D<float>>* ori_port){
@@ -30,7 +31,7 @@ void ROSUnit_SLAM::connectInputs(OutputPort<Vector3D<float>>* pos_port, OutputPo
 }
 
 void ROSUnit_SLAM::odom_callback(const nav_msgs::Odometry::ConstPtr& odom_msg){
-    tf2::Vector3 pos;
+    tf2::Vector3 pos, vel;
     tf2::Matrix3x3 rot;
 
     geometry_msgs::PoseStamped slam_pose, tf_pose;
@@ -55,10 +56,38 @@ void ROSUnit_SLAM::odom_callback(const nav_msgs::Odometry::ConstPtr& odom_msg){
     slam_pos = offset_tf*pos;
     slam_rot = offset_tf.getBasis()*rot;
 
+    // velocity calculation
+    if(first_read == 0){
+        first_read = 1;
+        prevT = slam_pose.header.stamp;
+        prev_pos = pos;
+        vel = tf2::Vector3(0, 0, 0);
+        prev_diff = vel;
+    }else{
+        auto _dt = (slam_pose.header.stamp - prevT).toSec();
+        auto diff = (pos - prev_pos)/_dt;
+        vel = diff;
+        if(first_read == 1){
+            first_read = 2;
+            prev_diff = diff;
+        }
+        auto d_diff = diff - prev_diff;
+        if(abs(d_diff.x()) > PEAK_THRESH || abs(d_diff.y()) > PEAK_THRESH || abs(d_diff.z()) > PEAK_THRESH){
+            vel = _hold;
+        }
+        else{
+            _hold = diff;
+        }
+        prev_diff = diff;
+    }
+    slam_vel = offset_tf.getBasis()*vel;
+    ////////////////////////
+
     double r, p, y;
     slam_rot.getRPY(r, p, y);
     
     pos_out_port->write(Vector3D<float>(slam_pos.x(), slam_pos.y(), slam_pos.z()));
+    vel_out_port->write(Vector3D<float>(slam_vel.x(), slam_vel.y(), slam_vel.z()));
     ori_out_port->write(Vector3D<float>(r, p, y));
 }
 

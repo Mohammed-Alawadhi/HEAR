@@ -19,18 +19,22 @@ namespace HEAR{
 
 class ROSUnit_SLAM {
 private:
+    const float PEAK_THRESH = 0.25;
     ros::NodeHandle nh_;
     ros::Subscriber odom_sub;
     ros::ServiceServer set_offset_srv;
     tf2_ros::Buffer tf_Buffer;
     std::string ref_frame = "map";
+    ros::Time prevT;
+    uint8_t first_read = 0;
     InputPort<Vector3D<float>>* pos_inp_port;
     InputPort<Vector3D<float>>* ori_inp_port;
 
     ExternalOutputPort<Vector3D<float>>* pos_out_port;
+    ExternalOutputPort<Vector3D<float>>* vel_out_port;
     ExternalOutputPort<Vector3D<float>>* ori_out_port;
     tf2::Transform offset_tf;
-    tf2::Vector3 slam_pos;
+    tf2::Vector3 slam_pos, prev_pos, slam_vel, prev_diff, _hold;
     tf2::Matrix3x3 slam_rot;    
     bool to_map = false;
 
