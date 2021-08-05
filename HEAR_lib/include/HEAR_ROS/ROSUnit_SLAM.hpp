@@ -19,7 +19,7 @@ namespace HEAR{
 
 class ROSUnit_SLAM {
 private:
-    const float PEAK_THRESH = 0.25;
+    const float PEAK_THRESH = 0.35;
     ros::NodeHandle nh_;
     ros::Subscriber odom_sub;
     ros::ServiceServer set_offset_srv;
