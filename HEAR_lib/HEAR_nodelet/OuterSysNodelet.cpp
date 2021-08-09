@@ -92,7 +92,8 @@ namespace HEAR
 
         // external input for slam
         providers_slam = new ROSUnit_SLAM(nh);
-        providers_slam->connectInputs(((Block*)pos_port)->getOutputPort<Vector3D<float>>(0), ((Block*)ori_port)->getOutputPort<Vector3D<float>>(0));
+        auto sub_ori = outer_sys->createSub(TYPE::Float3 ,"/Inner_Sys/body_ori");
+        providers_slam->connectInputs(((Block*)pos_port)->getOutputPort<Vector3D<float>>(0), sub_ori->getOutputPort<Vector3D<float>>());
         auto pos_slam_port = outer_sys->createExternalInputPort<Vector3D<float>>("Pos_SLAM_Port");
         auto vel_slam_port = outer_sys->createExternalInputPort<Vector3D<float>>("Vel_SLAM_Port");
         auto ori_slam_port = outer_sys->createExternalInputPort<Vector3D<float>>("Ori_SLAM_Port");

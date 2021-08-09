@@ -99,7 +99,7 @@ bool ROSUnit_SLAM::srv_callback(hear_msgs::set_bool::Request& req, hear_msgs::se
     ori_inp_port->read(angs);
     
     tf2::Matrix3x3 rot;
-    rot.setEulerYPR(angs.z, angs.x, -angs.y);
+    rot.setEulerYPR(angs.z, angs.y, angs.x);
     offset_tf.setBasis(rot*(slam_rot.transpose()));
     offset_tf.setOrigin(tf2::Vector3(trans.x, trans.y, trans.z) - offset_tf.getBasis()*slam_pos);
 
