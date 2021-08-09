@@ -20,7 +20,7 @@ private:
     const float SAT_XY_VALUE = 0.87;
     const float SAT_Z_VALUE = 0.9;
     const float BIAS_Z_VALUE = 0.4;
-    const int FREQUENCY = 120;
+    const int FREQUENCY = 90;
     virtual void onInit();
     
     RosSystem* outer_sys;    
