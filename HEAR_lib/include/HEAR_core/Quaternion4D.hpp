@@ -38,6 +38,12 @@ class Quaternion4D {
                 inline friend Quaternion4D<T> operator * (const Quaternion4D<T> &v1, const T& tmp) {
                         return Quaternion4D<T>(v1.w*tmp, v1.x*tmp, v1.y*tmp, v1.z*tmp);
                 }
+                inline friend Vector3D<T> operator * (const Quaternion4D<T> &q, const Vector3D<T>& v) {
+                        Vector3D<T> vec(v.x*(q.w*q.w + q.x*q.x - q.y*q.y - q.z*q.z) - v.y*(2*q.w*q.z - 2*q.x*q.y) + v.z*(2*q.w*q.y + 2*q.x*q.z),
+                                        v.y*(q.w*q.w - q.x*q.x + q.y*q.y - q.z*q.z) + v.x*(2*q.w*q.z + 2*q.x*q.y) - v.z*(2*q.w*q.x - 2*q.y*q.z),
+                                        v.z*(q.w*q.w - q.x*q.x - q.y*q.y + q.z*q.z) - v.x*(2*q.w*q.y - 2*q.x*q.z) + v.y*(2*q.w*q.x + 2*q.y*q.z));
+                        return vec;
+                }
                 inline Quaternion4D<T>& operator = (const std::initializer_list<T>& tmp) {
                         w = *tmp.begin(); x = *(tmp.begin()+1); y = *(tmp.begin()+2); z = *(tmp.begin()+3);
                         return *this;
