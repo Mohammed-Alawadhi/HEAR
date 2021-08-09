@@ -15,7 +15,7 @@ int main(int argc, char **argv){
     auto pos_port = sys->createExternalInputPort<Vector3D<float>>("Pos_opti_port");
     auto ori_port = sys->createExternalInputPort<Vector3D<float>>("Ori_opti_port");
     sys->connectExternalInput(pos_port, opti_port[0]);
-    sys->connectExternalInput(ori_port, opti_port[0]);
+    sys->connectExternalInput(ori_port, opti_port[1]);
     auto imu_port = providers->registerImuOri("/filter/quaternion");
     auto angle_rate_port = providers->registerImuAngularRate("/imu/angular_velocity");
     auto acc_port = providers->registerImuAcceleration("/imu/acceleration");

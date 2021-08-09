@@ -1,0 +1,5 @@
+<launch>
+  <arg name="bag_file_name" value="2021-06-29-18-18-57"/>
+
+  <node pkg="rosbag" type="play" name="rosbag_play" output="screen" args="-l $(find hear_flight_controller)/launch/$(arg bag_file_name).bag"/>
+</launch>
