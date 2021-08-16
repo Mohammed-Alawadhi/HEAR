@@ -37,7 +37,7 @@ private:
 
     Eigen::Matrix<float, 13, 13> _Fx, _P, _Qtune;
     Eigen::Matrix<float, 13, 1> _x;
-    Eigen::Matrix<float, 13, 6> _FQ;
+    Eigen::Matrix<float, 6,  13> _FQ;
     Eigen::DiagonalMatrix<float, 6> _Q;
     Eigen::Matrix<float, 3, 3> _R_pos;
     Eigen::Matrix<float, 4, 4> _R_ang;

@@ -26,6 +26,9 @@ KF3D::~KF3D() {
 void KF3D::reset() {
     _x.Zero();
     _x(6, 0) = 1;
+    _x(10, 0) = 0.4343;
+    _x(11, 0) = 0.5344;
+    _x(12, 0) = -0.0167;
     _P.Identity();
     _P = _P * 0.1;
     assert(_x.rows() == 13 && _x.cols() == 1);
@@ -66,32 +69,32 @@ void KF3D::reset() {
 void KF3D::update(UpdateMsg* u_msg){ }
 
 void KF3D::process(){
-    std::cout << "freq: " << 1/((ros::Time::now() - _prev_time).toSec()) << "\n";
-    _prev_time = ros::Time::now();
-    // readInputs();
-    // if(!initialized) {
-    //     if(_new_pos.x != 0 && _new_pos.y != 0 && _new_pos.z != 0) {
-    //         _x(0, 0) = _new_pos.x; _x(1, 0) = _new_pos.y; _x(2, 0) = _new_pos.z;
-    //         _new_ang.setRPY(_new_eul.x, _new_eul.y, _new_eul.z);
-    //         _x(6, 0) = _new_ang.getW(); _x(7, 0) = _new_ang.getX(); _x(8, 0) = _new_ang.getY(); _x(9, 0) = _new_ang.getZ();
-    //         initialized = true;
-    //         std::cout << "Initialized\n";
-    //     }
-    //     else {
-    //         std::cout << "not initialized yet!\n";
-    //     }
-    // }
-    // else{
-    //     predict();
-    //     correct();
-    //     //if(_raw_gyro != _old_gyro) {
-    //         _old_gyro = _raw_gyro;
-    //         publish();
-    //     //}
-    //     //else {
-    //     //    std::cout<<"old gyro detected, not publishing!\n";
-    //     //}
-    // }
+    //std::cout << "freq: " << 1/((ros::Time::now() - _prev_time).toSec()) << "\n";
+    //_prev_time = ros::Time::now();
+    readInputs();
+    if(!initialized) {
+        if(_new_pos.x != 0 && _new_pos.y != 0 && _new_pos.z != 0) {
+            _x(0, 0) = _new_pos.x; _x(1, 0) = _new_pos.y; _x(2, 0) = _new_pos.z;
+            _new_ang.setRPY(_new_eul.x, _new_eul.y, _new_eul.z);
+            _x(6, 0) = _new_ang.getW(); _x(7, 0) = _new_ang.getX(); _x(8, 0) = _new_ang.getY(); _x(9, 0) = _new_ang.getZ();
+            initialized = true;
+            std::cout << "Initialized\n";
+        }
+        else {
+            std::cout << "not initialized yet!\n";
+        }
+    }
+    else{
+        predict();
+        correct();
+        if(_raw_gyro != _old_gyro) {
+            _old_gyro = _raw_gyro;
+            publish();
+        }
+        else {
+            //std::cout<<"old gyro detected, not publishing!\n";
+        }
+    }
 }
 
 void KF3D::readInputs() {
@@ -109,7 +112,7 @@ void KF3D::predict(){
         predictVelocity();
         predictPosition();
         updatePredictionCoveriance();
-        _P = _Fx * _P * _Fx.transpose() + _FQ * _Q *_FQ.transpose() + _Qtune;
+        _P = _Fx.transpose() * _P * _Fx + _FQ.transpose() * _Q *_FQ + _Qtune;
     }
 }
 
@@ -223,7 +226,7 @@ void KF3D::updatePredictionJacobian() {
             -t65,t66,t63,-t61,t62,t59,t30,t29,t22,1.0,0.0,0.0,0.0,
             t2*t54*(-1.0/2.0),t2*t45*(-1.0/2.0),(t2*t50)/2.0,-_dt*t54,-_dt*t45,_dt*t50,0.0,0.0,0.0,0.0,1.0,0.0,0.0,
             (t2*t51)/2.0,t2*t53*(-1.0/2.0),t2*t43*(-1.0/2.0),_dt*t51,-_dt*t53,-_dt*t43,0.0,0.0,0.0,0.0,0.0,1.0,0.0,
-            t2*t44*(-1.0/2.0),(t2*t49)/2.0,t2*t52*(-1.0/2.0),-_dt*t44,_dt*t49,-_dt*t52,0.0,0.0,0.0,0.0,0.0,0.0,1.0;
+            t2*t44*(-1.0/2.0),(t2*t49)/2.0,t2*t52*(-1.0/2.0),-_dt*t44,_dt*t49,-_dt*t52,0.0,0.0,0.0,0.0,0.0,0.0,1.0; //WARNING: This is the transposed representation
     assert((_Fx.rows() == _Fx.cols()) && (_Fx.rows() == 13));
 };
 void KF3D::updateProcessNoiseJacobian() {
@@ -254,20 +257,14 @@ void KF3D::updateProcessNoiseJacobian() {
     float t25 = t3+t6+t16+t17;
     float t26 = t3+t5+t16+t18;
     float t27 = t3+t4+t17+t18;
-    _FQ << (t2*t27)/2.0,    (t2*t21)/2.0,       t2*t23*(-1.0/2.0),  _dt*t27,            _dt*t21,        -_dt*t23,
-            0.0,            0.0,                0.0,                0.0,                0.0,            0.0,
-            0.0,            t2*t24*(-1.0/2.0),  (t2*t26)/2.0,       (t2*t19)/2.0,       -_dt*t24,       _dt*t26,
-            _dt*t19,        0.0,                0.0,                0.0,                0.0,            0.0,
-            0.0,            0.0,                (t2*t20)/2.0,       t2*t22*(-1.0/2.0),  (t2*t25)/2.0,   _dt*t20,
-            -_dt*t22,       _dt*t25,            0.0,                0.0,                0.0,            0.0,
-            0.0,            0.0,                0.0,                0.0,                0.0,            0.0,
-            0.0,            0.0,                0.0,                0.0,                0.0,            0.0,
-            0.0,            0.0,                0.0,                0.0,                0.0,            0.0,
-            0.0,            0.0,                0.0,                0.0,                0.0,            0.0,
-            0.0,            0.0,                0.0,                0.0,                0.0,            0.0,
-            0.0,            0.0,                0.0,                0.0,                0.0,            0.0,
-            0.0,            0.0,                0.0,                0.0,                0.0,            0.0;
-    assert((_FQ.rows() == 13) && (_FQ.cols() == 6));
+    _FQ << (t2*t27)/2.0,        (t2*t21)/2.0,       t2*t23*(-1.0/2.0),  _dt*t27,    _dt*t21,    -_dt*t23,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+           t2*t24*(-1.0/2.0),   (t2*t26)/2.0,       (t2*t19)/2.0,       -_dt*t24,   _dt*t26,    _dt*t19,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+           (t2*t20)/2.0,        t2*t22*(-1.0/2.0),  (t2*t25)/2.0,       _dt*t20,    -_dt*t22,   _dt*t25,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+           0.0,                 0.0,                0.0,                0.0,        0.0,        0.0,        0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+           0.0,                 0.0,                0.0,                0.0,        0.0,        0.0,        0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+           0.0,                 0.0,                0.0,                0.0,        0.0,        0.0,        0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0; 
+           //WARNING: This is the transposed representation
+    assert((_FQ.rows() == 6) && (_FQ.cols() == 13));
 };
 
 void KF3D::correct() {
@@ -317,6 +314,7 @@ void KF3D::doCorrectionMath(const Eigen::Ref<const Eigen::MatrixXf> &H,
     Eigen::MatrixXf K, S, I_KH;
     S = H * _P * H.transpose() + R;
     K = _P * H.transpose() * S.inverse();
+    std::cout << "K: " << K << "\n";
     _x = _x + K * (z - H * _x);
     _pred_ang(_x(6,0), _x(7,0), _x(8,0), _x(9,0));
     _pred_ang.normalize();
