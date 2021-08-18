@@ -1,8 +1,10 @@
 #ifndef KF3D_HPP
 #define KF3D_HPP
 
-#include "eigen3/Eigen/Core"
-#include "eigen3/Eigen/Dense"
+//#include "eigen3/Eigen/Core"
+//#include "eigen3/Eigen/Dense"
+#include "Eigen/Core"
+#include "Eigen/Dense"
 #include "HEAR_core/Block.hpp"
 #include "HEAR_core/Vector3D.hpp"
 #include "HEAR_core/Quaternion4D.hpp"

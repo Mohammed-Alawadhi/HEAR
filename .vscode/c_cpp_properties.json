@@ -3,6 +3,7 @@
         {
             "name": "Linux",
             "includePath": [
+                "HEAR_lib/libs/**"
                 "HEAR_lib/include/**",
                 "/opt/ros/melodic/include/**",
                 "~/HEAR_ws/devel/include/**",

@@ -1,5 +1,6 @@
 cmake_minimum_required(VERSION 2.8.3)
 
+
 # set(PROJECT_NAME hear_flight_controller)
 
 project(hear_flight_controller)
@@ -14,7 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 catkin_package(
-  INCLUDE_DIRS include
+  INCLUDE_DIRS include libs
   LIBRARIES ${PROJECT_NAME}
   CATKIN_DEPENDS
     hear_msgs
@@ -28,6 +29,7 @@ catkin_package(
 
 include_directories(
     include
+    ${CMAKE_CURRENT_SOURCE_DIR}/libs/
     HEAR_nodelet    
     ${catkin_INCLUDE_DIRS}
 )
