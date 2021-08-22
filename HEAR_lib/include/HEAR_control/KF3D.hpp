@@ -1,17 +1,14 @@
 #ifndef KF3D_HPP
 #define KF3D_HPP
 
-//#include "eigen3/Eigen/Core"
-//#include "eigen3/Eigen/Dense"
-#include "Eigen/Core"
-#include "Eigen/Dense"
+#include "Core"
+#include "Dense"
 #include "HEAR_core/Block.hpp"
 #include "HEAR_core/Vector3D.hpp"
 #include "HEAR_core/Quaternion4D.hpp"
 #include <tf2/LinearMath/Matrix3x3.h>
 #include <cassert>
 #include <ros/ros.h>
-#include <fstream> //TODO: delete
 
 namespace HEAR{
 
@@ -24,8 +21,8 @@ private:
     OutputPort<Vector3D<float>>* predicted_pos;
     OutputPort<Vector3D<float>>* predicted_vel;
     OutputPort<Vector3D<float>>* predicted_angles;
-    //OutputPort<Vector3D<float>>* predicted_acc_b;
-    //OutputPort<Vector3D<float>>* predicted_gyro_b;
+    OutputPort<Vector3D<float>>* predicted_acc_b;
+
     float _dt;
     Vector3D<float> _raw_gyro, _old_gyro, _raw_acc, _meas_pos, _omega, _acc_inertial, _meas_ang;
     Quaternion4D<float> _pred_ang;
@@ -33,7 +30,6 @@ private:
     Vector3D<float> _new_eul;
     tf2::Quaternion _new_ang;
     bool initialized = false; //TODO: delete
-    std::ofstream outdata; //TODO: delete
     ros::Time _prev_time;
 
 
@@ -61,7 +57,7 @@ private:
 
 public:
     enum IP{GYRO, ACC, ANGLES, POS};
-    enum OP{PRED_POS, PRED_VEL, PRED_ANG};//, PRED_ACC_B, PRED_GYRO_B};
+    enum OP{PRED_POS, PRED_VEL, PRED_ANG, PRED_ACC_B};
     enum COEFF{};
 
     KF3D(int b_uid, float dt);

@@ -1,7 +1,5 @@
 #include "HEAR_control/KF3D.hpp"
 
-#include <iostream>
-
 namespace HEAR{
 
 KF3D::KF3D(int b_uid, float dt) : Block(BLOCK_ID::KF, b_uid), _dt(dt) {
@@ -12,15 +10,11 @@ KF3D::KF3D(int b_uid, float dt) : Block(BLOCK_ID::KF, b_uid), _dt(dt) {
     predicted_pos = createOutputPort<Vector3D<float>>(OP::PRED_POS, "PREDICTED_POS");
     predicted_vel = createOutputPort<Vector3D<float>>(OP::PRED_VEL, "PREDCITED_VEL");
     predicted_angles = createOutputPort<Vector3D<float>>(OP::PRED_ANG, "PREDICTED_ANG");
-    //predicted_acc_b = createOutputPort<Vector3D<float>>(OP::PRED_ACC_B, "PREDCITED_ACC_B");
-    //predicted_gyro_b = createOutputPort<Vector3D<float>>(OP::PRED_GYRO_B, "PREDICTED_GYRO_B");
+    predicted_acc_b = createOutputPort<Vector3D<float>>(OP::PRED_ACC_B, "PREDCITED_ACC_B");
     reset();
-    outdata.open("debug.txt"); //TODO: delete
-    _prev_time = ros::Time::now();
 }
 
 KF3D::~KF3D() { 
-    outdata.close(); // TODO: delete
 }
 
 void KF3D::reset() {
@@ -69,8 +63,6 @@ void KF3D::reset() {
 void KF3D::update(UpdateMsg* u_msg){ }
 
 void KF3D::process(){
-    //std::cout << "freq: " << 1/((ros::Time::now() - _prev_time).toSec()) << "\n";
-    //_prev_time = ros::Time::now();
     readInputs();
     if(!initialized) {
         if(_new_pos.x != 0 && _new_pos.y != 0 && _new_pos.z != 0) {
@@ -80,20 +72,11 @@ void KF3D::process(){
             initialized = true;
             std::cout << "Initialized\n";
         }
-        else {
-            std::cout << "not initialized yet!\n";
-        }
     }
     else{
         predict();
         correct();
-        if(_raw_gyro != _old_gyro) {
-            _old_gyro = _raw_gyro;
-            publish();
-        }
-        else {
-            //std::cout<<"old gyro detected, not publishing!\n";
-        }
+        publish();
     }
 }
 
@@ -107,6 +90,7 @@ void KF3D::readInputs() {
 void KF3D::predict(){
 
     if(_raw_gyro != _old_gyro) {
+        _old_gyro = _raw_gyro;
         predictAngle();
         calcInertialAcceleration();
         predictVelocity();
@@ -314,7 +298,6 @@ void KF3D::doCorrectionMath(const Eigen::Ref<const Eigen::MatrixXf> &H,
     Eigen::MatrixXf K, S, I_KH;
     S = H * _P * H.transpose() + R;
     K = _P * H.transpose() * S.inverse();
-    std::cout << "K: " << K << "\n";
     _x = _x + K * (z - H * _x);
     _pred_ang(_x(6,0), _x(7,0), _x(8,0), _x(9,0));
     _pred_ang.normalize();
@@ -324,24 +307,16 @@ void KF3D::doCorrectionMath(const Eigen::Ref<const Eigen::MatrixXf> &H,
 }
 
 void KF3D::publish() {
-    //tf2::Matrix3x3 _pred_rot; _pred_rot.setRotation(tf2::Quaternion(_pred_ang.x, _pred_ang.y, _pred_ang.z, _pred_ang.w));
-    //double yaw, pitch, roll;
-    //_pred_rot.getEulerYPR(yaw, pitch, roll);
-    //predicted_angles->write(Vector3D<float>(roll, pitch, yaw));
+    tf2::Matrix3x3 _pred_rot; _pred_rot.setRotation(tf2::Quaternion(_pred_ang.x, _pred_ang.y, _pred_ang.z, _pred_ang.w));
+    double yaw, pitch, roll;
+    _pred_rot.getEulerYPR(yaw, pitch, roll);
 
-    //predicted_vel->write(Vector3D<float>(_x(3, 0), _x(4, 0), _x(5, 0)));
+    predicted_acc_b->write(Vector3D<float>(_x(10, 0), _x(11, 0), _x(12, 0)));
 
-    //predicted_pos->write(Vector3D<float>(_x(0, 0), _x(1, 0), _x(2, 0)));
+    predicted_angles->write(Vector3D<float>(roll, pitch, yaw));
 
-    outdata <<  _raw_gyro.x <<" "<< _raw_gyro.y << " " << _raw_gyro.z << " "
-            <<  _raw_acc.x <<" "<< _raw_acc.y << " " << _raw_acc.z << " "
-            << _new_ang.getW() <<" "<< _new_ang.getX() <<" "<< _new_ang.getY() <<" "<< _new_ang.getZ() <<" "
-            << _meas_ang.x <<" "<< _meas_ang.y <<" "<< _meas_ang.z <<" "
-            << _meas_pos.x << " " << _meas_pos.y << " " << _meas_pos.z << " "
-            << _x(0, 0) <<" "<< _x(1, 0) <<" "<< _x(2, 0) << " "
-            << _x(3, 0) <<" "<< _x(4, 0) <<" "<< _x(5, 0) << " "
-            << _acc_inertial.x <<" "<< _acc_inertial.y <<" "<<_acc_inertial.z << " "
-            << _x(6, 0) <<" "<< _x(7, 0) <<" "<< _x(8, 0) << " " << _x(9, 0) << " "
-            << _x(10, 0) <<" "<< _x(11, 0) <<" "<< _x(12, 0) << " " << "\n";
+    predicted_vel->write(Vector3D<float>(_x(3, 0), _x(4, 0), _x(5, 0)));
+
+    predicted_pos->write(Vector3D<float>(_x(0, 0), _x(1, 0), _x(2, 0)));
 }
 }
