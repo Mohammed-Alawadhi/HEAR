@@ -1,12 +1,13 @@
 cmake_minimum_required(VERSION 2.8.3)
 
+
 # set(PROJECT_NAME hear_flight_controller)
 
 project(hear_flight_controller)
 
 find_package(catkin REQUIRED COMPONENTS
     roscpp
-    hear_hardware_interface
+    # hear_hardware_interface
     hear_msgs
     geometry_msgs
     tf2
@@ -14,13 +15,12 @@ find_package(catkin REQUIRED COMPONENTS
 )
 
 catkin_package(
-  INCLUDE_DIRS include
+  INCLUDE_DIRS include libs
   LIBRARIES ${PROJECT_NAME}
   CATKIN_DEPENDS
-    hear_msgs
     roscpp
     geometry_msgs
-    hear_hardware_interface
+    # hear_hardware_interface
     hear_msgs
     tf2
     nodelet
@@ -28,11 +28,14 @@ catkin_package(
 
 include_directories(
     include
-    HEAR_nodelet    
+    ${CMAKE_CURRENT_SOURCE_DIR}/libs/Eigen
+    ${CMAKE_CURRENT_SOURCE_DIR}/libs/Navio2
+    ${CMAKE_CURRENT_SOURCE_DIR}/libs/Navio2/Common
+    HEAR_nodelet
     ${catkin_INCLUDE_DIRS}
 )
 
-file(GLOB HEAR_SRCs src/*.cpp)
+file(GLOB HEAR_SRCs libs/Navio2/src/*.cpp src/*.cpp)
 
 add_library(${PROJECT_NAME} ${HEAR_SRCs})
 add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})

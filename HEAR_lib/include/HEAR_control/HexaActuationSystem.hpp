@@ -3,9 +3,9 @@
 
 #include <unistd.h>
 #include <memory>
-#include "HEAR_NAVIO_Interface/Navio2/PWM.h"
-#include "HEAR_NAVIO_Interface/Navio2/RCOutput_Navio2.h"
-#include "HEAR_NAVIO_Interface/Navio2/Common/Util.h"
+#include "PWM.h"
+#include "RCOutput_Navio2.h"
+#include "Common/Util.h"
 
 #include "HEAR_core/Block.hpp"
 #include "HEAR_core/Port.hpp"

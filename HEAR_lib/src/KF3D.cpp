@@ -1,7 +1,5 @@
 #include "HEAR_control/KF3D.hpp"
 
-#include <iostream>
-
 namespace HEAR{
 
 KF3D::KF3D(int b_uid, float dt) : Block(BLOCK_ID::KF, b_uid), _dt(dt) {
@@ -12,20 +10,19 @@ KF3D::KF3D(int b_uid, float dt) : Block(BLOCK_ID::KF, b_uid), _dt(dt) {
     predicted_pos = createOutputPort<Vector3D<float>>(OP::PRED_POS, "PREDICTED_POS");
     predicted_vel = createOutputPort<Vector3D<float>>(OP::PRED_VEL, "PREDCITED_VEL");
     predicted_angles = createOutputPort<Vector3D<float>>(OP::PRED_ANG, "PREDICTED_ANG");
-    //predicted_acc_b = createOutputPort<Vector3D<float>>(OP::PRED_ACC_B, "PREDCITED_ACC_B");
-    //predicted_gyro_b = createOutputPort<Vector3D<float>>(OP::PRED_GYRO_B, "PREDICTED_GYRO_B");
+    predicted_acc_b = createOutputPort<Vector3D<float>>(OP::PRED_ACC_B, "PREDCITED_ACC_B");
     reset();
-    outdata.open("debug.txt"); //TODO: delete
-    _prev_time = ros::Time::now();
 }
 
 KF3D::~KF3D() { 
-    outdata.close(); // TODO: delete
 }
 
 void KF3D::reset() {
     _x.Zero();
     _x(6, 0) = 1;
+    _x(10, 0) = 0.4343;
+    _x(11, 0) = 0.5344;
+    _x(12, 0) = -0.0167;
     _P.Identity();
     _P = _P * 0.1;
     assert(_x.rows() == 13 && _x.cols() == 1);
@@ -66,32 +63,21 @@ void KF3D::reset() {
 void KF3D::update(UpdateMsg* u_msg){ }
 
 void KF3D::process(){
-    std::cout << "freq: " << 1/((ros::Time::now() - _prev_time).toSec()) << "\n";
-    _prev_time = ros::Time::now();
-    // readInputs();
-    // if(!initialized) {
-    //     if(_new_pos.x != 0 && _new_pos.y != 0 && _new_pos.z != 0) {
-    //         _x(0, 0) = _new_pos.x; _x(1, 0) = _new_pos.y; _x(2, 0) = _new_pos.z;
-    //         _new_ang.setRPY(_new_eul.x, _new_eul.y, _new_eul.z);
-    //         _x(6, 0) = _new_ang.getW(); _x(7, 0) = _new_ang.getX(); _x(8, 0) = _new_ang.getY(); _x(9, 0) = _new_ang.getZ();
-    //         initialized = true;
-    //         std::cout << "Initialized\n";
-    //     }
-    //     else {
-    //         std::cout << "not initialized yet!\n";
-    //     }
-    // }
-    // else{
-    //     predict();
-    //     correct();
-    //     //if(_raw_gyro != _old_gyro) {
-    //         _old_gyro = _raw_gyro;
-    //         publish();
-    //     //}
-    //     //else {
-    //     //    std::cout<<"old gyro detected, not publishing!\n";
-    //     //}
-    // }
+    readInputs();
+    if(!initialized) {
+        if(_new_pos.x != 0 && _new_pos.y != 0 && _new_pos.z != 0) {
+            _x(0, 0) = _new_pos.x; _x(1, 0) = _new_pos.y; _x(2, 0) = _new_pos.z;
+            _new_ang.setRPY(_new_eul.x, _new_eul.y, _new_eul.z);
+            _x(6, 0) = _new_ang.getW(); _x(7, 0) = _new_ang.getX(); _x(8, 0) = _new_ang.getY(); _x(9, 0) = _new_ang.getZ();
+            initialized = true;
+            std::cout << "Initialized\n";
+        }
+    }
+    else{
+        predict();
+        correct();
+        publish();
+    }
 }
 
 void KF3D::readInputs() {
@@ -104,12 +90,13 @@ void KF3D::readInputs() {
 void KF3D::predict(){
 
     if(_raw_gyro != _old_gyro) {
+        _old_gyro = _raw_gyro;
         predictAngle();
         calcInertialAcceleration();
         predictVelocity();
         predictPosition();
         updatePredictionCoveriance();
-        _P = _Fx * _P * _Fx.transpose() + _FQ * _Q *_FQ.transpose() + _Qtune;
+        _P = _Fx.transpose() * _P * _Fx + _FQ.transpose() * _Q *_FQ + _Qtune;
     }
 }
 
@@ -223,7 +210,7 @@ void KF3D::updatePredictionJacobian() {
             -t65,t66,t63,-t61,t62,t59,t30,t29,t22,1.0,0.0,0.0,0.0,
             t2*t54*(-1.0/2.0),t2*t45*(-1.0/2.0),(t2*t50)/2.0,-_dt*t54,-_dt*t45,_dt*t50,0.0,0.0,0.0,0.0,1.0,0.0,0.0,
             (t2*t51)/2.0,t2*t53*(-1.0/2.0),t2*t43*(-1.0/2.0),_dt*t51,-_dt*t53,-_dt*t43,0.0,0.0,0.0,0.0,0.0,1.0,0.0,
-            t2*t44*(-1.0/2.0),(t2*t49)/2.0,t2*t52*(-1.0/2.0),-_dt*t44,_dt*t49,-_dt*t52,0.0,0.0,0.0,0.0,0.0,0.0,1.0;
+            t2*t44*(-1.0/2.0),(t2*t49)/2.0,t2*t52*(-1.0/2.0),-_dt*t44,_dt*t49,-_dt*t52,0.0,0.0,0.0,0.0,0.0,0.0,1.0; //WARNING: This is the transposed representation
     assert((_Fx.rows() == _Fx.cols()) && (_Fx.rows() == 13));
 };
 void KF3D::updateProcessNoiseJacobian() {
@@ -254,20 +241,14 @@ void KF3D::updateProcessNoiseJacobian() {
     float t25 = t3+t6+t16+t17;
     float t26 = t3+t5+t16+t18;
     float t27 = t3+t4+t17+t18;
-    _FQ << (t2*t27)/2.0,    (t2*t21)/2.0,       t2*t23*(-1.0/2.0),  _dt*t27,            _dt*t21,        -_dt*t23,
-            0.0,            0.0,                0.0,                0.0,                0.0,            0.0,
-            0.0,            t2*t24*(-1.0/2.0),  (t2*t26)/2.0,       (t2*t19)/2.0,       -_dt*t24,       _dt*t26,
-            _dt*t19,        0.0,                0.0,                0.0,                0.0,            0.0,
-            0.0,            0.0,                (t2*t20)/2.0,       t2*t22*(-1.0/2.0),  (t2*t25)/2.0,   _dt*t20,
-            -_dt*t22,       _dt*t25,            0.0,                0.0,                0.0,            0.0,
-            0.0,            0.0,                0.0,                0.0,                0.0,            0.0,
-            0.0,            0.0,                0.0,                0.0,                0.0,            0.0,
-            0.0,            0.0,                0.0,                0.0,                0.0,            0.0,
-            0.0,            0.0,                0.0,                0.0,                0.0,            0.0,
-            0.0,            0.0,                0.0,                0.0,                0.0,            0.0,
-            0.0,            0.0,                0.0,                0.0,                0.0,            0.0,
-            0.0,            0.0,                0.0,                0.0,                0.0,            0.0;
-    assert((_FQ.rows() == 13) && (_FQ.cols() == 6));
+    _FQ << (t2*t27)/2.0,        (t2*t21)/2.0,       t2*t23*(-1.0/2.0),  _dt*t27,    _dt*t21,    -_dt*t23,   0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+           t2*t24*(-1.0/2.0),   (t2*t26)/2.0,       (t2*t19)/2.0,       -_dt*t24,   _dt*t26,    _dt*t19,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+           (t2*t20)/2.0,        t2*t22*(-1.0/2.0),  (t2*t25)/2.0,       _dt*t20,    -_dt*t22,   _dt*t25,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+           0.0,                 0.0,                0.0,                0.0,        0.0,        0.0,        0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+           0.0,                 0.0,                0.0,                0.0,        0.0,        0.0,        0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0,
+           0.0,                 0.0,                0.0,                0.0,        0.0,        0.0,        0.0,    0.0,    0.0,    0.0,    0.0,    0.0,    0.0; 
+           //WARNING: This is the transposed representation
+    assert((_FQ.rows() == 6) && (_FQ.cols() == 13));
 };
 
 void KF3D::correct() {
@@ -326,24 +307,16 @@ void KF3D::doCorrectionMath(const Eigen::Ref<const Eigen::MatrixXf> &H,
 }
 
 void KF3D::publish() {
-    //tf2::Matrix3x3 _pred_rot; _pred_rot.setRotation(tf2::Quaternion(_pred_ang.x, _pred_ang.y, _pred_ang.z, _pred_ang.w));
-    //double yaw, pitch, roll;
-    //_pred_rot.getEulerYPR(yaw, pitch, roll);
-    //predicted_angles->write(Vector3D<float>(roll, pitch, yaw));
+    tf2::Matrix3x3 _pred_rot; _pred_rot.setRotation(tf2::Quaternion(_pred_ang.x, _pred_ang.y, _pred_ang.z, _pred_ang.w));
+    double yaw, pitch, roll;
+    _pred_rot.getEulerYPR(yaw, pitch, roll);
 
-    //predicted_vel->write(Vector3D<float>(_x(3, 0), _x(4, 0), _x(5, 0)));
+    predicted_acc_b->write(Vector3D<float>(_x(10, 0), _x(11, 0), _x(12, 0)));
 
-    //predicted_pos->write(Vector3D<float>(_x(0, 0), _x(1, 0), _x(2, 0)));
+    predicted_angles->write(Vector3D<float>(roll, pitch, yaw));
 
-    outdata <<  _raw_gyro.x <<" "<< _raw_gyro.y << " " << _raw_gyro.z << " "
-            <<  _raw_acc.x <<" "<< _raw_acc.y << " " << _raw_acc.z << " "
-            << _new_ang.getW() <<" "<< _new_ang.getX() <<" "<< _new_ang.getY() <<" "<< _new_ang.getZ() <<" "
-            << _meas_ang.x <<" "<< _meas_ang.y <<" "<< _meas_ang.z <<" "
-            << _meas_pos.x << " " << _meas_pos.y << " " << _meas_pos.z << " "
-            << _x(0, 0) <<" "<< _x(1, 0) <<" "<< _x(2, 0) << " "
-            << _x(3, 0) <<" "<< _x(4, 0) <<" "<< _x(5, 0) << " "
-            << _acc_inertial.x <<" "<< _acc_inertial.y <<" "<<_acc_inertial.z << " "
-            << _x(6, 0) <<" "<< _x(7, 0) <<" "<< _x(8, 0) << " " << _x(9, 0) << " "
-            << _x(10, 0) <<" "<< _x(11, 0) <<" "<< _x(12, 0) << " " << "\n";
+    predicted_vel->write(Vector3D<float>(_x(3, 0), _x(4, 0), _x(5, 0)));
+
+    predicted_pos->write(Vector3D<float>(_x(0, 0), _x(1, 0), _x(2, 0)));
 }
 }
