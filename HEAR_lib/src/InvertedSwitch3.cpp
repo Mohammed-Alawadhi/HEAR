@@ -1,25 +1,25 @@
-#include "HEAR_control/Switch.hpp"
+#include "HEAR_control/InvertedSwitch3.hpp"
 
 namespace HEAR {
 
-Switch::Switch(int b_uid) : Block(BLOCK_ID::SWITCH, b_uid){
-    _input_port = createInputPort<float>(IP::COM, "COM");
-    _default_port = createOutputPort<float>(OP::NC, "NC"); _default_port->write(0);
-    _other_port = createOutputPort<float>(OP::NO, "NO"); _other_port->write(0);
+InvertedSwitch3::InvertedSwitch3(int b_uid) : Block(BLOCK_ID::INVERTED_SWITCH3, b_uid){
+    _default_port = createInputPort<Vector3D<float>>(IP::NC, "NC");
+    _other_port = createInputPort<Vector3D<float>>(IP::NO, "NO");
+    _output_port = createOutputPort<Vector3D<float>>(OP::COM, "COM");
 }
 
-void Switch::process(){
-    float data;
-    _input_port->read(data);
+void InvertedSwitch3::process(){
+    Vector3D<float> data;
     if(_triggered){
-        _other_port->write(data);
+        _other_port->read(data);
     }
     else {
-        _default_port->write(data);
+        _default_port->read(data);
     }
+    _output_port->write(data);
 }
 
-void Switch::update(UpdateMsg* u_msg){
+void InvertedSwitch3::update(UpdateMsg* u_msg){
     if(u_msg->getType() == UPDATE_MSG_TYPE::SWITCH_TRIG){
         switch (((SwitchMsg*)u_msg)->sw_state)
         {
@@ -39,6 +39,7 @@ void Switch::update(UpdateMsg* u_msg){
     if(u_msg->getType() == UPDATE_MSG_TYPE::BOOL_MSG){
         _triggered = ((BoolMsg*)u_msg)->data;
     }
+
 }
 
 }

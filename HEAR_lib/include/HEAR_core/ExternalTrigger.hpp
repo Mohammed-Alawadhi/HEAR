@@ -5,6 +5,7 @@
 #include "HEAR_core/DataTypes.hpp"
 #include "HEAR_core/Block.hpp"
 #include <vector>
+#include <queue>
 #include <atomic>
 #include <mutex>
 
@@ -14,6 +15,7 @@ protected:
     std::vector<Block*> _connected_blocks;
     std::atomic<bool> _state;
 public:
+    virtual ~ExternalTrigger(){}
     virtual TRIG_TYPE getType() = 0;
     virtual void process() = 0;
     void connect(Block* block){
@@ -23,7 +25,7 @@ public:
 
 class UpdateTrigger : public ExternalTrigger{
 private:
-    UpdateMsg* msg_;
+    std::queue<UpdateMsg*> msgs_;
     std::mutex mtx_;
 public:
     UpdateTrigger(){
@@ -34,18 +36,25 @@ public:
     }
     void process(){
         if(_state){
-            mtx_.lock();
-            auto msg = msg_->copy();
-            mtx_.unlock();
-            for(auto &_connected_block : _connected_blocks){
-            _connected_block->update(msg);
+            while(true){
+                mtx_.lock();
+                if(msgs_.empty()){
+                    _state = false;
+                    mtx_.unlock();
+                    break;
+                }
+                auto msg = msgs_.front();
+                msgs_.pop();
+                mtx_.unlock();
+                for(auto &_connected_block : _connected_blocks){
+                    _connected_block->update(msg);
+                }
             }
-            _state = false;
         }
     }
     void UpdateCallback(const UpdateMsg *msg){
         mtx_.lock();
-        msg_ = msg->copy();
+        msgs_.push(msg->copy());
         mtx_.unlock();
         _state = true;
     }
