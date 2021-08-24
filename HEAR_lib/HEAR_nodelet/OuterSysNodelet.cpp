@@ -89,6 +89,18 @@ namespace HEAR
         auto opti_port = providers->registerOptiPose("/Robot_1/pose");
         outer_sys->connectExternalInput(pos_port, opti_port[0]);
         outer_sys->connectExternalInput(ori_port, opti_port[1]);
+        //for kf
+        auto angle_rate_port = providers->registerImuAngularRate("/imu/angular_velocity");
+        auto acc_port = providers->registerImuAcceleration("/imu/acceleration");
+        auto imu_ang_vel_port = outer_sys->createExternalInputPort<Vector3D<float>>("Ang_vel_port");
+        auto imu_acc_port = outer_sys->createExternalInputPort<Vector3D<float>>("Acc_port");
+        outer_sys->connectExternalInput(imu_ang_vel_port, angle_rate_port);
+        outer_sys->connectExternalInput(imu_acc_port, acc_port);
+        auto kf = outer_sys->createBlock(BLOCK_ID::KF, "KF_3D");
+        outer_sys->connectExternalInput(imu_ang_vel_port, kf->getInputPort<Vector3D<float>>(KF3D::IP::GYRO));
+        outer_sys->connectExternalInput(imu_acc_port, kf->getInputPort<Vector3D<float>>(KF3D::IP::ACC));
+        outer_sys->connectExternalInput(pos_port, kf->getInputPort<Vector3D<float>>(KF3D::IP::POS));
+        outer_sys->connectExternalInput(ori_port, kf->getInputPort<Vector3D<float>>(KF3D::IP::ANGLES));
 
         // external input for slam
         providers_slam = new ROSUnit_SLAM(nh);
@@ -220,6 +232,13 @@ namespace HEAR
         outer_sys->createPub<Vector3D<float>>(TYPE::Float3, "slam_pos", ((Block*)pos_slam_port)->getOutputPort<Vector3D<float>>(0));
         outer_sys->createPub<Vector3D<float>>(TYPE::Float3, "slam_vel", ((Block*)vel_slam_port)->getOutputPort<Vector3D<float>>(0));
         outer_sys->createPub<Vector3D<float>>(TYPE::Float3, "slam_ori", ((Block*)ori_slam_port)->getOutputPort<Vector3D<float>>(0));
+        
+        // setting publishers for kf
+        outer_sys->createPub<Vector3D<float>>(TYPE::Float3, "/KF/position", kf->getOutputPort<Vector3D<float>>(KF3D::OP::PRED_POS));
+        outer_sys->createPub<Vector3D<float>>(TYPE::Float3, "/KF/velocity", kf->getOutputPort<Vector3D<float>>(KF3D::OP::PRED_VEL));
+        outer_sys->createPub<Vector3D<float>>(TYPE::Float3, "/KF/angles", kf->getOutputPort<Vector3D<float>>(KF3D::OP::PRED_ANG));
+        outer_sys->createPub<Vector3D<float>>(TYPE::Float3, "/KF/acc_bias", kf->getOutputPort<Vector3D<float>>(KF3D::OP::PRED_ACC_B));
+ 
 
         // configuring yaw provider for mission scenario
         auto mux_yaw = outer_sys->createBlock(BLOCK_ID::MUX3, "Mux_Yaw");
