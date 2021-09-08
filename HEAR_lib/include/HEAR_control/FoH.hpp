@@ -14,17 +14,17 @@ private:
     T prev_inp, _hold_val, _der;
     float _max_der = 0.5;
     bool is_first = true;
-    double _dt;
+    double *_dt;
 public:
     enum IP{INPUT};
     enum OP{OUTPUT};
-    FoH(double dt, int b_id);
+    FoH(double *dt, int b_id);
     ~FoH(){}
     void process();    
 };
 
 template <class T>
-FoH<T>::FoH (double dt, int b_uid) : Block(BLOCK_ID::FOH, b_uid){
+FoH<T>::FoH (double *dt, int b_uid) : Block(BLOCK_ID::FOH, b_uid){
     _inp = createInputPort<T>(0, "INPUT");
     _out = createOutputPort<T>(0, "OUTPUT");
     prev_inp = 0; _hold_val = 0; _der = 0;
@@ -45,10 +45,10 @@ void FoH<T>::process(){
         } else if (_der < -_max_der){
             _der = -_max_der;
         }
-       out = _dt*_der + prev_inp;
+       out = (*_dt)*_der + prev_inp;
     }  
     else{
-        _der = (inp - _hold_val)/_dt;
+        _der = (inp - _hold_val)/(*_dt);
         _hold_val = inp;
     }
     prev_inp = out;

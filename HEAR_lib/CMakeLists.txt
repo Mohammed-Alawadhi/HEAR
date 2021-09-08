@@ -3,10 +3,6 @@ cmake_minimum_required(VERSION 2.8.3)
 
 # set(PROJECT_NAME hear_flight_controller)
 
-set(CMAKE_CXX_STANDARD 17)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
 project(hear_flight_controller)
 
 find_package(catkin REQUIRED COMPONENTS

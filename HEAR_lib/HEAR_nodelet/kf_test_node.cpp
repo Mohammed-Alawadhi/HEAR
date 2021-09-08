@@ -1,5 +1,8 @@
 #include "HEAR_ROS/RosSystem.hpp"
 #include "HEAR_ROS/ROSUnit_PoseProvider.hpp"
+#include "HEAR_ROS/ROSUnit_SLAM.hpp"
+
+#define use_SLAM
 
 using namespace HEAR;
 
@@ -10,12 +13,23 @@ int main(int argc, char **argv){
     ros::NodeHandle pnh("~");
     RosSystem* sys =  new RosSystem(nh, pnh, 200, "KF System");    
     ROSUnit_PoseProvider* providers = new ROSUnit_PoseProvider(nh);
+    auto pos_port = sys->createExternalInputPort<Vector3D<float>>("Pos_port");
+    auto ori_port = sys->createExternalInputPort<Vector3D<float>>("Ori_port");
 
+    #ifdef use_SLAM
+    auto providers_slam = new ROSUnit_SLAM(nh);
+    auto sub_ori = sys->createSub(TYPE::Float3 ,"/Inner_Sys/body_ori");
+    providers_slam->connectInputs(((Block*)pos_port)->getOutputPort<Vector3D<float>>(0), sub_ori->getOutputPort<Vector3D<float>>());
+    auto slam_port = providers_slam->registerSLAM("/zedm/zed_node/odom");
+    sys->connectExternalInput(pos_port, slam_port[0]);
+    sys->connectExternalInput(ori_port, slam_port[1]);
+
+    #else
     auto opti_port = providers->registerOptiPose("/Robot_1/pose");
-    auto pos_port = sys->createExternalInputPort<Vector3D<float>>("Pos_opti_port");
-    auto ori_port = sys->createExternalInputPort<Vector3D<float>>("Ori_opti_port");
     sys->connectExternalInput(pos_port, opti_port[0]);
     sys->connectExternalInput(ori_port, opti_port[1]);
+    #endif
+
     auto imu_port = providers->registerImuOri("/filter/quaternion");
     auto angle_rate_port = providers->registerImuAngularRate("/imu/angular_velocity");
     auto acc_port = providers->registerImuAcceleration("/imu/acceleration");
@@ -34,9 +48,6 @@ int main(int argc, char **argv){
     sys->connectExternalInput(ori_port, kf->getInputPort<Vector3D<float>>(KF3D::IP::ANGLES));
     
     // connect publishers to KF output ports
-    sys->createPub<Vector3D<float>>(TYPE::Float3,"/opti_pos", pos_port->getOutputPort<Vector3D<float>>(0));
-    sys->createPub<Vector3D<float>>(TYPE::Float3,"/opti_ori", ori_port->getOutputPort<Vector3D<float>>(0));
-    sys->createPub<Vector3D<float>>(TYPE::Float3,"/imu_ori", imu_ori_port->getOutputPort<Vector3D<float>>(0));
     sys->createPub<Vector3D<float>>(TYPE::Float3, "/KF/position", kf->getOutputPort<Vector3D<float>>(KF3D::OP::PRED_POS));
     sys->createPub<Vector3D<float>>(TYPE::Float3, "/KF/velocity", kf->getOutputPort<Vector3D<float>>(KF3D::OP::PRED_VEL));
     sys->createPub<Vector3D<float>>(TYPE::Float3, "/KF/angles", kf->getOutputPort<Vector3D<float>>(KF3D::OP::PRED_ANG));

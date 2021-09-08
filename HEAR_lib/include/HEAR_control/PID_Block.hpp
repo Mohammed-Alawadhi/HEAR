@@ -11,7 +11,7 @@ namespace HEAR{
 class PID_Block : public Block{
 private:
     PID_ID _id;
-    double _dt;
+    double *_dt;
     InputPort<float>* err_port;
     InputPort<float>* pv_dot_port;
     OutputPort<float>* u_port;
@@ -24,7 +24,7 @@ private:
 public:
     enum IP{ERROR, PV_DOT};
     enum OP{COMMAND};
-    PID_Block(double dt, int b_uid);
+    PID_Block(double *dt, int b_uid);
     void setPID_ID(PID_ID id){ _id = id;}
     void update_params(PID_parameters* para);
     ~PID_Block(){}

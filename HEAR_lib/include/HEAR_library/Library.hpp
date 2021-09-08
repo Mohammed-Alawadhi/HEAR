@@ -67,10 +67,10 @@ Block* Library::createBlock(BLOCK_ID b_type, int b_uid, double _dt, TYPE d_type)
         break;
     case BLOCK_ID::DIFFERENTIATOR :
         if(d_type == TYPE::Float3){
-            blk = new Differentiator<Vector3D<float>>(_dt, b_uid);
+            blk = new Differentiator<Vector3D<float>>(&_dt, b_uid);
         }
         else{
-            blk = new Differentiator<float>(_dt, b_uid);
+            blk = new Differentiator<float>(&_dt, b_uid);
         }
         break;
     case BLOCK_ID::EUL2ROT :
@@ -78,10 +78,10 @@ Block* Library::createBlock(BLOCK_ID b_type, int b_uid, double _dt, TYPE d_type)
         break;
     case BLOCK_ID::FOH :
         if(d_type == TYPE::Float3){
-            blk = new FoH<Vector3D<float>>(_dt, b_uid);
+            blk = new FoH<Vector3D<float>>(&_dt, b_uid);
         }
         else{
-            blk = new FoH<float>(_dt, b_uid);
+            blk = new FoH<float>(&_dt, b_uid);
         }
         break;
     case BLOCK_ID::FORCE2ROT :
@@ -121,7 +121,7 @@ Block* Library::createBlock(BLOCK_ID b_type, int b_uid, double _dt, TYPE d_type)
         blk = new Mux3(b_uid);
         break;
     case BLOCK_ID::PID :
-        blk = new PID_Block(_dt, b_uid);
+        blk = new PID_Block(&_dt, b_uid);
         break;
     case BLOCK_ID::QUAT2ROT :
         blk = new Quat2Rot(b_uid);

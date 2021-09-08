@@ -19,6 +19,8 @@
 #include "HEAR_ROS/ROSUnit_FloatSub.hpp"
 #include "HEAR_ROS/ROSUnit_QuatSub.hpp"
 #include <ros/ros.h>
+#include <hear_msgs/set_float.h>
+#include <boost/algorithm/string.hpp>
 
 namespace HEAR{
 
@@ -43,6 +45,7 @@ private:
     ros::NodeHandle nh_;
     ros::NodeHandle pnh_;
     ros::Timer timer_;
+    ros::ServiceServer changeFreqSrv;
     std::vector<ROSUnit_Pub*> _ros_pubs;
     std::vector<ROSUnit_Sub*> _ros_subs;
     std::vector<std::string> ros_pub_names, ros_sub_names;
@@ -51,7 +54,7 @@ private:
     int sub_counter = 0;
     void loopCb(const ros::TimerEvent& event);
     template <class T> void connectPub(ROSUnit_Pub* pub, OutputPort<T>* port);
- 
+    bool changeFreqCallback(hear_msgs::set_float::Request& req, hear_msgs::set_float::Response& res);
 };
 
 RosSystem::~RosSystem(){
@@ -200,9 +203,21 @@ void RosSystem::loopCb(const ros::TimerEvent& event){
 void RosSystem::start(){
     this->init(true);
     timer_ = nh_.createTimer(ros::Duration(_dt), &RosSystem::loopCb, this);
+    std::string srvTopicName = "set_rate_"+ boost::to_lower_copy(this->_sys_name);
+    boost::replace_all(srvTopicName, " ", "_");
+    changeFreqSrv = nh_.advertiseService(srvTopicName, &RosSystem::changeFreqCallback, this);
 
 }
 
+bool RosSystem::changeFreqCallback(hear_msgs::set_float::Request& req, hear_msgs::set_float::Response& res){
+    float req_freq = req.data;
+    if(timer_.isValid()){
+        timer_.setPeriod(ros::Duration(1.f/req_freq));
+        this->_dt = 1.f/req_freq;
+        std::cout << "[INFO] " << this->_sys_name << " rate has been changed to " << req_freq << " Hz \n";
+    }
+    return true;
+}
 
 }
 

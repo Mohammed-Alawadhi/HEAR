@@ -14,13 +14,13 @@ private:
     OutputPort<T>* _out;
     T prev_inp, prev_diff, _hold, prev_out;
     float _max_diff = 100000;
-    double _dt;
+    double *_dt;
     int reset_count = 0;
     bool _sup_peak = false;
 public:
     enum IP{INPUT};
     enum OP{OUTPUT};
-    Differentiator(double dt, int b_id);
+    Differentiator(double *dt, int b_id);
     ~Differentiator(){}
     void process();
     void supPeak(float peak_val){
@@ -30,7 +30,7 @@ public:
 };
 
 template <class T>
-Differentiator<T>::Differentiator (double dt, int b_uid) : Block(BLOCK_ID::DIFFERENTIATOR, b_uid){
+Differentiator<T>::Differentiator (double *dt, int b_uid) : Block(BLOCK_ID::DIFFERENTIATOR, b_uid){
     _inp = createInputPort<T>(0, "INPUT");
     _out = createOutputPort<T>(0, "OUTPUT");
     prev_inp = 0; prev_diff = 0; prev_out = 0;_hold = 0;
@@ -50,11 +50,11 @@ void Differentiator<T>::process(){
     }
     else{
         if(reset_count > 0){
-            diff = dx / (_dt*(reset_count+1));
+            diff = dx / ((*_dt)*(reset_count+1));
             reset_count = 0;
         }
         else{
-            diff= dx/_dt;
+            diff= dx/(*_dt);
         }
         prev_inp = inp;
     }

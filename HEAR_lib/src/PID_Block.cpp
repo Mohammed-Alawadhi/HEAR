@@ -3,7 +3,7 @@
 namespace HEAR{
 
 
-PID_Block::PID_Block(double dt, int b_uid): _dt(dt), Block(BLOCK_ID::PID, b_uid){
+PID_Block::PID_Block(double *dt, int b_uid): _dt(dt), Block(BLOCK_ID::PID, b_uid){
     err_port = createInputPort<float>(IP::ERROR, "ERROR");
     pv_dot_port = createInputPort<float>(IP::PV_DOT, "PV_DOT");
     u_port = createOutputPort<float>(OP::COMMAND, "COMMAND");
@@ -89,7 +89,7 @@ float PID_Block::pid_direct(float err, float pv_first, float pv_second) { //Arbi
 	{
 		if (en_anti_windup) { //$$$$$$$$$$$$$$$$$$$$ TODO: Optimize! $$$$$$$$$$$$$$$$$$$$$
 			if (fabs(accum_I) < _parameters.anti_windup) {
-				accum_I += _parameters.ki*err*_dt;
+				accum_I += _parameters.ki*err*(*_dt);
 			}
 			else {
 				//float buff_I = accum_I + _parameters.ki*err*_dt;
@@ -97,12 +97,12 @@ float PID_Block::pid_direct(float err, float pv_first, float pv_second) { //Arbi
 				//	accum_I = buff_I;
 				//}
 				if (((accum_I > 0) && (err < 0))||((accum_I < 0) && (err > 0))) {
-					accum_I += _parameters.ki*err*_dt;
+					accum_I += _parameters.ki*err*(*_dt);
 				}
 			}
 		}
 		else {
-			accum_I += _parameters.ki*err*_dt;
+			accum_I += _parameters.ki*err*(*_dt);
 		}
 	}
 	u += accum_I;
@@ -112,7 +112,7 @@ float PID_Block::pid_direct(float err, float pv_first, float pv_second) { //Arbi
 			u += _parameters.kd*(pv_first);
 		}
 		else {
-			u += _parameters.kd*(err - prev_err) / _dt;
+			u += _parameters.kd*(err - prev_err) / (*_dt);
 		}
 	}
 	// ************************* DD-term ***************************
