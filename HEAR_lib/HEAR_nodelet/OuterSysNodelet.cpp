@@ -88,9 +88,9 @@ namespace HEAR
         auto ori_sub = outer_sys->createSub(TYPE::Float3, "opti/ori");
 
         //for kf
-        auto sub_kf_pos = outer_sys->createSub(TYPE::Float3, "/KF/position"); 
-        auto sub_kf_vel = outer_sys->createSub(TYPE::Float3, "/KF/velocity"); 
-        auto sub_kf_ori = outer_sys->createSub(TYPE::Float3, "/KF/angles"); 
+        auto sub_kf_pos = outer_sys->createSub(TYPE::Float3, "/kf/position"); 
+        auto sub_kf_vel = outer_sys->createSub(TYPE::Float3, "/kf/velocity"); 
+        auto sub_kf_ori = outer_sys->createSub(TYPE::Float3, "/kf/angles"); 
         auto pos_kf_demux = outer_sys->createBlock(BLOCK_ID::DEMUX3, "Pos_kf_Demux");
         auto pos_kf_sw = outer_sys->createBlock(BLOCK_ID::INVERTED_SWITCH3, "Pos_Kf_sw");
         auto vel_kf_sw = outer_sys->createBlock(BLOCK_ID::INVERTED_SWITCH3, "Vel_Kf_sw");
