@@ -58,6 +58,8 @@ void KF3D::reset() {
               0,    1E-6,   0,    0,
               0,    0,      1E-6, 0,
               0,    0,      0,    1E-6;
+
+    initialized = false;    
 }
 
 void KF3D::update(UpdateMsg* u_msg){ }
