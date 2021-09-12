@@ -3,10 +3,10 @@
         {
             "name": "Linux",
             "includePath": [
-                "HEAR_lib/libs/**",
                 "HEAR_lib/include/**",
                 "/opt/ros/melodic/include/**",
-                "~/HEAR_ws/devel/include/**"
+                "~/HEAR_ws/devel/include/**",
+                "~/HEAR_ws/src/HEAR_Hardware_Interface/include/**"
             ],
             "compilerPath": "/usr/bin/clang",
             "cStandard": "c11",
