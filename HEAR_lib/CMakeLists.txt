@@ -48,6 +48,12 @@ add_executable(kf_test_node HEAR_nodelet/kf_test_node.cpp)
 add_dependencies(kf_test_node ${catkin_LIBRARIES})
 target_link_libraries(kf_test_node ${PROJECT_NAME} ${catkin_LIBRARIES})
 
+add_executable(opti_node HEAR_nodelet/opti_node.cpp)
+target_link_libraries(opti_node ${PROJECT_NAME} ${catkin_LIBRARIES})
+
+add_executable(slam_node HEAR_nodelet/slam_node.cpp)
+target_link_libraries(slam_node ${PROJECT_NAME} ${catkin_LIBRARIES})
+
 add_executable(outer_sys_node HEAR_nodelet/outer_sys_node.cpp)
 add_dependencies(outer_sys_node ${catkin_LIBRARIES})
 target_link_libraries(outer_sys_node ${PROJECT_NAME} ${catkin_LIBRARIES})
