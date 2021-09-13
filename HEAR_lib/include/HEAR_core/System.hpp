@@ -85,6 +85,10 @@ int System::init(bool print_diagram){
 }
 
 Block* System::createBlock(BLOCK_ID b_type, const std::string& name, TYPE d_type){
+    if(num_blocks >= 999){
+        std::cout << "[ERROR] Max 1000 blocks are supported\n";
+        assert(false); 
+    }
     Block* blk = Library::createBlock(b_type, num_blocks++, _dt, d_type);
     _blocks.push_back(blk);
     _block_names.push_back(name);
