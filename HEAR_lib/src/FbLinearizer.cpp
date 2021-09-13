@@ -23,9 +23,9 @@ void Force2Rot::process(){
     }
     tf2::Vector3 F_I_des(F_Ides.x, F_Ides.y, F_Ides.z);
     auto z_B_des = F_I_des.normalized();
-    auto y_aux = F_I_des.cross(tf2::Vector3(cos(yaw_ref), sin(yaw_ref), 0.0));
-    auto y_B_des = y_aux.normalized();
-    auto x_B_des = y_B_des.cross(z_B_des); //TODO: check if it is z_B or z_B_des
+    auto x_aux = (tf2::Vector3(-sin(yaw_ref), cos(yaw_ref), 0.0)).cross(z_B_des);
+    auto x_B_des = x_aux.normalized();
+    auto y_B_des = z_B_des.cross(x_B_des); //TODO: check if it is z_B or z_B_des
     auto R_B_des_I = tf2::Matrix3x3(x_B_des.x(), x_B_des.y(), x_B_des.z(),
                                     y_B_des.x(), y_B_des.y(), y_B_des.z(),
                                     z_B_des.x(), z_B_des.y(), z_B_des.z());
