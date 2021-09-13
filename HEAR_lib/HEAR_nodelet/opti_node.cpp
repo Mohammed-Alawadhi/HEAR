@@ -19,8 +19,8 @@ int main(int argc, char **argv){
     sys->connectExternalInput(ori_port, opti_port[1]);
     
     // connect publishers to KF output ports
-    sys->createPub<Vector3D<float>>(TYPE::Float3, "opti/pos", ((Block*)pos_port)->getOutputPort<Vector3D<float>>(0));
-    sys->createPub<Vector3D<float>>(TYPE::Float3, "opti/ori", ((Block*)ori_port)->getOutputPort<Vector3D<float>>(0));
+    sys->createPub<Vector3D<float>>(TYPE::Float3, "/opti/pos", ((Block*)pos_port)->getOutputPort<Vector3D<float>>(0));
+    sys->createPub<Vector3D<float>>(TYPE::Float3, "/opti/ori", ((Block*)ori_port)->getOutputPort<Vector3D<float>>(0));
 
     sys->start();
     ros::spin();

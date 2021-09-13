@@ -15,7 +15,7 @@ public:
 
 private:
     const int FREQUENCY = 200;
-    const float YAW_SAT_VALUE = 0.2617;
+    const float YAW_SAT_VALUE = 0.87;
 
     virtual void onInit();
     
