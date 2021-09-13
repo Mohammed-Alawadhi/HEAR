@@ -59,7 +59,8 @@ void KF3D::reset() {
               0,    0,      1E-6, 0,
               0,    0,      0,    1E-6;
 
-    initialized = false;    
+    initialized = false; 
+    std::cout << "Kalman filter Reset\n";   
 }
 
 void KF3D::update(UpdateMsg* u_msg){ }

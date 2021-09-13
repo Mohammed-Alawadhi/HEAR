@@ -39,6 +39,8 @@ int main(int argc, char **argv){
     sys->createPub<Vector3D<float>>(TYPE::Float3, "/kf/angles", kf->getOutputPort<Vector3D<float>>(KF3D::OP::PRED_ANG));
     sys->createPub<Vector3D<float>>(TYPE::Float3, "/kf/acc_bias", kf->getOutputPort<Vector3D<float>>(KF3D::OP::PRED_ACC_B));
 
+    sys->createResetTrigger("/reset_kalman", kf);
+
     sys->start();
     ros::spin();
 
