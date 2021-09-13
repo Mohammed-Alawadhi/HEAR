@@ -42,9 +42,11 @@ add_library(${PROJECT_NAME} ${HEAR_SRCs})
 add_dependencies(${PROJECT_NAME} ${catkin_EXPORTED_TARGETS})
 
 add_executable(opti_node HEAR_nodelet/opti_node.cpp)
+add_dependencies(opti_node ${catkin_LIBRARIES})
 target_link_libraries(opti_node ${PROJECT_NAME} ${catkin_LIBRARIES})
 
 add_executable(slam_node HEAR_nodelet/slam_node.cpp)
+add_dependencies(slam_node ${catkin_LIBRARIES})
 target_link_libraries(slam_node ${PROJECT_NAME} ${catkin_LIBRARIES})
 
 add_executable(outer_sys_node HEAR_nodelet/outer_sys_node.cpp)
