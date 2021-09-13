@@ -1,8 +1,8 @@
 <launch> 
   <!-- <include file="$(find mocap_optitrack)/launch/mocap.launch"/>
   <include file="$(find xsens_mti_driver)/launch/xsens_mti_node.launch"/> -->
-  <!-- <node pkg="hear_navio_fc_example" type="waypoint_reference_node" 
-  name="waypoint_reference_node" output="screen" required="true"/>  -->
+  <node pkg="hear_flight_controller" type="opti_node" name="opti_node" output="screen"/>
+
   <node pkg="nodelet" type="nodelet" name="nodelet_manager"  args="manager" output="screen">
   <param name="num_worker_threads" value="3"/>
   </node>
@@ -10,8 +10,5 @@
   <node pkg="nodelet" type="nodelet" name="Outer_Sys" args="load hear_flight_controller/OuterSysNodelet nodelet_manager" output="screen" required="true"/>
   <node pkg="nodelet" type="nodelet" name="Inner_Sys" args="load hear_flight_controller/InnerSysNodelet nodelet_manager" output="screen"/>
   <node pkg="nodelet" type="nodelet" name="Actuation_Sys" args="load hear_flight_controller/ActuationSysNodelet nodelet_manager" output="screen"/>
-<!-- 
-  <node pkg="hear_flight_controller" name="opti_node" type="opti_node" output="screen"/>
-  <node pkg="hear_flight_controller" name="slam_node" type="slam_node" output="screen"/> -->
 
 </launch> 
