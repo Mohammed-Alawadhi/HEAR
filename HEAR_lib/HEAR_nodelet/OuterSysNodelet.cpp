@@ -17,7 +17,7 @@ namespace HEAR
         outer_sys = new RosSystem(nh, pnh, FREQUENCY, "OuterLoop");
 
         //////////// creating blocks /////////////
-        auto diff_pos = outer_sys->createBlock(BLOCK_ID::DIFFERENTIATOR, "Pos_Derivative", TYPE::Float3); ((Differentiator<Vector3D<float>>*)diff_pos)->supPeak(0.3);
+        // auto diff_pos = outer_sys->createBlock(BLOCK_ID::DIFFERENTIATOR, "Pos_Derivative", TYPE::Float3); ((Differentiator<Vector3D<float>>*)diff_pos)->supPeak(0.3);
         auto pos_filt = outer_sys->createBlock(BLOCK_ID::BW_FILT2, "Vel_Filt", TYPE::Float3);
         ((BWFilter2<Vector3D<float>>*)pos_filt)->setCoeff(BWFilt2_coeff::coeff_120Hz_2nd_butter_5hz);
         auto demux_ori = outer_sys->createBlock(BLOCK_ID::DEMUX3, "Demux_ori");
@@ -96,8 +96,8 @@ namespace HEAR
         // connecting input data preparation blocks
         outer_sys->connectSub(ori_sub, ori_sw->getInputPort<Vector3D<float>>(InvertedSwitch3::IP::NC));
         outer_sys->connect(ori_sw->getOutputPort<Vector3D<float>>(InvertedSwitch3::OP::COM), demux_ori->getInputPort<Vector3D<float>>(Demux3::IP::INPUT));
-        outer_sys->connectSub(pos_sub, diff_pos->getInputPort<Vector3D<float>>(0));
-        outer_sys->connect(diff_pos->getOutputPort<Vector3D<float>>(0), pos_filt->getInputPort<Vector3D<float>>(0));
+        // outer_sys->connectSub(pos_sub, diff_pos->getInputPort<Vector3D<float>>(0));
+        outer_sys->createSub(TYPE::Float3, "/opti/vel", pos_filt->getInputPort<Vector3D<float>>(0));
         outer_sys->connectSub(pos_sub, pos_sw->getInputPort<Vector3D<float>>(InvertedSwitch3::IP::NC));
         outer_sys->connect(pos_sw->getOutputPort<Vector3D<float>>(InvertedSwitch3::OP::COM), to_horizon_pos->getInputPort<Vector3D<float>>(ToHorizon::IP::INP_VEC));
         outer_sys->connect(demux_ori->getOutputPort<float>(Demux3::OP::Z), to_horizon_pos->getInputPort<float>(ToHorizon::IP::YAW));
@@ -198,7 +198,7 @@ namespace HEAR
         outer_sys->createPub<Vector3D<float>>(TYPE::Float3, "/fi_des", fh2fi->getOutputPort<Vector3D<float>>(FromHorizon::OP::OUT_VEC));
         outer_sys->createPub<Vector3D<float>>(TYPE::Float3, "/rot_des", mux_eul_des->getOutputPort<Vector3D<float>>(Mux3::OP::OUTPUT));
         outer_sys->createPub("/pid_z", pid_z->getOutputPort<float>(PID_Block::OP::COMMAND));
-        outer_sys->createPub( TYPE::Float3, "/vel_h_x", diff_pos->getOutputPort<Vector3D<float>>(0));
+        // outer_sys->createPub( TYPE::Float3, "/vel_h_x", diff_pos->getOutputPort<Vector3D<float>>(0));
         outer_sys->createPub( TYPE::Float3, "/vel_h_filt", pos_filt->getOutputPort<Vector3D<float>>(0));
 
         // setting publishers for opti and slam pose data
