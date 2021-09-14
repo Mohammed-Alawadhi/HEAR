@@ -28,7 +28,7 @@ namespace HEAR
         auto pid_pitch = inner_sys->createBlock(BLOCK_ID::PID, "Pid_Pitch"); ((PID_Block*)pid_pitch)->setPID_ID(PID_ID::PID_PITCH);
         auto pid_yaw = inner_sys->createBlock(BLOCK_ID::PID, "Pid_Yaw"); ((PID_Block*)pid_yaw)->setPID_ID(PID_ID::PID_YAW);
         auto pid_yaw_rt = inner_sys->createBlock(BLOCK_ID::PID, "Pid_Yaw_Rate"); ((PID_Block*)pid_yaw_rt)->setPID_ID(PID_ID::PID_YAW_RATE);
-        auto sum_ref_yaw_rt = inner_sys->createBlock(BLOCK_ID::SUM, "Sum_Ref_Yaw_rt");
+        auto sum_ref_yaw_rt = inner_sys->createBlock(BLOCK_ID::SUM, "Sum_Ref_Yaw_rt"); ((Sum*)sum_ref_yaw_rt)->setOperation(Sum::OPERATION::ADD);
         auto mux_angle_u = inner_sys->createBlock(BLOCK_ID::MUX3, "Mux_Angle_u");
         auto sat_yaw = inner_sys->createBlock(BLOCK_ID::SATURATION, "Sat_yaw"); ((Saturation*)sat_yaw)->setClipValue(YAW_SAT_VALUE);
         auto demux_yaw = inner_sys->createBlock(BLOCK_ID::DEMUX3, "Demux_Yaw");
