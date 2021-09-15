@@ -15,7 +15,7 @@ public:
 };
 
 ROSUnitPointSub::ROSUnitPointSub (ros::NodeHandle& nh, const std::string& topic, int idx){
-    sub_ = nh.subscribe<geometry_msgs::Point>(topic, 10, &ROSUnitPointSub::callback, this);
+    sub_ = nh.subscribe<geometry_msgs::Point>(topic, 10, &ROSUnitPointSub::callback, this, ros::TransportHints().tcpNoDelay());
     _output_port = new OutputPort<Vector3D<float>>(idx, 0);
     id_ = idx;
 }
