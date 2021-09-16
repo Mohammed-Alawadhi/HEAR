@@ -286,7 +286,7 @@ void KF3D::correct() {
         _new_ang.setRPY(_new_eul.x, _new_eul.y, _new_eul.z);
         _meas_ang = _new_eul;
         Eigen::Matrix<float, 4, 13> H;
-        H.block<4, 13>(0, 6) << _H_ang;
+        H.block<4, 13>(0, 0) << _H_ang;
         Eigen::Matrix<float, 4, 1> z;
         z << _new_ang.getW(), _new_ang.getX(), _new_ang.getY(), _new_ang.getZ();
         Eigen::Matrix<float, 4, 4> R;
