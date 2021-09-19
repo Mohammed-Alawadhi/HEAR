@@ -20,9 +20,6 @@ int main(int argc, char **argv){
 
     auto diff_pos = sys->createBlock(BLOCK_ID::DIFFERENTIATOR, "Pos_Derivative", TYPE::Float3); ((Differentiator<Vector3D<float>>*)diff_pos)->supPeak(0.3);
     sys->connectExternalInput(pos_port, diff_pos->getInputPort<Vector3D<float>>(0));
-
-    auto imu_ori_sub = sys->createSub(TYPE::Float3, "/Inner_Sys/body_ori");
-    providers->connectIMUori(imu_ori_sub->getOutputPort<Vector3D<float>>());
     
     // connect publishers to KF output ports
     sys->createPub<Vector3D<float>>(TYPE::Float3, "/opti/pos", ((Block*)pos_port)->getOutputPort<Vector3D<float>>(0));
