@@ -3,6 +3,7 @@
 namespace HEAR{
 
 ROSUnit_PoseProvider::ROSUnit_PoseProvider(ros::NodeHandle& nh): nh_(nh){
+    ori_inp_port = new InputPort<Vector3D<float>>(0, 0);
 }
 
 
@@ -42,6 +43,14 @@ ExternalOutputPort<Vector3D<float>>* ROSUnit_PoseProvider::registerImuAccelerati
 
 bool ROSUnit_PoseProvider::srv_callback(hear_msgs::set_float::Request& req, hear_msgs::set_float::Response& res) {
     trans_offset.setZ(req.data);
+
+    Vector3D<float> angs;
+    ori_inp_port->read(angs);
+    
+    tf2::Matrix3x3 rot;
+    rot.setEulerYPR(0.0, angs.y, angs.x);
+    rot_offset = rot*(curr_rot.transpose());
+
     return true;
 }
 
@@ -54,9 +63,10 @@ void ROSUnit_PoseProvider::callback_opti_pose(const geometry_msgs::PoseStamped::
     auto R_mat = tf2::Matrix3x3(tf2::Quaternion(msg->pose.orientation.x, msg->pose.orientation.y, msg->pose.orientation.z, msg->pose.orientation.w ));
 
     tf2Scalar yaw, pitch, roll;
-    R_mat.getEulerYPR(yaw, pitch, roll);
+    curr_rot = rot_offset*R_mat;
+    curr_rot.getEulerYPR(yaw, pitch, roll);
 
-    Vector3D<float> vec_ori = {(float)-pitch, (float)roll, (float)yaw};
+    Vector3D<float> vec_ori = {(float)roll, (float)pitch, (float)yaw};
 
     opti_pos_port->write(vec);
     opti_ori_port->write(vec_ori);
@@ -83,6 +93,10 @@ void ROSUnit_PoseProvider::callback_free_acc(const geometry_msgs::Vector3Stamped
     Vector3D<float> vec = {(float)msg->vector.x, (float)msg->vector.y, (float)msg->vector.z};
 
     imu_acc_port->write(vec);
+}
+
+void ROSUnit_PoseProvider::connectIMUori(OutputPort<Vector3D<float>>* ori_port){
+    ori_inp_port->connect(ori_port);
 }
 
 }

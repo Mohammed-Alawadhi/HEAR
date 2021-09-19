@@ -35,8 +35,10 @@ private:
     void callback_free_acc(const geometry_msgs::Vector3Stamped::ConstPtr& );
     void callback_angular_vel(const geometry_msgs::Vector3Stamped::ConstPtr&);
     bool srv_callback(hear_msgs::set_float::Request&, hear_msgs::set_float::Response&);
-    tf2::Matrix3x3 rot_offset;
+    tf2::Matrix3x3 rot_offset, curr_rot;
     tf2::Vector3 trans_offset;
+    InputPort<Vector3D<float>>* ori_inp_port;
+
 public:
     void process(){}
     ROSUnit_PoseProvider(ros::NodeHandle& nh);
@@ -45,6 +47,7 @@ public:
     ExternalOutputPort<Vector3D<float>>* registerImuOri(std::string t_name);
     ExternalOutputPort<Vector3D<float>>* registerImuAngularRate(std::string t_name);
     ExternalOutputPort<Vector3D<float>>* registerImuAcceleration(std::string t_name);
+    void connectIMUori(OutputPort<Vector3D<float>>* ori_port);
 };
 
 }
