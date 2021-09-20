@@ -53,10 +53,11 @@ void ROSUnit_PoseProvider::callback_opti_pose(const geometry_msgs::PoseStamped::
 
     auto R_mat = tf2::Matrix3x3(tf2::Quaternion(msg->pose.orientation.x, msg->pose.orientation.y, msg->pose.orientation.z, msg->pose.orientation.w ));
 
+    R_mat = rot_offset * R_mat * rot_offset.transpose();
     tf2Scalar yaw, pitch, roll;
     R_mat.getEulerYPR(yaw, pitch, roll);
 
-    Vector3D<float> vec_ori = {(float)-pitch, (float)roll, (float)yaw};
+    Vector3D<float> vec_ori = {(float)roll, (float)pitch, (float)yaw};
 
     opti_pos_port->write(vec);
     opti_ori_port->write(vec_ori);
