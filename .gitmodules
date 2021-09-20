@@ -1,3 +1,5 @@
 [submodule "HEAR_px4/Firmware"]
 	path = HEAR_px4/Firmware
 	url = https://github.com/AhmedHumais/Firmware.git
+[submodule "Firmware"]
+	branch = stable
