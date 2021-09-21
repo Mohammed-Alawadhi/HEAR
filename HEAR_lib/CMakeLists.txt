@@ -83,8 +83,14 @@ target_link_libraries(actuation_sys_nodelet
     ${catkin_LIBRARIES}
 )
 
+add_library(opti_nodelet HEAR_nodelet/OptiNodelet.cpp)
+add_dependencies(opti_nodelet ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(opti_nodelet
+    ${PROJECT_NAME}
+    ${catkin_LIBRARIES}
+)
 
-install(TARGETS outer_sys_nodelet inner_sys_nodelet actuation_sys_nodelet ${PROJECT_NAME}
+install(TARGETS outer_sys_nodelet inner_sys_nodelet actuation_sys_nodelet opti_nodelet ${PROJECT_NAME}
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
@@ -93,6 +99,6 @@ install(TARGETS outer_sys_nodelet inner_sys_nodelet actuation_sys_nodelet ${PROJ
 install(DIRECTORY include/
         DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION})
 
-install(FILES outer_sys_nodelet.xml inner_sys_nodelet.xml actuation_sys_nodelet.xml
+install(FILES outer_sys_nodelet.xml inner_sys_nodelet.xml actuation_sys_nodelet.xml opti_nodelet.xml
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}
 )
