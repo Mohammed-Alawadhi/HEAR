@@ -2,7 +2,7 @@
 #include "HEAR_ROS/ROSUnit_PoseProvider.hpp"
 #include "HEAR_ROS/ROSUnit_SLAM.hpp"
 
-//#define use_SLAM
+#define use_SLAM
 
 using namespace HEAR;
 
