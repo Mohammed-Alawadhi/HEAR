@@ -25,6 +25,7 @@
 #include "HEAR_control/Rot2Eul.hpp"
 #include "HEAR_control/Saturation.hpp"
 #include "HEAR_control/Sum.hpp"
+#include "HEAR_control/Sum3.hpp"
 #include "HEAR_control/Switch.hpp"
 #include "HEAR_control/ToHorizon.hpp"
 #include "HEAR_control/Rot2Quat.hpp"
@@ -136,6 +137,9 @@ Block* Library::createBlock(BLOCK_ID b_type, int b_uid, double _dt, TYPE d_type)
         break;
     case BLOCK_ID::SUM :
         blk = new Sum(b_uid);
+        break;
+    case BLOCK_ID::SUM3 :
+        blk = new Sum3(b_uid);
         break;
     case BLOCK_ID::SWITCH :
         blk = new Switch(b_uid);

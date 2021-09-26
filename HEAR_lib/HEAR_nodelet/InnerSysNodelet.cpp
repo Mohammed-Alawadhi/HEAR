@@ -24,6 +24,8 @@ namespace HEAR
         auto eul2Rb = inner_sys->createBlock(BLOCK_ID::EUL2ROT, "Eul_to_Rb");
         auto roterr2angerr = inner_sys->createBlock(BLOCK_ID::ROTDIFF2ROD, "RotErr_to_AngErr");
         auto demux_angerr = inner_sys->createBlock(BLOCK_ID::DEMUX3, "Demux_AngleErr");
+        auto negate_roll_dot = inner_sys->createBlock(BLOCK_ID::GAIN, "Negate_Roll_Dot"); ((Gain*)negate_roll_dot)->setGain(-1.0);
+        auto negate_pitch_dot = inner_sys->createBlock(BLOCK_ID::GAIN, "Negate_Pitch_Dot"); ((Gain*)negate_pitch_dot)->setGain(-1.0);
         auto pid_roll = inner_sys->createBlock(BLOCK_ID::PID, "Pid_Roll"); ((PID_Block*)pid_roll)->setPID_ID(PID_ID::PID_ROLL); 
         auto pid_pitch = inner_sys->createBlock(BLOCK_ID::PID, "Pid_Pitch"); ((PID_Block*)pid_pitch)->setPID_ID(PID_ID::PID_PITCH);
         auto pid_yaw = inner_sys->createBlock(BLOCK_ID::PID, "Pid_Yaw"); ((PID_Block*)pid_yaw)->setPID_ID(PID_ID::PID_YAW);
@@ -82,12 +84,14 @@ namespace HEAR
         inner_sys->connect(roterr2angerr->getOutputPort<Vector3D<float>>(FbLinearizer::RotDiff2Rod::OP::ROD_ANGLES), demux_angerr->getInputPort<Vector3D<float>>(Demux3::IP::INPUT));
 
         inner_sys->connect(demux_angerr->getOutputPort<float>(Demux3::OP::X), pid_roll->getInputPort<float>(PID_Block::IP::ERROR));
-        inner_sys->connect(demux_angle_rate->getOutputPort<float>(Demux3::OP::X), pid_roll->getInputPort<float>(PID_Block::IP::PV_DOT));
+        inner_sys->connect(demux_angle_rate->getOutputPort<float>(Demux3::OP::X), negate_roll_dot->getInputPort<float>(Gain::IP::INPUT));
+        inner_sys->connect(negate_roll_dot->getOutputPort<float>(Gain::OP::OUTPUT), pid_roll->getInputPort<float>(PID_Block::IP::PV_DOT));
         inner_sys->connect(pid_roll->getOutputPort<float>(PID_Block::OP::COMMAND), med_filt_roll->getInputPort<float>(MedianFilter::IP::INPUT));
         inner_sys->connect(med_filt_roll->getOutputPort<float>(MedianFilter::OP::OUTPUT), mrft_roll->getInputPort<float>(MRFT_Block::IP::BIAS));                
         inner_sys->connect(demux_angerr->getOutputPort<float>(Demux3::OP::X), mrft_roll->getInputPort<float>(MRFT_Block::IP::INPUT));
         inner_sys->connect(demux_angerr->getOutputPort<float>(Demux3::OP::Y), pid_pitch->getInputPort<float>(PID_Block::IP::ERROR));
-        inner_sys->connect(demux_angle_rate->getOutputPort<float>(Demux3::OP::Y), pid_pitch->getInputPort<float>(PID_Block::IP::PV_DOT));
+        inner_sys->connect(demux_angle_rate->getOutputPort<float>(Demux3::OP::Y), negate_pitch_dot->getInputPort<float>(Gain::IP::INPUT));
+        inner_sys->connect(negate_pitch_dot->getOutputPort<float>(Gain::OP::OUTPUT), pid_pitch->getInputPort<float>(PID_Block::IP::PV_DOT));
         inner_sys->connect(pid_pitch->getOutputPort<float>(PID_Block::OP::COMMAND), med_filt_pitch->getInputPort<float>(MedianFilter::IP::INPUT));
         inner_sys->connect(med_filt_pitch->getOutputPort<float>(MedianFilter::OP::OUTPUT), mrft_pitch->getInputPort<float>(MRFT_Block::IP::BIAS));                
         inner_sys->connect(demux_angerr->getOutputPort<float>(Demux3::OP::Y), mrft_pitch->getInputPort<float>(MRFT_Block::IP::INPUT));

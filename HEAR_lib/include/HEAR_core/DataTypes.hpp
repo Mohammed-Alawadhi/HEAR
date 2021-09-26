@@ -17,6 +17,7 @@ namespace HEAR{
         PID,
         MRFT,
         SUM,
+        SUM3,
         GAIN,
         MUX3,
         MULTIPLY,
