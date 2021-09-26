@@ -46,9 +46,9 @@ void KF3D::reset() {
                                0,    0,     1E-5,   0,
                                0,    0,     0,      1E-5;
 
-    _Qtune.block<3, 3>(10, 10) << 0,    0,    0,
-                                  0,    0,    0,
-                                  0,    0,    0;
+    _Qtune.block<3, 3>(10, 10) << 1e-6,    0,    0,
+                                  0,    1e-6,    0,
+                                  0,    0,    1e-6;
 
     _R_pos << 1E-3, 0,    0,
               0,    1E-3, 0,
@@ -63,7 +63,16 @@ void KF3D::reset() {
     std::cout << "Kalman filter Reset\n";   
 }
 
-void KF3D::update(UpdateMsg* u_msg){ }
+void KF3D::update(UpdateMsg* u_msg){
+    if(u_msg->getType() == UPDATE_MSG_TYPE::BOOL_MSG){
+        if(((BoolMsg*)u_msg)->data){
+            _Qtune.block<3, 3>(10, 10) << 0,    0,    0,
+                                          0,    0,    0,
+                                          0,    0,    0;
+            std::cout <<"Freezed Acceleration Biases\n";
+        }
+    }
+ }
 
 void KF3D::process(){
     readInputs();

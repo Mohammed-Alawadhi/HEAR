@@ -2,7 +2,7 @@
 #include "HEAR_ROS/ROSUnit_PoseProvider.hpp"
 #include "HEAR_ROS/ROSUnit_SLAM.hpp"
 
-#define use_SLAM
+//#define use_SLAM
 
 using namespace HEAR;
 
@@ -40,6 +40,7 @@ int main(int argc, char **argv){
     sys->createPub<Vector3D<float>>(TYPE::Float3, "/kf/acc_bias", kf->getOutputPort<Vector3D<float>>(KF3D::OP::PRED_ACC_B));
 
     sys->createResetTrigger("/reset_kalman", kf);
+    sys->createUpdateTrigger(UPDATE_MSG_TYPE::BOOL_MSG, "/kf_freeze_bias", kf);
 
     sys->start();
     ros::spin();
