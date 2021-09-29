@@ -8,7 +8,7 @@ Installing PX4 Dependinces from HEAR
 4. Install ROS Melodic Moreia: http://wiki.ros.org/melodic/Installation/Ubuntu
 5. Uncheck http://packages.microsoft.com/repo/code stable main from Software & Updates
 6. Fork HEAR to your github from https://github.com/AhmedHumais/HEAR
-7. git clone https://github.com/YourName/HEAR
+7. git clone https://github.com/"YourUserName"/HEAR
 8. cd HEAR
 9. git checkout hear_px4
 10. git submodule update --init --recursive
