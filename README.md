@@ -16,3 +16,5 @@ Installing PX4 Dependinces from HEAR
 12. git checkout 342e0da7961f9a3301706ed3835cfc163b14b2ed
 13. $cd Tools/setup
 14. $sudo bash ubuntu.sh
+
+Note: This could help building sapog Firmware.
