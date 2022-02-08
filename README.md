@@ -15,4 +15,4 @@
 13. $cd Tools/setup
 14. $sudo bash ubuntu.sh
 
-Note: This could help building sapog Firmware.
+Note: This could help building Sapog Firmware.
