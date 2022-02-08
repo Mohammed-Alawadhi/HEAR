@@ -1,7 +1,5 @@
 # HEAR
-Flight controller code
 
-Installing PX4 Dependinces from HEAR
 1. Install Ubuntu 18.04.5: http://old-releases.ubuntu.com/releases/bionic/ubuntu-18.04.5-desktop-amd64.iso
 2. Run Commands: $sudo apt-get update and $sudo apt-get install aptitude
 3. Install git & curl using commands: $sudo apt-get install git, $sudo apt-get install curl
